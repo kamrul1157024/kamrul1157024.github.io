@@ -89,7 +89,7 @@
         </div>
     </div>
 
-    <div class="fb-comments" data-href="https://kamrul1157024.github.io/java_tutorial.htm" data-numposts="5"></div>
+    <div id="comment" class="fb-comments" data-href="https://kamrul1157024.github.io/java_tutorial.htm" data-numposts="5"></div>
 
 
     <script>
@@ -102,7 +102,7 @@
             if (window.innerWidth <= 800 && window.innerHeight <= 600) {
                 modify();
             }
-            var cm = document.getElementsByClassName('fb-comments');
+            var cm = document.getElementById('comment');
             cm.setAttribute('data-width', window.innerWidth - 25);
             cm.setAttribute('styel', '{margin:20px;}');
 

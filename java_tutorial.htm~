@@ -89,7 +89,7 @@
         </div>
     </div>
 
-    <div id="comment" class="fb-comments" data-href="https://kamrul1157024.github.io/java_tutorial.htm" data-numposts="5"></div>
+    <div class="fb-comments" data-href="https://kamrul1157024.github.io/java_tutorial.htm" data-numposts="5"></div>
 
 
     <script>
