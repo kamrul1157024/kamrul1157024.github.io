@@ -96,7 +96,7 @@
                }
             var cm=document.getElementById('comment');
             cm.setAttribute('data-width',window.innerWidth-25);
-            cm.style.margin=20px;
+            cm.setAttribute('styel','{margin:20px;}');
             
             
             
