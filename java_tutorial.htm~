@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 
 <head>
     <title>Multithreading </title>
@@ -29,7 +29,7 @@
 <body onload="detectmob()">
     <div id="fb-root"></div>
     <script>
-        (function (d, s, id) {
+        (function(d, s, id) {
             var js, fjs = d.getElementsByTagName(s)[0];
             if (d.getElementById(id)) return;
             js = d.createElement(s);
@@ -41,7 +41,11 @@
     <nav class="navbar navbar-inverse">
         <div class="container-fluid">
             <div class="navbar-header">
-                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#myNavbar"> <span class="icon-bar"></span> <span class="icon-bar"></span> <span class="icon-bar"></span> </button> <a class="navbar-brand" href="#" ><p font='myfont'>TreeInCode</p></a> </div>
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#myNavbar"> <span class="icon-bar"></span> <span class="icon-bar"></span> <span class="icon-bar"></span> </button>
+                <a class="navbar-brand" href="#">
+                    <p font='myfont'>TreeInCode</p>
+                </a>
+            </div>
             <div class="collapse navbar-collapse" id="myNavbar">
                 <ul class="nav navbar-nav">
                     <li class="active"><a href="index.html">Home</a></li>
@@ -60,7 +64,8 @@
         <div class="w3-display-container w3-text-white"> <img src="code_banner.png" alt="Lights" style="width:100%">
             <div class="w3-display-middle w3-large">
                 <div class="w3-container w3-light-grey">
-                    <h2 style="text-shadow:1px 1px 0 #444">TreeInCode</h2> </div>
+                    <h2 style="text-shadow:1px 1px 0 #444">TreeInCode</h2>
+                </div>
             </div>
         </div>
     </div>
@@ -68,21 +73,23 @@
         <br>
         <br> </div>
     <div class="w3-container">
-        <div class="w3-margin"></div>
-        
-        <!-------- post title ------->
-        <h2 class="myfont mymargin">মাল্টিথ্রেডিংঃ </h2>
-        <div class="container">
-            <div id="dummy" class="well well-sm mybox">
-                <p class="myfont"> 
-                <!--- post will be here ---->
-                জাভা মাল্টিথ্রেডিং মাল্টিথ্রেডিং কি? মাল্টিথ্রেডিং মাল্টিটাস্কিং এর একটি বিশেষ ফর্ম । মাল্টিটাস্কিং এর সাথে সবাই পরিচিত । যেমন কেও কম্পিউটারে টাইপ করার সময় ক্রোমে ইন্টারনেট ব্রাউজ ও করা যায় এইটা হল মাল্টিটাস্কিং । কিন্ত মাল্টিথ্রেডিং ও টাস্কিং এর মধ্য পার্থক্য রয়েছে । প্রসেসড বেসড মাল্টি টাস্কিং এ একটি প্রোগ্রামই হল ক্ষুদ্রতম একক । আর থ্রেড বেসড মাল্টিটাস্কিং এ থ্রেডই ক্ষুদ্রতম একক । থ্রেড হল প্রোগ্রামের এর অংশ । মাল্টিটাস্কিং এ দুইটা মেইন মেথড পাশাপাশি রান হয় আর মাল্টিথ্রেডিং একটা মেইন মেথড থাকে । এই কারনে মাল্টিথ্রেডিং অপেক্ষা মাল্টি টাস্কিং অনেক হেভি ও আলাদা মেমরি স্পেস এর প্রয়োজন হয় । কিন্তু দুইটা আলাদা থ্রেড একই মেমরি স্পেসে রান হয় । ইন্টার প্রসেস কমনিকেশন ও কনটেক্সট সুইচিং অনেক কস্টলি কিন্ত থ্রেড বেসড কমনিকেশনে প্রায় কোন কস্ট নেই এখন মাল্টিথ্রেডিং কেন দরকার ? যেমন ধরি ফেসবুক মেসেঞ্জার এপ এটি একি সাথে ইন্টারনেট কানেশন আছে কিনা চেক করে ও মেসেজ আদান প্রদান করে এখন থ্রেড না থাকলে একটি প্রসেস শেষ হওয়ার জন্য বসে থাকতে হত ... দেখা যেত ইন্টারনেট কানেশন চেক করার সময় এপ হ্যং হয়ে আছে আবার ধরা যাক টেক্সট এডিটর এটি স্ক্রিনে টেক্সট দেখানোর সাথে সাথে টেক্সট ও ফরমেটিং করে । </p>
+        <div class="w3-margin">
+
+            <!-------- post title ------->
+            <h2 class="myfont mymargin">মাল্টিথ্রেডিংঃ </h2>
+            <div class="container">
+                <div id="dummy" class="well well-sm mybox">
+                    <p class="myfont">
+                        <!--- post will be here ---->
+
+
+
+                </div>
             </div>
         </div>
     </div>
 
-
-<div id="comment" class="fb-comments" data-href="https://kamrul1157024.github.io/java_tutorial.htm" data-numposts="5"></div>
+    <div id="comment" class="fb-comments" data-href="https://kamrul1157024.github.io/java_tutorial.htm" data-numposts="5"></div>
 
 
     <script>
@@ -94,14 +101,17 @@
         function detectmob() {
             if (window.innerWidth <= 800 && window.innerHeight <= 600) {
                 modify();
-               }
-            var cm=document.getElementById('comment');
-            cm.setAttribute('data-width',window.innerWidth-25);
-            cm.setAttribute('styel','{margin:20px;}');
-            
-            
-            
+            }
+            var cm = document.getElementsByClassName('fb-comments');
+            cm.setAttribute('data-width', window.innerWidth - 25);
+            cm.setAttribute('styel', '{margin:20px;}');
+
+            var fr = document.getElementById('frame');
+
+
+
         }
     </script>
 </body>
+
 </html>
