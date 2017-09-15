@@ -11,34 +11,33 @@
     <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
     <link href="https://fonts.googleapis.com/css?family=Atma" rel="stylesheet">
     <style>
-.myfont{
-    font-family: 'Atma', cursive;
-    
-}
-    .mymargin
-        {
+        .myfont {
+            font-family: 'Atma', cursive;
+        }
+        
+        .mymargin {
             margin-left: 80px;
         }
-        .mybox{
-            
-            margin-left: 60px
-            margin-bottom: 20px;
+        
+        .mybox {
+            margin-left: 60px margin-bottom: 20px;
             margin-top: 10px;
         }
-</style>
+    </style>
 </head>
 
 <body onload="detectmob()">
-    
     <div id="fb-root"></div>
-<script>(function(d, s, id) {
-  var js, fjs = d.getElementsByTagName(s)[0];
-  if (d.getElementById(id)) return;
-  js = d.createElement(s); js.id = id;
-  js.src = "//connect.facebook.net/en_US/sdk.js#xfbml=1&version=v2.10";
-  fjs.parentNode.insertBefore(js, fjs);
-}(document, 'script', 'facebook-jssdk'));</script>
-
+    <script>
+        (function (d, s, id) {
+            var js, fjs = d.getElementsByTagName(s)[0];
+            if (d.getElementById(id)) return;
+            js = d.createElement(s);
+            js.id = id;
+            js.src = "//connect.facebook.net/en_US/sdk.js#xfbml=1&version=v2.10";
+            fjs.parentNode.insertBefore(js, fjs);
+        }(document, 'script', 'facebook-jssdk'));
+    </script>
     <nav class="navbar navbar-inverse">
         <div class="container-fluid">
             <div class="navbar-header">
@@ -68,78 +67,31 @@
         <br>
         <br> </div>
     <div class="w3-container">
-    <div class="w3-margin"></div>
-    <h2 class="myfont mymargin">মাল্টিথ্রেডিংঃ </h2>
+        <div class="w3-margin"></div>
         
+        <!-------- post title ------->
+        <h2 class="myfont mymargin">মাল্টিথ্রেডিংঃ </h2>
         <div class="container">
-  <div id="dummy" class="well well-sm mybox" >
-            
-            
-            
-        <p class="myfont">
-      জাভা মাল্টিথ্রেডিং 
-মাল্টিথ্রেডিং কি?
-মাল্টিথ্রেডিং মাল্টিটাস্কিং  এর একটি বিশেষ ফর্ম । মাল্টিটাস্কিং এর সাথে সবাই পরিচিত । যেমন কেও কম্পিউটারে টাইপ করার সময় ক্রোমে ইন্টারনেট ব্রাউজ ও করা যায় এইটা হল মাল্টিটাস্কিং । কিন্ত মাল্টিথ্রেডিং ও টাস্কিং এর মধ্য পার্থক্য রয়েছে । প্রসেসড বেসড মাল্টি টাস্কিং এ একটি প্রোগ্রামই হল ক্ষুদ্রতম একক । আর থ্রেড বেসড মাল্টিটাস্কিং এ থ্রেডই ক্ষুদ্রতম একক । থ্রেড হল প্রোগ্রামের এর অংশ । 
-
-মাল্টিটাস্কিং এ দুইটা মেইন মেথড পাশাপাশি রান হয় আর মাল্টিথ্রেডিং একটা মেইন মেথড থাকে । এই কারনে মাল্টিথ্রেডিং অপেক্ষা মাল্টি টাস্কিং অনেক হেভি ও আলাদা মেমরি স্পেস এর প্রয়োজন হয় । কিন্তু দুইটা আলাদা থ্রেড একই মেমরি স্পেসে রান হয় । ইন্টার প্রসেস কমনিকেশন ও কনটেক্সট সুইচিং অনেক কস্টলি কিন্ত থ্রেড বেসড কমনিকেশনে প্রায় কোন কস্ট নেই 
-এখন মাল্টিথ্রেডিং কেন দরকার ? 
-যেমন ধরি ফেসবুক মেসেঞ্জার এপ এটি একি সাথে ইন্টারনেট কানেশন আছে কিনা চেক করে ও মেসেজ আদান প্রদান করে এখন থ্রেড না থাকলে একটি প্রসেস শেষ হওয়ার জন্য বসে থাকতে হত ... দেখা যেত ইন্টারনেট কানেশন চেক করার সময় এপ হ্যং হয়ে আছে 
-আবার ধরা যাক টেক্সট এডিটর এটি স্ক্রিনে টেক্সট দেখানোর সাথে সাথে টেক্সট ও ফরমেটিং করে । 
-      
-      
-      
-      
-      </p>
-            
-            
-            
-            
-            
-            
-            
-            
+            <div id="dummy" class="well well-sm mybox">
+                <p class="myfont"> 
+                <!--- post will be here ---->
+                জাভা মাল্টিথ্রেডিং মাল্টিথ্রেডিং কি? মাল্টিথ্রেডিং মাল্টিটাস্কিং এর একটি বিশেষ ফর্ম । মাল্টিটাস্কিং এর সাথে সবাই পরিচিত । যেমন কেও কম্পিউটারে টাইপ করার সময় ক্রোমে ইন্টারনেট ব্রাউজ ও করা যায় এইটা হল মাল্টিটাস্কিং । কিন্ত মাল্টিথ্রেডিং ও টাস্কিং এর মধ্য পার্থক্য রয়েছে । প্রসেসড বেসড মাল্টি টাস্কিং এ একটি প্রোগ্রামই হল ক্ষুদ্রতম একক । আর থ্রেড বেসড মাল্টিটাস্কিং এ থ্রেডই ক্ষুদ্রতম একক । থ্রেড হল প্রোগ্রামের এর অংশ । মাল্টিটাস্কিং এ দুইটা মেইন মেথড পাশাপাশি রান হয় আর মাল্টিথ্রেডিং একটা মেইন মেথড থাকে । এই কারনে মাল্টিথ্রেডিং অপেক্ষা মাল্টি টাস্কিং অনেক হেভি ও আলাদা মেমরি স্পেস এর প্রয়োজন হয় । কিন্তু দুইটা আলাদা থ্রেড একই মেমরি স্পেসে রান হয় । ইন্টার প্রসেস কমনিকেশন ও কনটেক্সট সুইচিং অনেক কস্টলি কিন্ত থ্রেড বেসড কমনিকেশনে প্রায় কোন কস্ট নেই এখন মাল্টিথ্রেডিং কেন দরকার ? যেমন ধরি ফেসবুক মেসেঞ্জার এপ এটি একি সাথে ইন্টারনেট কানেশন আছে কিনা চেক করে ও মেসেজ আদান প্রদান করে এখন থ্রেড না থাকলে একটি প্রসেস শেষ হওয়ার জন্য বসে থাকতে হত ... দেখা যেত ইন্টারনেট কানেশন চেক করার সময় এপ হ্যং হয়ে আছে আবার ধরা যাক টেক্সট এডিটর এটি স্ক্রিনে টেক্সট দেখানোর সাথে সাথে টেক্সট ও ফরমেটিং করে । </p>
             </div>
-</div>
-        
+        </div>
     </div>
-
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
     <script>
-    function modify() {
-$('dummy').contents().unwrap();
-document.getElementById('dummy').removeAttribute('class');
-}
-        
-    function detectmob() {
-   if(window.innerWidth <= 800 && window.innerHeight <= 600) {
-     modify();
-   }
-   }
+        function modify() {
+            $('dummy').contents().unwrap();
+            document.getElementById('dummy').removeAttribute('class');
+        }
+
+        function detectmob() {
+            if (window.innerWidth <= 800 && window.innerHeight <= 600) {
+                modify();
+            }
+        }
     </script>
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    </body>
-    
-    
-    <div class="fb-comments" data-href="https://kamrul1157024.github.io/java_tutorial.htm" data-width="600" data-numposts="5"></div>
+</body>
+<div class="fb-comments" data-href="https://kamrul1157024.github.io/java_tutorial.htm" data-width="600" data-numposts="5"></div>
+
 </html>
