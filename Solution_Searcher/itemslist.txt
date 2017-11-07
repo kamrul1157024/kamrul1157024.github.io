@@ -8,3 +8,33 @@
                                 <a herf="https://www.facebook.com/kamrul1157024">kamrul</a>)
                             </a>
                         </li>
+ <li>
+                            <a href="Solutions/nhh.html">nhh(
+                                <a herf="https://www.facebook.com/kamrul1157024">kamrul</a>)
+                            </a>
+                        </li>
+ <li>
+                            <a href="Solutions/nanan.html">nanan(
+                                <a herf="https://www.facebook.com/kamrul1157024">kamrul</a>)
+                            </a>
+                        </li>
+ <li>
+                            <a href="Solutions/named.html">named(
+                                <a herf="https://www.facebook.com/kamrul1157024">kamrul</a>)
+                            </a>
+                        </li>
+ <li>
+                            <a href="Solutions/dddd.html">dddd(
+                                <a herf="https://www.facebook.com/kamrul1157024">kamrul</a>)
+                            </a>
+                        </li>
+ <li>
+                            <a href="Solutions/jsjsj.html">jsjsj(
+                                <a herf="https://www.facebook.com/kamrul1157024">kamrul</a>)
+                            </a>
+                        </li>
+ <li>
+                            <a href="Solutions/code1.html">code1(
+                                <a herf="https://www.facebook.com/kamrul1157024">kamrul</a>)
+                            </a>
+                        </li>

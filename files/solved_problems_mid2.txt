@@ -1,0 +1,4 @@
+<div class="container">
+                <div id="dummy" >
+                    <p class="myfont">
+                        <!--- post will be here ---->
