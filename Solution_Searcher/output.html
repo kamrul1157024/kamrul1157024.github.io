@@ -2,7 +2,7 @@
 <html>
 
 <head>
-    <title>Multithreading </title>
+    <title>AVLTree insert </title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
@@ -14,14 +14,19 @@
         .myfont {
             font-family: 'Atma', cursive;
         }
-        
+
         .mymargin {
             margin-left: 80px;
         }
-        
+
         .mybox {
             margin-left: 60px margin-bottom: 20px;
             margin-top: 10px;
+        }
+
+        .center {
+            text-align: center;
+
         }
     </style>
 </head>
@@ -29,7 +34,7 @@
 <body onload="detectmob()">
     <div id="fb-root"></div>
     <script>
-        (function(d, s, id) {
+        (function (d, s, id) {
             var js, fjs = d.getElementsByTagName(s)[0];
             if (d.getElementById(id)) return;
             js = d.createElement(s);
@@ -41,16 +46,26 @@
     <nav class="navbar navbar-inverse">
         <div class="container-fluid">
             <div class="navbar-header">
-                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#myNavbar"> <span class="icon-bar"></span> <span class="icon-bar"></span> <span class="icon-bar"></span> </button>
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#myNavbar">
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
                 <a class="navbar-brand" href="#">
                     <p font='myfont'>TreeInCode</p>
                 </a>
             </div>
             <div class="collapse navbar-collapse" id="myNavbar">
                 <ul class="nav navbar-nav">
-                    <li class="active"><a href="index.html">Home</a></li>
-                    <li><a href="https://github.com/kamrul1157024">My Github</a></li>
-                    <li><a href="algorithm.html">Algorithms</a></li>
+                    <li class="active">
+                        <a href="http://kamrul1157024.github.io/index.html">Home</a>
+                    </li>
+                    <li>
+                        <a href="https://github.com/kamrul1157024">My Github</a>
+                    </li>
+                    <li>
+                        <a href="algorithm.html">Algorithms</a>
+                    </li>
                 </ul>
                 <ul class="nav navbar-nav navbar-right">
                     <a href="http://facebook.com/kamrul1157024">
@@ -61,7 +76,8 @@
         </div>
     </nav>
     <div class="w3-container">
-        <div class="w3-display-container w3-text-white"> <img src="code_banner.png" alt="Lights" style="width:100%">
+        <div class="w3-display-container w3-text-white">
+            <img src="http://kamrul1157024.github.io/code_banner.png" alt="Lights" style="width:100%">
             <div class="w3-display-middle w3-large">
                 <div class="w3-container w3-light-grey">
                     <h2 style="text-shadow:1px 1px 0 #444">TreeInCode</h2>
@@ -71,47 +87,26 @@
     </div>
     <div>
         <br>
-        <br> </div>
+        <br>
+    </div>
     <div class="w3-container">
         <div class="w3-margin">
 
-            <!-------- post title ------->
-            <h2 class="myfont mymargin">মাল্টিথ্রেডিংঃ </h2>
-            <div class="container">
-                <div id="dummy" class="well well-sm mybox">
-                    <p class="myfont">
-                        <!--- post will be here ---->
+            <div class="w3-container">
+                <div class="w3-panel w3-card center">
+                    <h2>Solved Ploblem:</h2>
+                    <input oninput="w3.filterHTML('#alg', 'li', this.value)" placeholder="Search for algorithm..">
+                    <ul id="alg" class="w3-ul w3-center w3-hoverable "> <li>
+                            <a href="Solutions/lightoj1113.html">lightoj1113(
+                                <a herf="https://www.facebook.com/kamrul1157024">kamrul</a>)
+                            </a>
+                        </li>
 
-
-
+                    </ul>
                 </div>
             </div>
         </div>
     </div>
-
-    <div id="comment" class="fb-comments" data-href="https://kamrul1157024.github.io/java_tutorial.htm" data-numposts="5"></div>
-
-
-    <script>
-        function modify() {
-            $('dummy').contents().unwrap();
-            document.getElementById('dummy').removeAttribute('class');
-        }
-
-        function detectmob() {
-            if (window.innerWidth <= 800 && window.innerHeight <= 600) {
-                modify();
-            }
-            var cm = document.getElementById('comment');
-            cm.setAttribute('data-width', window.innerWidth - 25);
-            cm.setAttribute('styel', '{margin:20px;}');
-
-            var fr = document.getElementById('frame');
-
-
-
-        }
-    </script>
 </body>
 
 </html>
