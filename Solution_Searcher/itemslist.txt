@@ -8,3 +8,13 @@
                                 <a herf="https://www.facebook.com/kamrul1157024">kamrul</a>)
                             </a>
                         </li>
+ <li>
+                            <a href="Solutions/LightOJ1066%20-%20Gathering%20Food.html">LightOJ1066 - Gathering Food(
+                                <a herf="https://www.facebook.com/kamrul1157024">kamrul</a>)
+                            </a>
+                        </li>
+ <li>
+                            <a href="Solutions/1017%20-%20Brush%20(III).html">1017 - Brush (III)(
+                                <a herf="https://www.facebook.com/kamrul1157024">kamrul</a>)
+                            </a>
+                        </li>

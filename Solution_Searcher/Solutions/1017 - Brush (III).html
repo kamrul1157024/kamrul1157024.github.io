@@ -2,7 +2,7 @@
 <html>
 
 <head>
-    <title>LightOJ1066 - Gathering Food</title>
+    <title>1017 - Brush (III)</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
@@ -83,12 +83,12 @@
     <div class="w3-container">
         <div class="w3-margin">
  <!-------- post title ------->
-            <h2 class="myfont mymargin center"><a href="http://lightoj.com/volume_showproblem.php?problem=1066">LightOJ1066 - Gathering Food</a></h2>
+            <h2 class="myfont mymargin center"><a href="http://lightoj.com/volume_showproblem.php?problem=1017">1017 - Brush (III)</a></h2>
 <h4 class="center">Solution Submitted By :<a href="https://www.facebook.com/kamrul1157024">kamrul</a></h4><div class="container">
                 <div id="dummy" >
                     <p class="myfont">
-                        <!--- post will be here ----><div class="w3-panel w3-pale-blue w3-leftbar w3-rightbar w3-border-blue"><html dir="ltr"><head></head><body contenteditable="true"><p><font face="AlArabiya">The idea is here simple Start bfs from <font size="5" style="font-weight: bold;">A </font><font size="4">run it upto max(grid[i][j]) . Save the vale in a variable output it.</font></font></p><p><div contenteditable="true"></div></p></body></html></div>
-<script src="https://gist.github.com/121941c6d75c3958418f1468fe2647e7.js"></script>
+                        <!--- post will be here ----><div class="w3-panel w3-pale-blue w3-leftbar w3-rightbar w3-border-blue"><html dir="ltr"><head></head><body contenteditable="true"><font face="AlArabiya">we can maximize our answer by taking y[i] point or without taking it .</font><p><div contenteditable="true"></div></p><p><font face="AlArabiya">if we take y[i] point dp[k][j]=distance cover by taking a[j] point , so we took the upper bound of it , as we took a[j] point we next we need to check maximum we can make by taking dp[k-1][upper_bound(a[j]+w)]&nbsp;</font></p><p><font face="AlArabiya">so taking y[i] point we can make dp[k][j]=</font><span style="font-family: AlArabiya;">upper_bound(a[j]+w)+</span><span style="font-family: AlArabiya;">dp[k-1][upper_bound(a[j]+w)]&nbsp;</span></p><p><span style="font-family: AlArabiya;">or without taking y[i] point we can make dp[k][j]=dp[k][j+1]</span></p><p><span style="font-family: AlArabiya;">so we took maximum of that&nbsp;</span></p></body></html></div>
+<script src="https://gist.github.com/36e0416b88b90c04290c125ad31ed16e.js"></script>
                         </p>
 
 
