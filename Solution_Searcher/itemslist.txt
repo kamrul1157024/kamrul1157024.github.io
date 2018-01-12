@@ -23,3 +23,8 @@
                                 <a herf="https://www.facebook.com/kamrul1157024">kamrul</a>)
                             </a>
                         </li>
+ <li>
+                            <a href="Solutions/1269%20-%20Consecutive%20Sum.html">1269 - Consecutive Sum(
+                                <a herf="https://www.facebook.com/kamrul1157024">kamrul</a>)
+                            </a>
+                        </li>
