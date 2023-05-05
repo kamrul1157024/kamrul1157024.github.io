@@ -8,6 +8,7 @@ import { SITE } from "./src/config";
 
 // https://astro.build/config
 export default defineConfig({
+  server: { port: 3015, host: true },
   site: SITE.website,
   integrations: [
     tailwind({
