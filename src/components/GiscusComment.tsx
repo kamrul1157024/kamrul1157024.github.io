@@ -32,7 +32,7 @@ export default function GiscusComment() {
         script.setAttribute(key, SCRIPT_OPTIONS[key]);
       });
 
-      script.setAttribute("data-theme", THEME_MAP[currentTheme || "dark"]);
+      script.setAttribute("data-theme", THEME_MAP[currentTheme || "light"]);
 
       document.body.appendChild(script);
     };
