@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 
-const SCRIPT_OPTIONS = {
+const SCRIPT_OPTIONS: Record<string, string> = {
   src: "https://giscus.app/client.js",
   "data-repo": "kamrul1157024/kamrul1157024.github.io",
   "data-repo-id": "MDEwOlJlcG9zaXRvcnkxMDM1NzQwODQ=",
@@ -14,7 +14,7 @@ const SCRIPT_OPTIONS = {
   "data-lang": "en",
   "data-loading": "lazy",
   crossOrigin: "anonymous",
-  async: true,
+  async: "",
 };
 
 const THEME_MAP = {
@@ -28,7 +28,10 @@ export default function GiscusComment() {
       const currentTheme = localStorage.getItem("theme") as "light" | "dark";
       const script = document.createElement("script");
 
-      Object.assign(script, SCRIPT_OPTIONS);
+      Object.keys(SCRIPT_OPTIONS).forEach(key => {
+        script.setAttribute(key, SCRIPT_OPTIONS[key]);
+      });
+
       script.setAttribute("data-theme", THEME_MAP[currentTheme || "dark"]);
 
       document.body.appendChild(script);
