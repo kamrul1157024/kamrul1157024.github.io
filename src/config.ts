@@ -5,7 +5,7 @@ export const SITE: Site = {
   author: "Kamrul",
   desc: "Thoughts shared by ",
   title: "Kamrul",
-  ogImage: "astropaper-og.jpg",
+  ogImage: "kamrul.jpg",
   lightAndDarkMode: true,
   postPerPage: 3,
 };
