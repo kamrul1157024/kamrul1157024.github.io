@@ -34,6 +34,9 @@ function reflectPreference() {
 reflectPreference();
 
 window.onload = () => {
+  if(!localStorage.getItem('theme')){
+    setPreference();
+  }
   // set on load so screen readers can get the latest value on the button
   reflectPreference();
 
