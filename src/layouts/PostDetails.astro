@@ -5,7 +5,6 @@ import Footer from "@components/Footer.astro";
 import Tag from "@components/Tag.astro";
 import Datetime from "@components/Datetime";
 import type { CollectionEntry } from "astro:content";
-import GiscusComment from "@components/GiscusComment";
 
 export interface Props {
   post: CollectionEntry<"blog">;
@@ -46,7 +45,25 @@ const ogUrl = new URL(ogImage ? ogImage : `${title}.png`, Astro.url.origin)
       {tags.map(tag => <Tag name={tag} />)}
     </ul>
   </main>
-  <GiscusComment client:load />
+  <section class="giscus max-w-screen-md mx-auto mt-10">
+    <script
+      src="https://giscus.app/client.js"
+      data-repo="kamrul1157024/kamrul1157024.github.io"
+      data-repo-id="MDEwOlJlcG9zaXRvcnkxMDM1NzQwODQ="
+      data-category="Show and tell"
+      data-category-id="DIC_kwDOBixqRM4CWTSF"
+      data-mapping="pathname"
+      data-strict="0"
+      data-reactions-enabled="1"
+      data-emit-metadata="0"
+      data-input-position="top"
+      data-theme="preferred_color_scheme"
+      data-lang="en"
+      data-loading="lazy"
+      crossorigin="anonymous"
+      async
+    ></script>
+  </section>
   <Footer />
 </Layout>
 
