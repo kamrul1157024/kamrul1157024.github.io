@@ -22,19 +22,24 @@ When we talk about cryptography we talk about three things
 - Signing
 
 ### Encryption and Decryption
+We can encrypt data to protect it from unwanted users.
 
-- **Symmetric**: In symmetric encryption we only have one secret, We encrypt data with one secret and decrypt it with the same secret.
-- **Asymmetric**: In asymmetric encryption, we encrypt data with the public key and decrypt data with the private key. A user can share its public key with everyone. If anyone wants to send data to the user they are going to encrypt the data with the public key and send it to the user. Then user will be able to decrypt the data with his private key.
+### Symmetric
+In symmetric encryption we only have one secret, We encrypt data with one secret and decrypt it with the same secret.
+#### Asymmetric
+In asymmetric encryption, we encrypt data with the public key and decrypt data with the private key. A user can share its public key with everyone. If anyone wants to send data to the user they are going to encrypt the data with the public key and send it to the user. Then user will be able to decrypt the data with his private key.
 
 Symmetric Encryption and Decryption is faster than Asymmetric Encryption and Decryption.
 
 ### Hashing
+In hashing, we pass the data to a function that produces some output based on the hashing function. It will produce the same output for the same data and the same hashing function. Hash functions are generally one-way, this means you can get the data back from the hash function. You can possibly try all possible combinations of data that produce this hash. The weak hash function can be cracked this way. Which makes them vulnerable. With current computing power, we can crack the md5 hash function.
 
-In hashing, we pass the data to a function that produces some output based on the hashing function. It will produce the same output for the same data and the same hashing function. Hash functions are generally one-way, this means you can get the data back from the hash function. You can possibly try all possible combinations of data that produce this hash. The weak hash function can be cracked this way. Which makes them vulnerable. With current computing power, we can crack md5 hash function.
+#### Symmetric(HMAC):
+In this tech
 
-### Signing
+#### Asymetric(Signing):
+Here, Data will be signed with the private key. Then the public key will be shared with everyone. Anyone can validate the signature using the public key.
 
-Data can be signed with the private key. Then the public key will be shared with everyone. Anyone can validate the signature using the public key.
 
 ## Cryptography Application:
 
