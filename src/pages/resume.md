@@ -1,83 +1,103 @@
 ---
 layout: ../layouts/AboutLayout.astro
-title: "Kamrul Hassan"
+title: "MD Kamrul Hassan"
+description: "Senior Software Engineer at Optimizely — distributed SaaS backends, LLM applications and agentic workflows."
 ---
 
-An algorithm, Mathematics, Distributed System Enthusiast. I am currently working as software engineer at Optimizely. My Hobby is [Photography](https://sites.google.com/view/kamrul1157024/photography) and learning about Programming and Technology.
+Senior Software Engineer with 5+ years building distributed, microservice-based SaaS
+products in Python, TypeScript/Node.js and React. Recent focus on LLM applications,
+agentic workflows and cloud infrastructure. Based in Dhaka, Bangladesh.
 
-## Skills:
+[kamrul1157024@gmail.com](mailto:kamrul1157024@gmail.com) ·
+[linkedin.com/in/kamrul1157024](https://www.linkedin.com/in/kamrul1157024) ·
+[github.com/kamrul1157024](https://github.com/kamrul1157024)
 
-- Microservices
-- Typescript, JavaScript ( NodeJs, ExpressJs, React, ... )
-- AWS ( VPC, EC2, SQS, Kinesis, Route-53, ... )
-- Java ( Spring Boot, ...)
-- Python ( Flask, Django, scikit-learn, Tensorflow, ... )
-- C++
+Outside work my hobby is
+[photography](https://sites.google.com/view/kamrul1157024/photography).
+
+## Technical Skills
+
+**Languages:** TypeScript, JavaScript, Python, Java, C++, SQL
+
+**AI & Agents:** LLM application development, agentic workflows, multi-agent
+orchestration, tool calling, MCP, RAG, prompt engineering, evals
+
+**Backend & Frontend:** Node.js, Express.js, FastAPI, Spring Boot, Flask, Django,
+React, AngularJS, Microservices, REST APIs
+
+**Data & Messaging:** MySQL, MongoDB, Elasticsearch, Event-driven architecture,
+Message brokers
+
+**DevOps & Cloud:** AWS (EC2, VPC, SQS, Kinesis), GCP (Cloud Run, Cloud SQL,
+Spanner), Docker, Kubernetes, Terraform, Ansible, GitHub Actions, Jenkins, CI/CD,
+Infrastructure as Code, API gateways, Nginx, Observability
 
 ## Experience
 
-### Optimizely(welcome acquired by optimizely):
+### Optimizely — Dhaka, Bangladesh
 
-#### Tech Stacks:
+_Dec 2021 – Present_
 
-Microservices, Javascript/Typescript, NodeJs, ReactJS, Python, MongoDB, MySQL, Elasticsearch, Docker, AWS, Jenkins, Nginx, K8S
+#### Senior Software Engineer | Apr 2026 – Present
 
-#### Software Engineering - II | Dec 2022 - now
+- Own backend services for Opal, the Optimizely AI agent platform, covering agent and
+  workflow orchestration, tool calling, and agent memory and retrieval.
+- Architected phased zero-downtime data model migrations (double-write, backfill,
+  cutover) and partitioned a shared event bus into dedicated brokers to isolate
+  failure domains.
+- Own platform infrastructure and delivery: Terraform-managed Cloud Run and Cloud SQL,
+  Ansible playbooks, multi-arch Docker images, sharded GitHub Actions CI, and an API
+  gateway with signed service-to-service auth, correlation-ID logging and request
+  redaction.
+- Shipped agentic workflow capabilities including multi-agent routing, tool registry
+  integration, fused semantic and keyword recall, sandboxed code execution, and prompt
+  guardrails.
+- Mentor engineers through design reviews and pairing, lead technical direction on
+  cross-team initiatives, and drive alignment between product and platform teams.
 
-- Added boolean query support to global search system in MySQL and Elasticsearch.
+#### Software Engineer II | Jan 2023 – Apr 2026
 
-#### Software Engineering - I | Oct 2021 - Dec 2022
+- Added boolean query support to the global search system across MySQL and
+  Elasticsearch, and improved search ranking and indexing pipelines for relevance and
+  index freshness.
+- Led migrations and refactors across services, including Kue to AWS SQS, JavaScript to
+  TypeScript, and AngularJS 1.x to React.
 
-- Built live website proofing system where user can browse and annotate on a live website.
-- Improved global search ranking and indexing.
-- Build Branded login page where each organization can have login page on their subdomain.
-- Worked on several migrations and refactoring (Kue to SQS, JS to TS, AngularJS 1.X to React etc).
-- Worked on Rate Limiting as an quick response to DDOS attack.
-- Created Informative and effective documentation like Tech Specs and Onboarding Docs.
-- Mentored and onboarded several interns and new engineers.
-- Improved User experience though UX delight and UI improvement.
+#### Software Engineer | Dec 2021 – Dec 2022
 
-### Welcome
+_Joined via the Welcome acquisition._
 
-#### Software Engineering Intern | Apr 2021 – Sep 2021
+- Built a live website proofing system for browsing and annotating live sites
+  collaboratively.
+- Delivered branded login pages so each organization could authenticate on its own
+  subdomain.
+- Implemented rate limiting as a rapid response to an active DDoS attack, restoring
+  availability.
+- Authored technical specs and onboarding docs; mentored interns and new engineers.
 
-- Written API Contract test
+### Welcome — Dhaka, Bangladesh
+
+#### Software Engineer | Oct 2021 – Nov 2021
+
+_Software Engineer Intern, Apr 2021 – Sep 2021._
+
+- Developed microservice features in JavaScript and Node.js for the content marketing
+  platform, and wrote API contract tests to catch breaking changes between services.
 
 ## Projects
 
-### Blog Based Social Media App | [github](https://github.com/kamrul1157024/Social-Media-App)
-
-#### Docker, Nginx, PostgresSQL, Java, Python, Js, Spring Boot, Tensorflow, Django, ReactJS, DraftJS
-
-- this app can identify political posts using machine learning and NLP
-- user can create the post in rich text with code snippets
-- user can Comment on the post with rich-text
-- user can create booklets combining multiple posts
-- user can follow each other
-
-### DevOps Tools Project | [github](https://github.com/kamrul1157024/simple-user-app)
-
-#### Docker, Terraform, Nginx, AWS, Python, MySQL, React
-
-Create Infra using Terraform and build CI/CD
-
-### Bangla Handwritten Character Recognition | [google colab](https://sites.google.com/view/kamrul1157024/projects/ai/bangla-character-recognition)
-
-#### Python, Tensorflow, Pandas
-
-Network Architecture: Modified VGG-16
-Dataset: Ekush
-
-### Bricks Breaker Game | [github](https://github.com/kamrul1157024/Bircks-Breaker-Game)
-
-#### C++
-
-Used Igraphics Library
+- **[Helios](https://github.com/kamrul1157024/helios)** — Daemon managing AI coding
+  sessions over tmux; hook-event tracking, desktop and mobile notifications, voice
+  narration, Android client.
+- **C\*Opal** (Optimizely Global Hackathon) — CLI coding agent that indexes existing
+  codebases, self-corrects generated code, and supports MCP servers.
+- **[terminal-ai](https://github.com/kamrul1157024/terminal-ai)** — Published npm CLI
+  bringing LLM assistance to the terminal (OpenAI GPT-4o, local Llama 3.2 via Ollama).
+- **[Blog-Based Social Media App](https://github.com/kamrul1157024/Social-Media-App)** —
+  Full stack platform with rich-text posts, comments, booklets and follows, and an NLP
+  political-content classifier; Spring Boot, Django, TensorFlow, React, Docker.
 
 ## Education
 
-### Bangladesh University of Engineering and Technology
-
-Bachelor of Science: Mechanical Engineering
-
-CGPA : 3.03/4.00 | 2016 - 2021
+**B.Sc. in Mechanical Engineering** — Bangladesh University of Engineering and
+Technology (BUET), 2016 – 2021. CGPA 3.03/4.00.

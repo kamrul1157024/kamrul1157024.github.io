@@ -5,104 +5,98 @@ import Header from "@components/Header.astro";
 import Footer from "@components/Footer.astro";
 import LinkButton from "@components/LinkButton.astro";
 import Hr from "@components/Hr.astro";
-import Card from "@components/Card";
+import ProjectCard from "@components/ProjectCard.astro";
 import Socials from "@components/Socials.astro";
 import getSortedPosts from "@utils/getSortedPosts";
+import getProjects from "@utils/getProjects";
 import slugify from "@utils/slugify";
-import { SOCIALS } from "@config";
+import { LOCALE, SOCIALS } from "@config";
 
 const posts = await getCollection("blog");
+const recentPosts = getSortedPosts(posts).slice(0, 4);
 
-const sortedPosts = getSortedPosts(posts);
-const featuredPosts = sortedPosts.filter(({ data }) => data.featured);
+const projects = await getProjects();
+const featuredProjects = projects.filter(project => project.featured);
 
 const socialCount = SOCIALS.filter(social => social.active).length;
+
+const formatDate = (date: Date) =>
+  new Date(date).toLocaleDateString(LOCALE, {
+    year: "numeric",
+    month: "short",
+  });
 ---
 
 <Layout>
   <Header />
   <main id="main-content">
-    <section id="hero">
-      <h1>Kamrul's Notepad</h1>
-      <a
-        target="_blank"
-        href="/rss.xml"
-        class="rss-link"
-        aria-label="rss feed"
-        title="RSS Feed"
-      >
-        <svg xmlns="http://www.w3.org/2000/svg" class="rss-icon"
-          ><path
-            d="M19 20.001C19 11.729 12.271 5 4 5v2c7.168 0 13 5.832 13 13.001h2z"
-          ></path><path
-            d="M12 20.001h2C14 14.486 9.514 10 4 10v2c4.411 0 8 3.589 8 8.001z"
-          ></path><circle cx="6" cy="18" r="2"></circle>
-        </svg>
-      </a>
-
-      <p>
-        Here I write about my thought and share some of my experience and
-        knowledge.
-      </p>
-      {
-        // only display if at least one social link is enabled
-        socialCount > 0 && (
-          <div class="social-wrapper">
-            <div class="social-links">Social Links:</div>
-            <Socials />
-          </div>
-        )
-      }
+    <section id="intro">
+      <img
+        src="/kamrul.jpg"
+        alt="MD Kamrul Hassan"
+        width="112"
+        height="112"
+        class="avatar"
+      />
+      <div class="intro-body">
+        <h1>MD Kamrul Hassan</h1>
+        <p class="role">Senior Software Engineer at Optimizely</p>
+        <p>
+          I own backend services for Opal, Optimizely's AI agent platform —
+          agent and workflow orchestration, tool calling, and agent memory and
+          retrieval — along with the platform infrastructure underneath: Cloud
+          Run and Cloud SQL in Terraform, an event bus split into isolated
+          brokers, and zero-downtime data model migrations.
+        </p>
+        <p>
+          Outside work I build developer tooling — terminal CLIs, Neovim plugins
+          and orchestration for AI coding agents. I write about what I had to
+          learn the hard way, some of it in Bengali.
+        </p>
+        {
+          socialCount > 0 && (
+            <div class="intro-links">
+              <Socials />
+              <LinkButton href="/resume" className="resume-link">
+                Resume
+              </LinkButton>
+            </div>
+          )
+        }
+      </div>
     </section>
 
     <Hr />
 
-    {
-      featuredPosts.length > 0 && (
-        <>
-          <section id="featured">
-            <h2>Featured</h2>
-            <ul>
-              {featuredPosts.map(({ data }) => (
-                <Card
-                  href={`/posts/${slugify(data)}`}
-                  frontmatter={data}
-                  secHeading={false}
-                />
-              ))}
-            </ul>
-          </section>
-          <Hr />
-        </>
-      )
-    }
-
-    <section id="recent-posts">
-      <h2>Recent Posts</h2>
-      <ul>
+    <section id="writing">
+      <div class="section-head">
+        <h2>Writing</h2>
+        <LinkButton href="/posts">All posts &rarr;</LinkButton>
+      </div>
+      <ul class="post-list">
         {
-          sortedPosts.map(
-            ({ data }, index) =>
-              index < 4 && (
-                <Card
-                  href={`/posts/${slugify(data)}`}
-                  frontmatter={data}
-                  secHeading={false}
-                />
-              )
-          )
+          recentPosts.map(({ data }) => (
+            <li>
+              <a href={`/posts/${slugify(data)}`}>
+                <span class="post-title">{data.title}</span>
+                <span class="post-date">{formatDate(data.pubDatetime)}</span>
+              </a>
+            </li>
+          ))
         }
       </ul>
-      <div class="all-posts-btn-wrapper">
-        <LinkButton href="/posts">
-          All Posts
-          <svg xmlns="http://www.w3.org/2000/svg"
-            ><path
-              d="m11.293 17.293 1.414 1.414L19.414 12l-6.707-6.707-1.414 1.414L15.586 11H6v2h9.586z"
-            ></path>
-          </svg>
-        </LinkButton>
+    </section>
+
+    <Hr />
+
+    <section id="work">
+      <div class="section-head">
+        <h2>Selected work</h2>
+        <LinkButton href="/projects">All projects &rarr;</LinkButton>
       </div>
+      <ul class="project-grid">
+        {featuredProjects.map(project => <ProjectCard project={project} />)}
+      </ul>
     </section>
   </main>
 
@@ -110,39 +104,59 @@ const socialCount = SOCIALS.filter(social => social.active).length;
 </Layout>
 
 <style>
-  /* ===== Hero Section ===== */
-  #hero {
-    @apply pt-8 pb-6;
+  #intro {
+    @apply flex flex-col items-start gap-6 pt-8 pb-10 sm:flex-row sm:items-center;
   }
-  #hero h1 {
-    @apply my-4 inline-block text-3xl font-bold sm:my-8 sm:text-5xl;
+  .avatar {
+    @apply h-24 w-24 shrink-0 rounded-full border-2 border-skin-line object-cover sm:h-28 sm:w-28;
   }
-  #hero .rss-link {
-    @apply mb-6;
+  .intro-body h1 {
+    @apply text-3xl font-bold sm:text-4xl;
   }
-  #hero .rss-icon {
-    @apply mb-2 h-6 w-6 scale-110 fill-skin-accent sm:mb-3 sm:scale-125;
+  .role {
+    @apply mt-1 text-skin-accent;
   }
-  #hero p {
-    @apply my-2;
+  .intro-body > p:not(.role) {
+    @apply mt-3 max-w-prose;
   }
-  .social-wrapper {
-    @apply mt-4 flex flex-col sm:flex-row sm:items-center;
+  .intro-links {
+    @apply mt-4 flex flex-wrap items-center gap-2;
   }
-  .social-links {
-    @apply mr-2 mb-1 whitespace-nowrap sm:mb-0;
+  .intro-links :global(.resume-link) {
+    @apply rounded border border-skin-line px-3 py-1 text-sm hover:border-skin-accent;
   }
 
-  /* ===== Featured & Recent Posts Sections ===== */
-  #featured,
-  #recent-posts {
-    @apply pt-12 pb-6;
+  #work,
+  #writing {
+    @apply pt-10 pb-6;
   }
-  #featured h2,
-  #recent-posts h2 {
+  .section-head {
+    @apply mb-5 flex items-baseline justify-between gap-4;
+  }
+  .section-head h2 {
     @apply text-2xl font-semibold tracking-wide;
   }
-  .all-posts-btn-wrapper {
-    @apply my-8 text-center;
+  .section-head :global(a) {
+    @apply whitespace-nowrap text-sm opacity-80;
+  }
+
+  .project-grid {
+    @apply grid gap-4 sm:grid-cols-2;
+  }
+
+  .post-list li + li {
+    @apply border-t border-skin-line;
+  }
+  .post-list a {
+    @apply flex flex-col gap-1 py-3 sm:flex-row sm:items-baseline sm:justify-between sm:gap-4;
+  }
+  .post-title {
+    @apply font-medium decoration-dashed underline-offset-4;
+  }
+  .post-list a:hover .post-title {
+    @apply text-skin-accent underline;
+  }
+  .post-date {
+    @apply shrink-0 text-sm opacity-70;
   }
 </style>

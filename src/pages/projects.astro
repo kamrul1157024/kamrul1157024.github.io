@@ -1,0 +1,30 @@
+---
+import Header from "@components/Header.astro";
+import Footer from "@components/Footer.astro";
+import Layout from "@layouts/Layout.astro";
+import Main from "@layouts/Main.astro";
+import ProjectCard from "@components/ProjectCard.astro";
+import getProjects from "@utils/getProjects";
+import { SITE } from "@config";
+
+const projects = await getProjects();
+---
+
+<Layout title={`Projects | ${SITE.title}`}>
+  <Header activeNav="projects" />
+  <Main
+    pageTitle="Projects"
+    pageDesc="Things I have built — mostly developer tooling, CLIs and side experiments."
+  >
+    <ul class="project-grid">
+      {projects.map(project => <ProjectCard project={project} />)}
+    </ul>
+  </Main>
+  <Footer />
+</Layout>
+
+<style>
+  .project-grid {
+    @apply grid gap-4 sm:grid-cols-2;
+  }
+</style>

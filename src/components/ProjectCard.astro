@@ -1,0 +1,65 @@
+---
+import type { Project } from "@utils/getProjects";
+
+export interface Props {
+  project: Project;
+}
+
+const { project } = Astro.props;
+---
+
+<li class="project-card">
+  <a href={project.url} target="_blank" rel="noopener noreferrer">
+    <div class="project-head">
+      <h3>{project.name}</h3>
+      {
+        project.stars > 0 && (
+          <span class="stars" title={`${project.stars} stars on GitHub`}>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <path d="M12 2l2.9 6.26 6.1.6-4.6 4.24 1.3 6.9L12 16.8 6.3 20l1.3-6.9L3 8.86l6.1-.6L12 2z" />
+            </svg>
+            {project.stars}
+          </span>
+        )
+      }
+    </div>
+    <p>{project.blurb}</p>
+    <ul class="tech">
+      {project.tech.map(item => <li>{item}</li>)}
+    </ul>
+  </a>
+</li>
+
+<style>
+  .project-card {
+    @apply rounded border border-skin-line transition-colors hover:border-skin-accent;
+  }
+  .project-card > a {
+    @apply flex h-full flex-col gap-2 p-4;
+  }
+  .project-head {
+    @apply flex items-baseline justify-between gap-2;
+  }
+  .project-head h3 {
+    @apply text-lg font-medium text-skin-accent;
+  }
+  .stars {
+    @apply flex shrink-0 items-center gap-1 text-sm opacity-70;
+  }
+  .stars svg {
+    @apply h-4 w-4 fill-skin-base;
+  }
+  .project-card p {
+    @apply flex-1 text-sm opacity-90;
+  }
+  .tech {
+    @apply flex flex-wrap gap-1;
+  }
+  .tech li {
+    @apply rounded bg-skin-card px-2 py-0.5 text-xs opacity-80;
+  }
+</style>
