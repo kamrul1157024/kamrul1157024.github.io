@@ -3,7 +3,7 @@ author: Kamrul
 pubDatetime: 2022-04-04T15:22:00Z
 title: Composited Pattern - Design Pattern shorthands
 postSlug: composite-pattern-design-pattern-shorthands
-featured: true
+featured: false
 draft: false
 tags:
   - design-pattern

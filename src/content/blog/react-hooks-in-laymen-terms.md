@@ -3,7 +3,7 @@ author: Kamrul
 pubDatetime: 2023-03-19T15:22:00Z
 title: React Hooks In layman's terms
 postSlug: React-Hooks-In-layman's-terms
-featured: true
+featured: false
 draft: false
 tags:
   - React

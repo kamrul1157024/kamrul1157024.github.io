@@ -3,7 +3,7 @@ author: Kamrul
 pubDatetime: 2022-02-05T15:22:00Z
 title: Decorator Pattern - Design Pattern shorthands
 postSlug: decorator-pattern-design-pattern-shorthands
-featured: true
+featured: false
 draft: false
 tags:
   - design-pattern

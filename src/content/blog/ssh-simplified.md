@@ -3,7 +3,7 @@ author: Kamrul
 pubDatetime: 2022-04-09T15:22:00Z
 title: SSH Simplified
 postSlug: ssh-simplified
-featured: true
+featured: false
 draft: false
 tags:
   - ssh
