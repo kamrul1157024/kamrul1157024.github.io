@@ -5,8 +5,8 @@ description: "Senior Software Engineer at Optimizely — distributed SaaS backen
 ---
 
 Senior Software Engineer with 5+ years building distributed, microservice-based SaaS
-products in Python, TypeScript/Node.js and React. Recent focus on LLM applications,
-agentic workflows and cloud infrastructure. Based in Dhaka, Bangladesh.
+products in Python, TypeScript/Node.js and React, with some Go. Recent focus on LLM
+applications, agentic workflows and cloud infrastructure. Based in Dhaka, Bangladesh.
 
 [kamrul1157024@gmail.com](mailto:kamrul1157024@gmail.com) ·
 [linkedin.com/in/kamrul1157024](https://www.linkedin.com/in/kamrul1157024) ·
@@ -17,7 +17,7 @@ Outside work my hobby is
 
 ## Technical Skills
 
-**Languages:** TypeScript, JavaScript, Python, Java, C++, SQL
+**Languages:** Python, TypeScript, JavaScript, Go, Java, C++, SQL
 
 **AI & Agents:** LLM application development, agentic workflows, multi-agent
 orchestration, tool calling, MCP, RAG, prompt engineering, evals
@@ -42,16 +42,16 @@ _Dec 2021 – Present_
 
 - Own backend services for Opal, the Optimizely AI agent platform, covering agent and
   workflow orchestration, tool calling, and agent memory and retrieval.
-- Architected phased zero-downtime data model migrations (double-write, backfill,
-  cutover) and partitioned a shared event bus into dedicated brokers to isolate
-  failure domains.
 - Own platform infrastructure and delivery: Terraform-managed Cloud Run and Cloud SQL,
   Ansible playbooks, multi-arch Docker images, sharded GitHub Actions CI, and an API
   gateway with signed service-to-service auth, correlation-ID logging and request
   redaction.
-- Shipped agentic workflow capabilities including multi-agent routing, tool registry
-  integration, fused semantic and keyword recall, sandboxed code execution, and prompt
-  guardrails.
+- Shipped agentic workflow capabilities and remote sandboxed code execution
+  infrastructure, including multi-agent routing, tool registry integration, fused
+  semantic and keyword recall, and prompt guardrails.
+- Architected phased zero-downtime data model migrations (double-write, backfill,
+  cutover) and partitioned a shared event bus into dedicated brokers to isolate failure
+  domains.
 - Mentor engineers through design reviews and pairing, lead technical direction on
   cross-team initiatives, and drive alignment between product and platform teams.
 
@@ -73,7 +73,7 @@ _Joined via the Welcome acquisition._
   subdomain.
 - Implemented rate limiting as a rapid response to an active DDoS attack, restoring
   availability.
-- Authored technical specs and onboarding docs; mentored interns and new engineers.
+- Authored technical specs and onboarding docs, and mentored interns and new engineers.
 
 ### Welcome — Dhaka, Bangladesh
 
@@ -87,15 +87,17 @@ _Software Engineer Intern, Apr 2021 – Sep 2021._
 ## Projects
 
 - **[Helios](https://github.com/kamrul1157024/helios)** — Daemon managing AI coding
-  sessions over tmux; hook-event tracking, desktop and mobile notifications, voice
-  narration, Android client.
+  sessions over tmux with hook-event tracking, desktop and mobile notifications, voice
+  narration and an Android client.
 - **C\*Opal** (Optimizely Global Hackathon) — CLI coding agent that indexes existing
   codebases, self-corrects generated code, and supports MCP servers.
 - **[terminal-ai](https://github.com/kamrul1157024/terminal-ai)** — Published npm CLI
   bringing LLM assistance to the terminal (OpenAI GPT-4o, local Llama 3.2 via Ollama).
+- **[Bangla Handwritten Character Recognition](https://colab.research.google.com/drive/1sGOqpF5XOfQ9-6xuigj21zmv6tLJ2a2j)**
+  — Modified VGG-16 CNN trained on the Ekush dataset for Bangla OCR. Python, TensorFlow.
 - **[Blog-Based Social Media App](https://github.com/kamrul1157024/Social-Media-App)** —
-  Full stack platform with rich-text posts, comments, booklets and follows, and an NLP
-  political-content classifier; Spring Boot, Django, TensorFlow, React, Docker.
+  Full stack platform with rich-text posts, comments, booklets and follows, plus an NLP
+  political-content classifier. Spring Boot, Django, TensorFlow, React, Docker.
 
 ## Education
 
