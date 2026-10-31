@@ -1,56 +1,37 @@
-const primaryColorScheme = ""; // "light" | "dark"
-
-// Get theme data from local storage
-const currentTheme = localStorage.getItem("theme");
-
-function getPreferTheme() {
-  // return theme value in local storage if it is set
-  if (currentTheme) return currentTheme;
-
-  // return primary color scheme if it is set
-  if (primaryColorScheme) return primaryColorScheme;
-
-  // return user device's prefer color scheme
-  return window.matchMedia("(prefers-color-scheme: dark)").matches
-    ? "dark"
-    : "light";
-}
-
-let themeValue = getPreferTheme();
-
-function setPreference() {
-  localStorage.setItem("theme", themeValue);
-  window.dispatchEvent(new Event("storage"));
-  reflectPreference();
-}
-
-function reflectPreference() {
-  document.firstElementChild.setAttribute("data-theme", themeValue);
-
-  document.querySelector("#theme-btn")?.setAttribute("aria-label", themeValue);
-}
-
-// set early so no page flashes / CSS is made aware
-reflectPreference();
-
-window.onload = () => {
-  if(!localStorage.getItem('theme')){
-    setPreference();
+(() => {
+  let theme = "dark";
+  try {
+    const saved = localStorage.getItem("theme");
+    if (saved === "light" || saved === "dark") theme = saved;
+  } catch {
+    /* Storage may be disabled; the toggle still works for this page. */
   }
-  // set on load so screen readers can get the latest value on the button
-  reflectPreference();
-
-  // now this script can find and listen for clicks on the control
-  document.querySelector("#theme-btn")?.addEventListener("click", () => {
-    themeValue = themeValue === "light" ? "dark" : "light";
-    setPreference();
+  function reflect() {
+    document.documentElement.dataset.theme = theme;
+    const button = document.getElementById("theme-btn");
+    if (button) {
+      const next = theme === "dark" ? "light" : "dark";
+      button.textContent = `${next} mode`;
+      button.setAttribute("aria-label", `Switch to ${next} mode`);
+    }
+  }
+  reflect();
+  document.addEventListener("DOMContentLoaded", () => {
+    reflect();
+    document.getElementById("theme-btn")?.addEventListener("click", () => {
+      theme = theme === "dark" ? "light" : "dark";
+      try {
+        localStorage.setItem("theme", theme);
+      } catch {
+        /* Keep the page-local preference. */
+      }
+      reflect();
+    });
   });
-};
-
-// sync with system changes
-window
-  .matchMedia("(prefers-color-scheme: dark)")
-  .addEventListener("change", ({ matches: isDark }) => {
-    themeValue = isDark ? "dark" : "light";
-    setPreference();
+  window.addEventListener("storage", event => {
+    if (event.key === "theme") {
+      theme = event.newValue === "light" ? "light" : "dark";
+      reflect();
+    }
   });
+})();

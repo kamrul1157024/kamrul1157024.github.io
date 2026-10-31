@@ -1,0 +1,107 @@
+:root,
+html[data-theme="dark"] {
+  --bg: #080808;
+  --fg: #efefef;
+  --muted: #a0a0a0;
+  --accent: #ff473a;
+  --line: #333;
+  --sel: #282020;
+  --card: #121212;
+  --ask-on: #080808;
+  --mono: "IBM Plex Mono", "Noto Sans Bengali", ui-monospace, monospace;
+  --color-fill: 8, 8, 8;
+  --color-text-base: 239, 239, 239;
+  --color-accent: 255, 71, 58;
+  --color-card: 18, 18, 18;
+  --color-card-muted: 42, 42, 42;
+  --color-border: 51, 51, 51;
+  color-scheme: dark;
+}
+html[data-theme="light"] {
+  --bg: #faf9f6;
+  --fg: #111;
+  --muted: #555;
+  --accent: #b52318;
+  --line: #ceccc7;
+  --sel: #f3e9e5;
+  --card: #faf9f6;
+  --ask-on: #fff;
+  --color-fill: 250, 249, 246;
+  --color-text-base: 17, 17, 17;
+  --color-accent: 181, 35, 24;
+  --color-card: 244, 241, 235;
+  --color-card-muted: 222, 220, 215;
+  --color-border: 206, 204, 199;
+  color-scheme: light;
+}
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font: 14px/1.75 var(--mono);
+  margin: 0;
+}
+a {
+  color: inherit;
+  text-underline-offset: 4px;
+}
+a:hover {
+  color: var(--accent);
+}
+button {
+  font: inherit;
+}
+a:focus-visible,
+button:focus-visible,
+input:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+}
+::selection {
+  background: var(--fg);
+  color: var(--bg);
+}
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+@media print {
+  :root,
+  html[data-theme="dark"],
+  html[data-theme="light"] {
+    --bg: #fff;
+    --fg: #111;
+    --muted: #444;
+    --accent: #111;
+    --line: #bbb;
+    --color-fill: 255, 255, 255;
+    --color-text-base: 17, 17, 17;
+    --color-accent: 17, 17, 17;
+    color-scheme: light;
+  }
+  body {
+    display: block;
+    background: #fff;
+    color: #111;
+    font-size: 11px;
+  }
+  .site-header,
+  .ask-guide,
+  .ask-launcher,
+  .ask-dock {
+    display: none !important;
+  }
+  a {
+    color: #111;
+    text-decoration: none;
+  }
+  article {
+    margin-bottom: 0 !important;
+  }
+}

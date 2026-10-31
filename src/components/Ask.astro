@@ -1,0 +1,261 @@
+---
+import { resume } from "../data/resume";
+const answers = {
+  identity: `${resume.name} is a Senior Software Engineer at Optimizely, based in ${resume.location}, with ${resume.experienceLabel}.`,
+  experience:
+    "Kamrul joined Welcome in 2021, then Optimizely through the acquisition. He owns Opal's backend services, agent/workflow orchestration, memory and retrieval, and platform infrastructure. See his full role history below.",
+  skills: `Languages: ${resume.skills[0].text}. Backend: Node.js, FastAPI, Spring Boot, Flask and Django. Cloud and infrastructure: AWS, GCP, Docker, Kubernetes, Terraform and Ansible. The full list is in Skills.`,
+  projects:
+    "Selected projects include Helios (AI coding sessions over tmux), terminal-ai (an npm LLM CLI), C*Opal (a hackathon coding agent), Bangla OCR, and a blog-based social platform. See Projects for links.",
+  writing:
+    "Kamrul writes technical articles, including React Hooks, SSH Simplified, and design patterns, in English and Bengali. See Writing for the latest posts.",
+  education: resume.education,
+  contact: `Email ${resume.email}, or use the GitHub and LinkedIn links at the top. His résumé is available in the navigation.`,
+};
+const serialized = JSON.stringify(answers).replace(/</g, "\\u003c");
+---
+
+<div class="ask-dock">
+  <button
+    class="ask-launcher"
+    id="ask-launcher"
+    type="button"
+    aria-expanded="false"
+    aria-controls="ask-panel"><span aria-hidden="true">▪</span> Ask</button
+  >
+</div>
+<aside
+  class="ask-guide"
+  id="ask-panel"
+  role="dialog"
+  aria-label="Ask about Kamrul"
+  aria-modal="false"
+  hidden
+>
+  <div class="ask-head">
+    <strong>Ask about Kamrul</strong><button
+      type="button"
+      id="ask-close"
+      aria-label="Close Ask panel">×</button
+    >
+  </div>
+  <p class="ask-disclaimer">
+    Local section guide, not a generative chatbot. Questions stay in your
+    browser.
+  </p>
+  <div
+    id="ask-messages"
+    role="log"
+    aria-live="polite"
+    aria-relevant="additions text"
+  >
+  </div>
+  <div class="ask-topics" aria-label="Suggested topics">
+    <button type="button" data-topic="experience">Experience</button><button
+      type="button"
+      data-topic="skills">Skills</button
+    ><button type="button" data-topic="projects">Projects</button><button
+      type="button"
+      data-topic="education">Education</button
+    ><button type="button" data-topic="contact">Contact</button>
+  </div>
+  <form id="ask-form">
+    <label for="ask-question" class="sr-only">Ask a question about Kamrul</label
+    ><input
+      id="ask-question"
+      type="text"
+      maxlength="500"
+      placeholder="e.g. What has he built?"
+      autocomplete="off"
+    /><button type="submit">Ask</button>
+  </form>
+  <p class="ask-status" id="ask-status" aria-live="polite"></p>
+</aside>
+<script type="application/json" id="ask-answers" set:html={serialized}></script>
+<script is:inline type="module" src="/ask-widget.js"></script>
+<style is:global>
+  .ask-dock {
+    position: fixed;
+    right: 20px;
+    bottom: 20px;
+    z-index: 60;
+  }
+  .ask-launcher {
+    border: 2px solid var(--accent);
+    background: var(--accent);
+    color: var(--ask-on);
+    box-shadow: none;
+    padding: 11px 17px;
+    font: 700 13px var(--mono);
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+  .ask-guide {
+    position: fixed;
+    right: 20px;
+    bottom: 80px;
+    z-index: 61;
+    width: min(380px, calc(100vw - 40px));
+    max-height: min(590px, calc(100dvh - 104px));
+    overflow: auto;
+    overscroll-behavior: contain;
+    background: var(--card);
+    color: var(--fg);
+    border: 2px solid var(--accent);
+    font: 12px/1.7 var(--mono);
+  }
+  .ask-guide[hidden] {
+    display: none;
+  }
+  .ask-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    border-bottom: 1px solid var(--line);
+    padding: 10px 14px;
+  }
+  .ask-head strong {
+    font-size: 11px;
+  }
+  .ask-head button {
+    background: none;
+    border: 0;
+    color: var(--fg);
+    cursor: pointer;
+    font-size: 23px;
+    width: 32px;
+    height: 32px;
+  }
+  .ask-disclaimer {
+    font-size: 10px;
+    color: var(--muted);
+    padding: 0 14px;
+    margin: 12px 0;
+  }
+  #ask-messages {
+    padding: 0 14px;
+    max-height: 260px;
+    overflow: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .ask-question-message {
+    align-self: flex-end;
+    max-width: 90%;
+    border: 1px solid var(--line);
+    background: var(--sel);
+    padding: 6px 10px;
+    overflow-wrap: anywhere;
+  }
+  .ask-answer-message {
+    margin: 0;
+    overflow-wrap: anywhere;
+  }
+  .ask-answer-message a {
+    display: block;
+    color: var(--accent);
+    font-size: 11px;
+    margin-top: 7px;
+  }
+  .ask-topics {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    padding: 12px 14px;
+  }
+  .ask-topics button {
+    font: 10px var(--mono);
+    color: var(--muted);
+    background: none;
+    border: 1px solid var(--line);
+    padding: 6px 9px;
+    cursor: pointer;
+    min-height: 30px;
+  }
+  .ask-topics button:hover {
+    color: var(--accent);
+    border-color: var(--accent);
+  }
+  #ask-form {
+    display: flex;
+    gap: 8px;
+    padding: 12px 14px;
+    border-top: 1px solid var(--line);
+  }
+  #ask-form input {
+    font: 12px var(--mono);
+    padding: 8px 10px;
+    color: var(--fg);
+    background: var(--bg);
+    border: 1px solid var(--line);
+    width: 100%;
+    min-width: 0;
+  }
+  #ask-form button {
+    padding: 8px 12px;
+    background: var(--accent);
+    color: var(--ask-on);
+    border: 0;
+    cursor: pointer;
+    font-weight: 700;
+    min-height: 38px;
+  }
+  .ask-status {
+    font-size: 10px;
+    color: var(--muted);
+    margin: 0;
+    padding: 0 14px 10px;
+  }
+  .ask-choice {
+    margin: 4px 4px 0 0;
+    padding: 5px 8px;
+    border: 1px solid var(--line);
+    color: var(--fg);
+    background: none;
+    cursor: pointer;
+    font: 11px var(--mono);
+  }
+  @media screen and (max-width: 680px) {
+    html:has(.ask-dock) {
+      height: 100%;
+      overflow: hidden;
+    }
+    body:has(.ask-dock) {
+      height: calc(100dvh - 62px);
+      min-height: 0;
+      padding-bottom: 0;
+      overflow-y: auto;
+    }
+    .ask-dock {
+      height: 62px;
+      width: 100%;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      border-top: 1px solid var(--line);
+      background: var(--bg);
+      display: flex;
+      align-items: center;
+      padding: 10px 12px;
+    }
+    .ask-launcher {
+      width: 100%;
+      min-height: 42px;
+      padding: 8px;
+    }
+    .ask-guide {
+      right: 12px;
+      bottom: 74px;
+      width: calc(100vw - 24px);
+      max-height: calc(100dvh - 94px);
+    }
+  }
+</style>

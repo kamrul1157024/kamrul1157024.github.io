@@ -64,6 +64,9 @@ jobs:
       - name: Install dependencies
         run: ${{ steps.detect-package-manager.outputs.manager }} ${{ steps.detect-package-manager.outputs.command }}
         working-directory: ${{ env.BUILD_PATH }}
+      - name: Verify local Ask router
+        run: npm run test:router
+        working-directory: ${{ env.BUILD_PATH }}
       - name: Build with Astro
         run: |
           ${{ steps.detect-package-manager.outputs.runner }} astro build \
@@ -73,6 +76,9 @@ jobs:
         env:
           # Raises the GitHub API rate limit while fetching project star counts.
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Verify packaged pages and router assets
+        run: node scripts/check-built-site.mjs
+        working-directory: ${{ env.BUILD_PATH }}
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:

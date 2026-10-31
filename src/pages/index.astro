@@ -2,161 +2,163 @@
 import { getCollection } from "astro:content";
 import Layout from "@layouts/Layout.astro";
 import Header from "@components/Header.astro";
-import Footer from "@components/Footer.astro";
-import LinkButton from "@components/LinkButton.astro";
-import Hr from "@components/Hr.astro";
-import ProjectCard from "@components/ProjectCard.astro";
-import Socials from "@components/Socials.astro";
+import Ask from "@components/Ask.astro";
+import { resume } from "../data/resume";
 import getSortedPosts from "@utils/getSortedPosts";
-import getProjects from "@utils/getProjects";
 import slugify from "@utils/slugify";
-import { LOCALE, SOCIALS } from "@config";
-
-const posts = await getCollection("blog");
-const recentPosts = getSortedPosts(posts).slice(0, 4);
-
-const projects = await getProjects();
-const featuredProjects = projects.filter(project => project.featured);
-
-const socialCount = SOCIALS.filter(social => social.active).length;
-
+import "@styles/ledger-home.css";
+const posts = getSortedPosts(
+  await getCollection("blog", ({ data }) => !data.draft)
+).slice(0, 4);
 const formatDate = (date: Date) =>
-  new Date(date).toLocaleDateString(LOCALE, {
-    year: "numeric",
+  date.toLocaleDateString("en", {
     month: "short",
+    year: "numeric",
+    timeZone: "UTC",
   });
 ---
 
-<Layout>
-  <Header />
-  <main id="main-content">
-    <section id="intro">
-      <img
-        src="/kamrul.jpg"
-        alt="MD Kamrul Hassan"
-        width="112"
-        height="112"
-        class="avatar"
-      />
-      <div class="intro-body">
-        <h1>MD Kamrul Hassan</h1>
-        <p class="role">Senior Software Engineer at Optimizely</p>
-        <p>
-          I own backend services for Opal, Optimizely's AI agent platform —
-          agent and workflow orchestration, tool calling, and agent memory and
-          retrieval — along with the platform infrastructure underneath: Cloud
-          Run and Cloud SQL in Terraform, an event bus split into isolated
-          brokers, and zero-downtime data model migrations.
-        </p>
-        <p>
-          Outside work I build developer tooling — terminal CLIs, Neovim plugins
-          and orchestration for AI coding agents. I write about what I had to
-          learn the hard way, some of it in Bengali.
-        </p>
+<Layout title={`${resume.name} — Senior Software Engineer`}>
+  <main class="ledger-home" id="main-content">
+    <Header activeNav="about" />
+    <header class="ledger-hero" id="sec-identity">
+      <h1>{resume.name}<span class="block" aria-hidden="true"></span></h1>
+      <p class="role">
+        <strong>Senior Software Engineer</strong> at Optimizely
+      </p>
+      <p class="experience-summary"><strong>5+</strong> years of experience</p>
+      <p class="contact">
+        <a href={`mailto:${resume.email}`}>{resume.email}</a> · {
+          resume.location
+        } · <a href={resume.github} target="_blank" rel="noopener noreferrer"
+          >GitHub ↗</a
+        > · <a href={resume.linkedin} target="_blank" rel="noopener noreferrer"
+          >LinkedIn ↗</a
+        > · <a href="/resume">Print résumé</a>
+      </p>
+      <p class="bio">{resume.bio}</p>
+    </header>
+    <section id="sec-experience" aria-labelledby="experience-title">
+      <div class="label">
+        <h2 id="experience-title">Experience</h2><span
+          class="n"
+          aria-hidden="true">01</span
+        >
+      </div>
+      <div>
         {
-          socialCount > 0 && (
-            <div class="intro-links">
-              <Socials />
-              <LinkButton href="/resume" className="resume-link">
-                Resume
-              </LinkButton>
+          resume.roles.map(job => (
+            <div class="job">
+              <div class="job-head">
+                <>
+                  <h3 class="job-title">
+                    {job.title} · {job.company}
+                  </h3>
+                  <span class="job-date">{job.dates}</span>
+                </>
+              </div>
+              {job.note && <p class="job-note">{job.note}</p>}
+              <ul>
+                {job.bullets.map(text => (
+                  <li>{text}</li>
+                ))}
+              </ul>
             </div>
-          )
-        }
-      </div>
-    </section>
-
-    <Hr />
-
-    <section id="writing">
-      <div class="section-head">
-        <h2>Writing</h2>
-        <LinkButton href="/posts">All posts &rarr;</LinkButton>
-      </div>
-      <ul class="post-list">
-        {
-          recentPosts.map(({ data }) => (
-            <li>
-              <a href={`/posts/${slugify(data)}`}>
-                <span class="post-title">{data.title}</span>
-                <span class="post-date">{formatDate(data.pubDatetime)}</span>
-              </a>
-            </li>
           ))
         }
-      </ul>
-    </section>
-
-    <Hr />
-
-    <section id="work">
-      <div class="section-head">
-        <h2>Selected work</h2>
-        <LinkButton href="/projects">All projects &rarr;</LinkButton>
       </div>
-      <ul class="project-grid">
-        {featuredProjects.map(project => <ProjectCard project={project} />)}
-      </ul>
     </section>
+    <section id="sec-skills" aria-labelledby="skills-title">
+      <div class="label">
+        <h2 id="skills-title">Skills</h2><span class="n" aria-hidden="true"
+          >02</span
+        >
+      </div>
+      <dl>
+        {
+          resume.skills.map(skill => (
+            <div class="skill">
+              <>
+                <dt>{skill.label.toLowerCase()}</dt>
+                <dd>{skill.text}</dd>
+              </>
+            </div>
+          ))
+        }
+      </dl>
+    </section>
+    <section id="sec-projects" aria-labelledby="projects-title">
+      <div class="label">
+        <h2 id="projects-title">Projects</h2><span class="n" aria-hidden="true"
+          >03</span
+        >
+      </div>
+      <div>
+        <dl>
+          {
+            resume.projects.map(project => (
+              <div class="proj">
+                <>
+                  <dt>
+                    {project.url ? (
+                      <a
+                        href={project.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        {project.name}
+                      </a>
+                    ) : (
+                      project.name
+                    )}
+                  </dt>
+                  <dd>{project.blurb}</dd>
+                </>
+              </div>
+            ))
+          }
+        </dl><a class="section-link" href="/projects">All projects →</a>
+      </div>
+    </section>
+    <section id="sec-education" aria-labelledby="education-title">
+      <div class="label">
+        <h2 id="education-title">Education</h2><span
+          class="n"
+          aria-hidden="true">04</span
+        >
+      </div>
+      <p class="education">{resume.education}</p>
+    </section>
+    <section id="sec-writing" aria-labelledby="writing-title">
+      <div class="label">
+        <h2 id="writing-title">Writing</h2><span class="n" aria-hidden="true"
+          >05</span
+        >
+      </div>
+      <div>
+        <ul class="posts">
+          {
+            posts.map(({ data }) => (
+              <li>
+                <a href={`/posts/${slugify(data)}`}>
+                  <>
+                    <span>{data.title}</span>
+                    <time datetime={data.pubDatetime.toISOString()}>
+                      {formatDate(data.pubDatetime)}
+                    </time>
+                  </>
+                </a>
+              </li>
+            ))
+          }
+        </ul><a class="section-link" href="/posts">All writing →</a>
+      </div>
+    </section>
+    <footer class="ledger-footer">
+      <span>© {new Date().getFullYear()} {resume.name.toUpperCase()}</span><a
+        href="/rss.xml">RSS ↗</a
+      >
+    </footer>
   </main>
-
-  <Footer />
+  <Ask />
 </Layout>
-
-<style>
-  #intro {
-    @apply flex flex-col items-start gap-6 pt-8 pb-10 sm:flex-row sm:items-center;
-  }
-  .avatar {
-    @apply h-24 w-24 shrink-0 rounded-full border-2 border-skin-line object-cover sm:h-28 sm:w-28;
-  }
-  .intro-body h1 {
-    @apply text-3xl font-bold sm:text-4xl;
-  }
-  .role {
-    @apply mt-1 text-skin-accent;
-  }
-  .intro-body > p:not(.role) {
-    @apply mt-3 max-w-prose;
-  }
-  .intro-links {
-    @apply mt-4 flex flex-wrap items-center gap-2;
-  }
-  .intro-links :global(.resume-link) {
-    @apply rounded border border-skin-line px-3 py-1 text-sm hover:border-skin-accent;
-  }
-
-  #work,
-  #writing {
-    @apply pt-10 pb-6;
-  }
-  .section-head {
-    @apply mb-5 flex items-baseline justify-between gap-4;
-  }
-  .section-head h2 {
-    @apply text-2xl font-semibold tracking-wide;
-  }
-  .section-head :global(a) {
-    @apply whitespace-nowrap text-sm opacity-80;
-  }
-
-  .project-grid {
-    @apply grid gap-4 sm:grid-cols-2;
-  }
-
-  .post-list li + li {
-    @apply border-t border-skin-line;
-  }
-  .post-list a {
-    @apply flex flex-col gap-1 py-3 sm:flex-row sm:items-baseline sm:justify-between sm:gap-4;
-  }
-  .post-title {
-    @apply font-medium decoration-dashed underline-offset-4;
-  }
-  .post-list a:hover .post-title {
-    @apply text-skin-accent underline;
-  }
-  .post-date {
-    @apply shrink-0 text-sm opacity-70;
-  }
-</style>
