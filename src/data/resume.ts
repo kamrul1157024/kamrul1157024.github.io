@@ -7,7 +7,7 @@ export const resume = {
   location: "Dhaka, Bangladesh",
   github: "https://github.com/kamrul1157024",
   linkedin: "https://www.linkedin.com/in/kamrul1157024/",
-  bio: "I maintain backend services and agentic architecture for Mark, Optimizely's AI agent platform — agent and workflow orchestration, tool calling, and agent memory and retrieval — along with the platform infrastructure underneath: Cloud Run and Cloud SQL in Terraform, an event bus split into isolated brokers, and zero-downtime data model migrations. Outside work I build developer tools: terminal CLIs, Neovim plugins, AI coding agent orchestration. I write about what I learned the hard way, some of it in Bengali.",
+  bio: "I maintain backend services and agentic architecture for Mark, Optimizely's AI agent platform — agent and workflow orchestration, tool calling, and agent memory and retrieval — along with the underlying platform infrastructure and zero-downtime data model migrations. Outside work I build developer tools: terminal CLIs, Neovim plugins, AI coding agent orchestration. I write about what I learned the hard way, some of it in Bengali.",
   skills: [
     {
       label: "Languages",

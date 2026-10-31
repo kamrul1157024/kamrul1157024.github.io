@@ -57,10 +57,7 @@ for (const text of [
 for (const term of [
   "I maintain backend services",
   "agentic architecture",
-  "Cloud Run",
-  "Cloud SQL",
-  "Terraform",
-  "isolated brokers",
+  "underlying platform infrastructure",
   "zero-downtime data model migrations",
 ]) {
   assert.ok(html.includes(term), `Missing introduction detail: ${term}`);
@@ -83,3 +80,16 @@ for (const match of llms.matchAll(/\[[^\]]+\]\((https:\/\/[^)]+)\)/g)) {
 console.log(
   "Copy and llms.txt verified: maintain wording, restored infrastructure, packaged Markdown and valid content links."
 );
+
+// These implementation specifics belong in Experience/Skills, not the introduction.
+const heroBio = html.match(/<p class="bio"[^>]*>([\s\S]*?)<\/p>/)?.[1];
+assert.ok(heroBio, "Homepage introduction missing");
+const markdownIntro = markdown.split("## Experience")[0];
+for (const introduction of [heroBio, markdownIntro]) {
+  assert.ok(
+    !/Cloud Run|Cloud SQL|isolated brokers|event bus split/.test(introduction),
+    "Removed cloud/broker detail returned to the introduction"
+  );
+  assert.ok(introduction.includes("underlying platform infrastructure"));
+  assert.ok(introduction.includes("zero-downtime data model migrations"));
+}
