@@ -7,7 +7,7 @@ export const resume = {
   location: "Dhaka, Bangladesh",
   github: "https://github.com/kamrul1157024",
   linkedin: "https://www.linkedin.com/in/kamrul1157024/",
-  bio: "I own backend services for Opal — Optimizely's AI agent platform — agent and workflow orchestration, tool calling, and agent memory and retrieval. Outside work I build developer tools: terminal CLIs, Neovim plugins, AI coding agent orchestration. I write about what I learned the hard way, some of it in Bengali.",
+  bio: "I own backend services for Mark — Optimizely's AI agent platform — agent and workflow orchestration, tool calling, and agent memory and retrieval. Outside work I build developer tools: terminal CLIs, Neovim plugins, AI coding agent orchestration. I write about what I learned the hard way, some of it in Bengali.",
   skills: [
     {
       label: "Languages",
@@ -37,7 +37,7 @@ export const resume = {
       dates: "Apr 2026 – Present",
       note: "",
       bullets: [
-        "Own backend services for Opal, the Optimizely AI agent platform, covering agent and workflow orchestration, tool calling, and agent memory and retrieval.",
+        "Own backend services for Mark, the Optimizely AI agent platform, covering agent and workflow orchestration, tool calling, and agent memory and retrieval.",
         "Own platform infrastructure and delivery: Terraform-managed Cloud Run and Cloud SQL, Ansible playbooks, multi-arch Docker images, sharded GitHub Actions CI, and an API gateway with signed service-to-service auth, correlation-ID logging and request redaction.",
         "Shipped agentic workflow capabilities and remote sandboxed code execution infrastructure, including multi-agent routing, tool registry integration, fused semantic and keyword recall, and prompt guardrails.",
         "Architected phased zero-downtime data model migrations (double-write, backfill, cutover) and partitioned a shared event bus into dedicated brokers to isolate failure domains.",

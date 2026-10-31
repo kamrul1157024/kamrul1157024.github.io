@@ -89,3 +89,15 @@ test("model confidence is only a score; empty/OOV vector cannot classify", () =>
   assert.equal(classify("qzxqzx", model), null);
   assert.equal(classify("", model), null);
 });
+
+for (const query of [
+  "what did he build for Mark?",
+  "tell me about Mark",
+  "tell me about Opal",
+]) {
+  test("routes the product name: " + query, () => {
+    const result = routeQuestion(query, model);
+    assert.equal(result.kind, "topic");
+    assert.equal(result.intent, "experience");
+  });
+}

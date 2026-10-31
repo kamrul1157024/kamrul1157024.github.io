@@ -154,7 +154,7 @@ const EXPLICIT = [
   ],
   [
     "experience",
-    /\b(experience|career|jobs?|employment|optimizely|welcome|opal|responsibilities|promotions?)\b|\bwork history\b|\bat work\b|\bprofessional background\b/,
+    /\b(experience|career|jobs?|employment|optimizely|welcome|mark|opal|responsibilities|promotions?)\b|\bwork history\b|\bat work\b|\bprofessional background\b/,
   ],
   [
     "identity",
