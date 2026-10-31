@@ -64,6 +64,14 @@ for (const term of [
   assert.ok(markdown.includes(term), `Missing Markdown detail: ${term}`);
 }
 assert.ok(html.includes("He maintains Mark's backend services"));
+assert.ok(
+  html.includes("A head for headless coding harnesses"),
+  "Helios description missing or changed"
+);
+assert.ok(
+  !html.includes("Daemon managing AI coding sessions"),
+  "Old Helios description still present"
+);
 assert.match(html, /rel="describedby" href="\/llms.txt"/);
 for (const match of llms.matchAll(/\[[^\]]+\]\((https:\/\/[^)]+)\)/g)) {
   const url = new URL(match[1]);

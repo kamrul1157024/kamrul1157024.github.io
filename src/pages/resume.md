@@ -86,9 +86,7 @@ _Software Engineer Intern, Apr 2021 – Sep 2021._
 
 ## Projects
 
-- **[Helios](https://github.com/kamrul1157024/helios)** — Daemon managing AI coding
-  sessions over tmux with hook-event tracking, desktop and mobile notifications, voice
-  narration and an Android client.
+- **[Helios](https://github.com/kamrul1157024/helios)** — A head for headless coding harnesses.
 - **C\*Opal** (Optimizely Global Hackathon) — CLI coding agent that indexes existing
   codebases, self-corrects generated code, and supports MCP servers.
 - **[terminal-ai](https://github.com/kamrul1157024/terminal-ai)** — Published npm CLI

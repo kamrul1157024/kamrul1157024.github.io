@@ -80,8 +80,7 @@ export const resume = {
     {
       name: "Helios",
       url: "https://github.com/kamrul1157024/helios",
-      blurb:
-        "Daemon managing AI coding sessions over tmux with hook-event tracking, desktop and mobile notifications, voice narration and an Android client.",
+      blurb: "A head for headless coding harnesses.",
     },
     {
       name: "C*Opal",

@@ -25,8 +25,7 @@ const CURATED: Curated[] = [
   {
     repo: "helios",
     name: "helios",
-    blurb:
-      "Platform that orchestrates AI coding agents on your own machine instead of a hosted sandbox.",
+    blurb: "A head for headless coding harnesses.",
     tech: ["Go", "Agents"],
     featured: true,
   },
