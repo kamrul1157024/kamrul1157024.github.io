@@ -40,9 +40,9 @@ _Dec 2021 – Present_
 
 #### Senior Software Engineer | Apr 2026 – Present
 
-- Own backend services for Mark, the Optimizely AI agent platform, covering agent and
+- Maintain backend services and agentic architecture for Mark, the Optimizely AI agent platform, covering agent and
   workflow orchestration, tool calling, and agent memory and retrieval.
-- Own platform infrastructure and delivery: Terraform-managed Cloud Run and Cloud SQL,
+- Maintain platform infrastructure and delivery: Terraform-managed Cloud Run and Cloud SQL,
   Ansible playbooks, multi-arch Docker images, sharded GitHub Actions CI, and an API
   gateway with signed service-to-service auth, correlation-ID logging and request
   redaction.
