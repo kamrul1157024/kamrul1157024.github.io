@@ -148,6 +148,25 @@ canvas.spark{border:1px solid var(--line);background:#101013}
 .legend{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--mut)}
 .lbar{width:120px;height:8px;border:1px solid var(--line);
   background:linear-gradient(90deg,var(--red),#141418 50%,var(--blue))}
+
+/* ---- light / paper theme ---- */
+body.light{--bg:#f7f4ee; --fg:#1a1a1a; --mut:#6b6659; --line:#d8d2c4;
+  --acc:#d63c14; --blue:#1d5bbf; --red:#c92a2a; --ok:#0f7b5a;}
+body.light .gwrap, body.light .panel, body.light .lossbox, body.light .nb,
+body.light aside.sidebar, body.light canvas.spark{background:#fffdf8}
+body.light .cell{background:#f2eee4}
+body.light .rulebox, body.light .fbar, body.light .formulas, body.light .explain,
+body.light .ledger, body.light .chain, body.light .loranote{background:#fffdf8}
+body.light .gatec{background:#f7f4ee}
+body.light .pkt{color:#fff}
+body.light .pkt.fwd{color:#fff}
+body.light .seg button.on{background:var(--fg);color:#f7f4ee}
+body.light aside.sidebar button.on{background:#efe9db}
+body.light .ftok.changed{background:rgba(214,60,20,.14)}
+body.light .lbar{background:linear-gradient(90deg,var(--red),#f2eee4 50%,var(--blue))}
+body.light .cell.gradcell{background:#fffdf8}
+#themetoggle{border-color:var(--acc);color:var(--acc)}
+
 footer{margin-top:26px;color:var(--mut);font-size:12px;border-top:1px solid var(--line);padding-top:12px}
 </style>
 </head>
@@ -155,6 +174,7 @@ footer{margin-top:26px;color:var(--mut);font-size:12px;border-top:1px solid var(
 <header>
   <h1>Backprop from scratch</h1>
   <div class="sub">animated lessons: the four rules → vectors → matrices → LoRA · ←/→ or the sidebar to move · space = next step</div>
+  <button id="themetoggle" style="margin-top:8px">☀ light mode</button>
 </header>
 
 <div class="layout">
@@ -391,11 +411,12 @@ function kx(tex,disp){
 }
 function drawSparkInto(cv,hist,label){
   const ctx=cv.getContext('2d'); ctx.clearRect(0,0,cv.width,cv.height);
-  ctx.fillStyle='#8f8f8f'; ctx.font='10px ui-monospace,monospace';
+  const light=document.body.classList.contains('light');
+  ctx.fillStyle=light?'#6b6659':'#8f8f8f'; ctx.font='10px ui-monospace,monospace';
   ctx.fillText(label,6,11);
   if(hist.length<2)return;
   const max=Math.max(...hist), min=Math.min(...hist), pad=14;
-  ctx.strokeStyle='#ff5c39'; ctx.lineWidth=1.5; ctx.beginPath();
+  ctx.strokeStyle=light?'#d63c14':'#ff5c39'; ctx.lineWidth=1.5; ctx.beginPath();
   hist.forEach((v,i)=>{
     const x=6+i*(cv.width-12)/Math.max(1,hist.length-1);
     const y=cv.height-4-(v-min)/((max-min)||1e-9)*(cv.height-pad-6);
@@ -780,6 +801,7 @@ function buildSlide4(){
     document.getElementById('s4-status').textContent='';
     drawSparkInto(document.getElementById('s4-spark'),[],'loss / epoch');
     FWD.reset();BWD.reset();baseFormula();cap.innerHTML='';paint();};
+  if(window.__themeRedraws)window.__themeRedraws.push(()=>drawSparkInto(document.getElementById('s4-spark'),st.hist,'loss / epoch'));
   return {play:async()=>{G.clearPackets();await FWD.play();await BWD.play();}};
 }
 
@@ -1188,7 +1210,10 @@ function createMatrixSim(root,opts){
   }
   function colFor(t){
     const a=Math.min(1,Math.abs(t));
-    const base=[20,22,26], pos=[47,111,219], neg=[229,72,77];
+    const light=document.body.classList.contains('light');
+    const base=light?[242,238,228]:[20,22,26];
+    const pos=light?[29,91,191]:[47,111,219];
+    const neg=light?[201,42,42]:[229,72,77];
     const tgt=t>=0?pos:neg;
     const m=base.map((bb,i)=>Math.round(bb+(tgt[i]-bb)*a));
     return `rgb(${m[0]},${m[1]},${m[2]})`;
@@ -1345,8 +1370,32 @@ function createMatrixSim(root,opts){
   });
   stage.addEventListener('mouseleave',clearHl);
   initParams(); buildStage(); updateFormula(); render();
+  if(window.__themeRedraws)window.__themeRedraws.push(render);
   return {step, S, stopPlay:()=>{if(S.playing){S.playing=false;clearInterval(S.timer);playBtn.textContent='▶ Play';}}};
 }
+
+
+/* ================= theme toggle ================= */
+(function(){
+  const btn=document.getElementById('themetoggle');
+  function apply(mode){
+    document.body.classList.toggle('light',mode==='light');
+    btn.textContent=mode==='light'?'☾ dark mode':'☀ light mode';
+    try{localStorage.setItem('backprop-lab-theme',mode);}catch(e){}
+    document.querySelectorAll('canvas.spark').forEach(cv=>{
+      const evt=new Event('redraw');cv.dispatchEvent(evt);});
+  }
+  let mode='dark';
+  try{mode=localStorage.getItem('backprop-lab-theme')||'dark';}catch(e){}
+  btn.onclick=()=>apply(document.body.classList.contains('light')?'dark':'light');
+  apply(mode);
+  window.__applyTheme=apply;
+  // re-render anything theme-dependent on toggle
+  window.__themeRedraws=[];
+  document.querySelectorAll('canvas.spark').forEach(cv=>cv.addEventListener('redraw',()=>{
+    window.__themeRedraws.forEach(f=>{try{f();}catch(e){}});
+  }));
+})();
 
 /* ================= boot ================= */
 function boot(){
