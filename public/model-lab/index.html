@@ -210,6 +210,91 @@ body.light .rtab td.chg{background:rgba(214,60,20,.12)}
 code{font:inherit;color:var(--acc)}
 @media (max-width:900px){aside.sidebar{max-height:none}}
 
+/* ---- KV cache slide (s14) ---- */
+#s14{position:relative;--kcw:42px;--kch:28px;--kvredo:#c678dd;--kvpop:880ms;--kvbar:1600ms;--kvfade:1100ms}
+body.light #s14{--kvredo:#8e44ad}
+#s14 .kvbar{position:sticky;top:0;z-index:20;background:var(--bg);padding:2px 0 8px;border-bottom:1px solid var(--line)}
+#s14 .kvbar .controls{margin:8px 0 6px}
+#s14 .kvcap{min-height:50px;font-size:14px;color:var(--fg);max-width:1150px;line-height:1.7}
+#s14 .kvcap .katex{font-size:1.06em}
+.kvtoks{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin:14px 0 4px}
+.kvtl{color:var(--mut);font-size:11px;letter-spacing:.2em;text-transform:uppercase;margin-right:6px}
+.kvtok{border:1px solid var(--line);padding:4px 10px;font-size:13.5px;display:inline-flex;gap:7px;align-items:baseline}
+.kvtok .kvti{color:var(--mut);font-size:11px}
+.kvtok.cur{border-color:var(--acc);color:var(--acc)}
+.kvtok.pred{border-style:dashed;color:var(--mut)}
+.kvtok.pred.on{color:var(--fg);border-color:var(--acc)}
+.kvlegend{display:flex;gap:16px;flex-wrap:wrap;font-size:11.5px;color:var(--mut);margin-top:8px}
+.kvlegend i{display:inline-block;width:16px;height:12px;vertical-align:-2px;margin-right:6px;border:1px solid var(--line)}
+.kvlegend .lg-new{background:rgba(255,92,57,.22);border-color:var(--acc)}
+.kvlegend .lg-cache{background:rgba(47,111,219,.22);border-color:var(--blue)}
+.kvlegend .lg-redo{border:1.5px dashed var(--kvredo)}
+.kvlegend .lg-mask{background:repeating-linear-gradient(45deg,transparent 0 3px,var(--mut) 3px 4px)}
+.kvlegend .lg-waste{opacity:.45;background:linear-gradient(transparent 45%,var(--fg) 45% 58%,transparent 58%)}
+.kvlane{margin-top:12px;border:1px solid var(--line);padding:8px 12px 2px}
+.kvlh{display:flex;gap:12px;align-items:baseline;flex-wrap:wrap;font-size:12px}
+.kvlt{font-weight:700;letter-spacing:.14em;text-transform:uppercase;font-size:12px}
+.kvmt{font-size:14px}
+.kvlt.kvA{color:var(--kvredo)}
+.kvlt.kvB{color:var(--blue)}
+.kvmeter{margin-left:auto;color:var(--mut);font-size:12px}
+.kvmeter b{color:var(--fg)}
+#s14 .stage{margin-top:2px}
+#s14 .lane.kvl{gap:7px;padding:8px 0 10px;min-height:120px;align-items:center}
+.kvempty{color:var(--mut);font-size:13px;padding:26px 6px}
+#s14 .kvp{padding:6px 8px}
+#s14 .kvp .ptitle{font-weight:400;font-size:12.5px;margin-bottom:4px}
+#s14 .kvp .psub{font-size:10.5px}
+#s14 .kvgrid{gap:2px;align-items:center}
+.kvrl{font-size:12px;color:var(--mut);padding-right:5px;text-align:right;white-space:nowrap}
+.kvcl{font-size:12px;color:var(--mut);text-align:center;padding-bottom:1px}
+#s14 .kvop{font-size:15px;padding:0}
+#s14 .cell{width:var(--kcw);height:var(--kch);font-size:11px;cursor:default;position:relative;
+  transition:background var(--kvfade),opacity var(--kvfade),box-shadow .4s,color .4s}
+#s14 .cell.kv-blank{color:transparent;background:transparent;border-style:dashed}
+#s14 .cell.kv-new{background:rgba(255,92,57,.2);box-shadow:0 0 0 1.5px var(--acc) inset}
+#s14 .cell.kv-cache{background:rgba(47,111,219,.2)}
+#s14 .cell.kv-redo{outline:1.5px dashed var(--kvredo);outline-offset:-3px}
+#s14 .cell.kv-mask{background:repeating-linear-gradient(45deg,transparent 0 5px,var(--line) 5px 6px);color:transparent}
+#s14 .cell.kv-waste{opacity:.28;text-decoration:line-through}
+#s14 .cell.kv-hot{box-shadow:0 0 0 2px var(--acc) inset;background:rgba(255,92,57,.4)}
+#s14 .cell.kv-pop{animation:kvpop var(--kvpop) cubic-bezier(.2,.7,.2,1)}
+@keyframes kvpop{0%{transform:scale(.5);opacity:0}100%{transform:scale(1);opacity:1}}
+#s14 .cell.kv-glow{animation:kvglow 1.6s ease-in-out}
+@keyframes kvglow{0%,100%{box-shadow:none}40%{box-shadow:0 0 0 2px var(--blue) inset}}
+body.light #s14 .cell.kv-blank{background:transparent}
+body.light #s14 .cell.kv-new{background:rgba(214,60,20,.13)}
+body.light #s14 .cell.kv-cache{background:rgba(29,91,191,.15)}
+body.light #s14 .cell.kv-hot{background:rgba(214,60,20,.32)}
+.kvnext{font-size:12.5px;white-space:nowrap;border:1px dashed var(--acc);padding:4px 8px;margin-top:6px;
+  opacity:0;transition:opacity var(--kvfade)}
+.kvnext.on{opacity:1}
+.kv-fly{position:absolute;z-index:30;pointer-events:none;gap:2px}
+.kvred{color:var(--kvredo);font-weight:700}
+.kvblue{color:var(--blue);font-weight:700}
+.kvcost,.kvgqa{margin-top:14px;border:1px solid var(--line);padding:10px 14px 12px;scroll-margin-top:170px}
+.kvbars{display:grid;grid-template-columns:auto 1fr;gap:8px 12px;align-items:center;max-width:780px;margin-top:10px}
+.kvbr{display:flex;flex-direction:column;gap:4px}
+.kvb{position:relative;height:13px;width:0;transition:width var(--kvbar) cubic-bezier(.2,.7,.2,1)}
+.kvb.a{background:var(--kvredo);opacity:.75}
+.kvb.b{background:var(--blue);opacity:.75}
+.kvb span{position:absolute;left:calc(100% + 8px);top:-2px;font-size:11px;color:var(--mut);white-space:nowrap}
+.kvtot{margin-top:6px;opacity:0;transition:opacity var(--kvfade)}
+.kvtot.on{opacity:1}
+.kvgarea{position:relative;width:900px;max-width:100%;height:230px;margin-top:6px}
+.kvgarea svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.kvgarea line{stroke:var(--mut);stroke-width:1.6}
+.kvhead{position:absolute;transform:translate(-50%,-50%);width:62px;height:34px;border:1px solid var(--acc);
+  display:flex;align-items:center;justify-content:center;font-size:13px;background:var(--bg)}
+.kvhead.kv{border-color:var(--blue);background:rgba(47,111,219,.15)}
+body.light .kvhead.kv{background:#e3ebf8}
+.kvgside{position:absolute;left:0;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--mut)}
+.kvmemlbl{font-size:12.5px;margin-top:4px}
+.kvmem{height:16px;border:1px solid var(--line);max-width:620px;margin-top:6px}
+.kvmem i{display:block;height:100%;width:100%;background:var(--blue);opacity:.7;transition:width var(--kvbar) ease}
+.kvreal{font-size:12.5px;color:var(--mut);margin-top:10px;line-height:1.8}
+.kvreal .katex{color:var(--fg)}
+
 footer{margin-top:26px;color:var(--mut);font-size:12px;border-top:1px solid var(--line);padding-top:12px}
 </style>
 </head>
@@ -586,24 +671,42 @@ footer{margin-top:26px;color:var(--mut);font-size:12px;border-top:1px solid var(
 <!-- ============ SLIDE 14: KV cache & GQA ============ -->
 <section class="slide" id="s14">
   <div class="kick">Slide 14</div>
-  <h2>Predicting the next token: what can be cached</h2>
-  <p class="prose">To predict token 5, the model needs tokens 1–4 — but their <b>keys and values
-  don't change</b> once computed. Recomputing them every step is waste. The <b>KV cache</b> keeps
-  them; each new token only computes its own K, V, Q and attends over the cache. Then the
-  optimization: <b>GQA</b> shares one K/V head across several query heads — same quality, a
-  fraction of the cache.</p>
-  <div class="controls">
-    <button class="primary" id="s14-gen">Generate a token ▸</button>
-    <button id="s14-gqa">Toggle GQA ▸</button>
-    <button id="s14-reset">Reset</button>
-    <span class="status" id="s14-status"></span>
+  <h2>KV cache: stop recomputing the past</h2>
+  <p class="prose">Generating text is a loop: feed the newest token, predict the next one, repeat.
+  Attention for the newest token needs the keys and values of <b>every earlier token</b>, and those
+  never change once computed. Without a cache the model recomputes them every step; with a
+  <b>KV cache</b> it computes each one once and reads it back. Step through both lanes side by side,
+  then see how <b>GQA</b> shrinks the cache itself.</p>
+  <div class="kvbar">
+    <div class="controls">
+      <button id="s14-back">&#9666; Back</button>
+      <button class="primary" id="s14-next">Next step &#9656;</button>
+      <button id="s14-play">&#9654; Play all</button>
+      <button id="s14-replay">&#8634; Replay</button>
+      <label class="ctl">speed</label>
+      <div class="seg" id="s14-speed"><button data-sp="1.6">Slow</button><button data-sp="1">Normal</button><button data-sp="0.5">Fast</button></div>
+      <span class="stepcount" id="s14-count"></span>
+    </div>
+    <div class="kvcap" id="s14-cap"></div>
   </div>
-  <div id="s14-stage" style="margin-top:10px"></div>
-  <div class="fcaption" id="s14-cap"></div>
+  <div class="kvtoks" id="s14-toks"></div>
+  <div class="kvlegend">
+    <span><i class="lg-new"></i>new this step</span>
+    <span><i class="lg-cache"></i>read from cache</span>
+    <span><i class="lg-redo"></i>recomputed (same value as last step)</span>
+    <span><i class="lg-mask"></i>masked future</span>
+    <span><i class="lg-waste"></i>computed, then thrown away</span>
+  </div>
+  <div class="kvlane" id="s14-laneA"></div>
+  <div class="kvlane" id="s14-laneB"></div>
+  <div id="s14-cost"></div>
+  <div id="s14-gqa"></div>
   <div class="rulebox"><b>KV CACHE &amp; GQA</b>
-  <div class="tex" data-tex="\text{step } t: \; K_{1..t}, V_{1..t} \text{ cached} \;\Rightarrow\; \text{compute only } q_t, k_t, v_t \qquad \text{cache} = O(t \cdot n_{\text{heads}} \cdot d)"></div>
-  <div class="tex" data-tex="\text{MHA: } n_q = n_{kv} \qquad \text{GQA: } n_{kv} < n_q \; (\text{e.g. } 8q \to 2kv) \qquad \text{cache} \downarrow \; \tfrac{n_{kv}}{n_q}"></div>
-  MQA is GQA with one K/V head. Fewer K/V heads = smaller cache, faster decode, tiny quality cost.</div>
+  <div class="tex" data-tex="o_t = \mathrm{softmax}\!\left(\frac{q_t\, K_{1:t}^{\top}}{\sqrt{d}}\right) V_{1:t} \qquad K_{1:t} = \begin{bmatrix} K_{1:t-1} \\ k_t \end{bmatrix} \;\; \text{(cached + new)}"></div>
+  <div class="tex" data-tex="\text{per step: } t \to 1 \text{ K/V rows}, \;\; t^2 \to t \text{ scores} \qquad \text{cache bytes} = 2 \cdot n_{\text{layers}} \cdot n_{kv} \cdot d_{\text{head}} \cdot T \cdot \text{bytes}"></div>
+  <div class="tex" data-tex="\text{MHA: } n_{kv} = n_q \qquad \text{GQA: } 1 < n_{kv} < n_q \qquad \text{MQA: } n_{kv} = 1"></div>
+  The cache trades memory for compute: each new token stays cheap, but the cache grows with every
+  token, layer and K/V head. That is why long contexts and big batches push models toward GQA.</div>
 </section>
 
 
@@ -2290,70 +2393,325 @@ function buildSlide13(){
   return {play:async()=>{await fwd();await bwd();}};
 }
 
-/* ================= SLIDE 14: KV cache & GQA ================= */
+/* ================= SLIDE 14: KV cache & GQA (stepped, animated) ================= */
 function buildSlide14(){
-  const stage=document.getElementById('s14-stage');
-  const cap=document.getElementById('s14-cap');
-  const status=document.getElementById('s14-status');
-  let t=0, gqa=false;
-  const NQ=8;
-  function nkv(){return gqa?2:NQ;}
-  function render(){
-    stage.innerHTML='';
-    // cache panel
-    const cp=el('div','panel');
-    cp.appendChild(el('div','ptitle','KV cache'));
-    const cg=el('div','grid');cg.style.gridTemplateColumns=`repeat(${Math.max(t,1)},var(--cw))`;
-    for(let i=0;i<t;i++){
-      const c=el('div','cell','K,V');c.style.background='rgba(47,111,219,.25)';cg.appendChild(c);
+  const $=id=>document.getElementById(id);
+  const sec=$('s14');
+  const cap=$('s14-cap'),cnt=$('s14-count'),toksEl=$('s14-toks');
+  const laneAEl=$('s14-laneA'),laneBEl=$('s14-laneB'),costEl=$('s14-cost'),gqaEl=$('s14-gqa');
+  const nextBtn=$('s14-next'),playBtn=$('s14-play');
+  const T=4,D=3,N=12,MODES=['mha','gqa','mqa'];
+  const WORDS=['The','cat','sat','on'],NEXTW=['cat','sat','on','the'];
+  // ---- the numbers: one tiny attention head, d = 3 ----
+  const R=rng(1414),rnd=()=>+(R()*2-1).toFixed(2);
+  const X=Array.from({length:T},()=>Array.from({length:D},rnd));
+  const mkW=()=>Array.from({length:D},()=>Array.from({length:D},rnd));
+  const WQ=mkW(),WK=mkW(),WV=mkW();
+  const mv=(x,W)=>W[0].map((_,j)=>+x.reduce((s,xi,i)=>s+xi*W[i][j],0).toFixed(2));
+  const Qm=X.map(x=>mv(x,WQ)),Km=X.map(x=>mv(x,WK)),Vm=X.map(x=>mv(x,WV));
+  const Am=Qm.map((q,i)=>{const s=Km.slice(0,i+1).map(k=>q.reduce((a,qc,c)=>a+qc*k[c],0)/Math.sqrt(D));
+    const m=Math.max(...s),e=s.map(v=>Math.exp(v-m)),z=e.reduce((a,c)=>a+c,0);return e.map(v=>v/z);});
+  const Om=Am.map(a=>Array.from({length:D},(_,c)=>a.reduce((s,aj,j)=>s+aj*Vm[j][c],0)));
+  const tA=s=>s>=9?T:Math.ceil(s/2), tB=s=>s>=9?T:Math.floor(s/2);
+
+  // ---- timing (Slow by default) ----
+  let SP=1.6;
+  try{const v=parseFloat(localStorage.getItem('model-lab-speed'));if(v>0)SP=v;}catch(e){}
+  const ms=x=>x*SP;
+  let RUN=0,i=0,busy=false,shown=-1,playing=false;
+  const ABORT={abort:true};
+  const live=new Set();
+  function wait(x,run){return new Promise((res,rej)=>setTimeout(()=>run!==RUN?rej(ABORT):res(),ms(x)));}
+  function chk(run){if(run!==RUN)throw ABORT;}
+  function tween(dur,fn,run){return new Promise((res,rej)=>{const t0=performance.now();
+    (function f(now){if(run!==RUN){rej(ABORT);return;}const k=Math.min(1,(now-t0)/dur);
+      fn(k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2);if(k<1)requestAnimationFrame(f);else res();})(t0);});}
+  function killFlies(){live.forEach(a=>{try{a.cancel();}catch(e){}});live.clear();sec.querySelectorAll('.kv-fly').forEach(f=>f.remove());}
+  function setDur(){sec.style.setProperty('--kvpop',ms(550)+'ms');sec.style.setProperty('--kvbar',ms(1000)+'ms');sec.style.setProperty('--kvfade',ms(700)+'ms');}
+
+  // ---- small DOM helpers ----
+  function mat(title,rows,cols,o){
+    o=o||{};
+    const p=el('div','panel kvp');
+    const tt=el('div','ptitle');tt.innerHTML=kx(title);p.appendChild(tt);
+    const g=el('div','grid kvgrid');
+    g.style.gridTemplateColumns=(o.rowLabels?'auto ':'')+`repeat(${cols},var(--kcw))`;
+    if(o.colLabels){if(o.rowLabels)g.appendChild(el('div','kvcl'));
+      for(let c=0;c<cols;c++){const h=el('div','kvcl');h.innerHTML=kx(o.colLabels[c]);g.appendChild(h);}}
+    const cells=[];
+    for(let r=0;r<rows;r++){
+      if(o.rowLabels){const l=el('div','kvrl');l.innerHTML=kx(o.rowLabels[r]);g.appendChild(l);}
+      const row=[];for(let c=0;c<cols;c++){const ce=el('div','cell');g.appendChild(ce);row.push(ce);}cells.push(row);
     }
-    if(t===0)cg.appendChild(el('div','cell','·'));
-    cp.appendChild(cg);
-    cp.appendChild(el('div','psub',`${t} positions cached · ${nkv()} kv heads`));
-    stage.appendChild(cp);
-    // new token
-    stage.appendChild(el('div','op','+'));
-    const np=el('div','panel adapter'.includes('x')?'panel':'panel');
-    np.appendChild(el('div','ptitle','new token'));
-    const ng=el('div','grid');ng.style.gridTemplateColumns='repeat(1,var(--cw))';
-    const nc=el('div','cell','q,k,v');nc.style.background='rgba(255,92,57,.3)';ng.appendChild(nc);
-    np.appendChild(ng);
-    np.appendChild(el('div','psub','compute once'));
-    stage.appendChild(np);
-    // heads
-    const hp=el('div','panel');
-    hp.appendChild(el('div','ptitle',gqa?'GQA: 8 q → 2 kv':'MHA: 8 q → 8 kv'));
-    const hg=el('div','grid');hg.style.gridTemplateColumns=`repeat(${NQ},var(--cw))`;
-    for(let i=0;i<NQ;i++){
-      const kv=gqa?Math.floor(i/4):i;
-      const c=el('div','cell','q'+(i+1));
-      c.title='→ kv head '+(kv+1);
-      c.style.background=gqa?`rgba(255,92,57,${0.12+0.06*kv})`:'rgba(47,111,219,.2)';
-      hg.appendChild(c);
+    p.appendChild(g);
+    if(o.sub){const s=el('div','psub');s.innerHTML=o.sub;p.appendChild(s);}
+    return {p,cells};
+  }
+  function op(tex){const o=el('div','op kvop');o.innerHTML=kx(tex);return o;}
+  function put(ce,txt,cls,pop){ce.textContent=txt;ce.className='cell'+(cls?' '+cls:'')+(pop?' kv-pop':'');}
+  const lab=(p,t)=>Array.from({length:t},(_,k)=>`${p}_{${k+1}}`);
+  function laneHead(host,cls,title,sub){
+    host.innerHTML='';
+    const h=el('div','kvlh');h.appendChild(el('span','kvlt '+cls,title));h.appendChild(el('span','dim',sub));
+    const m=el('span','kvmeter');h.appendChild(m);host.appendChild(h);
+    const sc=el('div','stage');const ln=el('div','lane kvl');sc.appendChild(ln);host.appendChild(sc);
+    return {m,ln};
+  }
+  function rectOf(cells){const rs=cells.map(c=>c.getBoundingClientRect());
+    const l=Math.min(...rs.map(r=>r.left)),t=Math.min(...rs.map(r=>r.top));
+    return {left:l,top:t,width:Math.max(...rs.map(r=>r.right))-l,height:Math.max(...rs.map(r=>r.bottom))-t};}
+  // fly a copy of a vector from its source cells into its destination cells (rot=-90: row becomes a column, i.e. a transpose)
+  function fly(src,dst,vals,vertical,rot,run){
+    const s=rectOf(src),d=rectOf(dst),base=sec.getBoundingClientRect();
+    const f=el('div','kv-fly grid');
+    f.style.gridTemplateColumns=vertical?'var(--kcw)':`repeat(${vals.length},var(--kcw))`;
+    vals.forEach(v=>f.appendChild(el('div','cell kv-new',fmt(v))));
+    f.style.left=(d.left-base.left)+'px';f.style.top=(d.top-base.top)+'px';
+    sec.appendChild(f);
+    const dx=(s.left+s.width/2)-(d.left+d.width/2),dy=(s.top+s.height/2)-(d.top+d.height/2);
+    const a=f.animate([
+      {transform:`translate(${dx}px,${dy}px) rotate(${rot}deg) scale(.85)`,opacity:0},
+      {transform:`translate(${dx*.92}px,${dy*.92-14}px) rotate(${rot*.92}deg) scale(1.05)`,opacity:1,offset:.15},
+      {transform:'translate(0px,0px) rotate(0deg) scale(1)',opacity:1}],
+      {duration:ms(1150),easing:'cubic-bezier(.45,.05,.25,1)',fill:'forwards'});
+    live.add(a);
+    return a.finished.then(()=>{live.delete(a);f.remove();chk(run);},()=>{live.delete(a);f.remove();throw ABORT;});
+  }
+
+  // ---- token strip ----
+  function renderToks(s,done){
+    const t=Math.max(1,tA(s));toksEl.innerHTML='';
+    toksEl.appendChild(el('span','kvtl','generating'));
+    for(let k=0;k<t;k++){const c=el('span','kvtok'+(k===t-1&&s>0&&s<=8?' cur':''));
+      c.innerHTML=`<span class="kvti">${kx('x_{'+(k+1)+'}')}</span>${WORDS[k]}`;toksEl.appendChild(c);}
+    const known=s>0&&(done||s>=9);
+    const p=el('span','kvtok pred'+(known?' on':''));
+    p.innerHTML=`<span class="kvti">next</span>${known?NEXTW[t-1]:'?'}`;toksEl.appendChild(p);
+  }
+
+  // ---- lane A: no cache, recompute the whole prefix ----
+  async function laneA(t,anim,run){
+    const {m,ln}=laneHead(laneAEl,'kvA','Without cache','re-run the whole prefix every step');
+    if(!t){ln.appendChild(el('div','kvempty','waiting for token 1 \u2014 press Next step \u25b8'));return;}
+    m.innerHTML=`this step: <b>${t}</b> K/V rows \u00b7 <b>${t*t}</b> scores &nbsp;\u00b7&nbsp; K/V rows so far: <b>${t*(t+1)/2}</b>`;
+    const Q=mat(`Q_{1:${t}}`,t,D,{rowLabels:lab('q',t),sub:`${t}\u00d7${D}`});
+    const K=mat(`K_{1:${t}}^{\\top}`,D,t,{colLabels:lab('k',t),sub:`${D}\u00d7${t}`});
+    const A=mat('A',t,t,{rowLabels:lab('a',t),sub:`${t}\u00d7${t} \u00b7 causal`});
+    const V=mat(`V_{1:${t}}`,t,D,{rowLabels:lab('v',t),sub:`${t}\u00d7${D}`});
+    const O=mat('O = AV',t,D,{rowLabels:lab('o',t)});
+    const nx=el('div','kvnext');nx.innerHTML=`${kx('o_{'+t+'}')} \u2192 next: <b>${NEXTW[t-1]}</b>`;O.p.appendChild(nx);
+    ln.append(Q.p,op('\\cdot'),K.p,op('\\xrightarrow{\\text{softmax}}'),A.p,op('\\cdot'),V.p,op('='),O.p);
+    const rc=r=>r<t-1?'kv-redo':'kv-new';
+    const fillRow=(r,pop)=>{for(let c=0;c<D;c++){put(Q.cells[r][c],fmt(Qm[r][c]),rc(r),pop);
+      put(K.cells[c][r],fmt(Km[r][c]),rc(r),pop);put(V.cells[r][c],fmt(Vm[r][c]),rc(r),pop);}};
+    const fillA=(r,pop)=>{for(let j=0;j<t;j++){if(j<=r)put(A.cells[r][j],fmt(Am[r][j]),rc(r),pop);else put(A.cells[r][j],'','kv-mask',pop);}};
+    const fillO=(r,pop)=>{for(let c=0;c<D;c++)put(O.cells[r][c],fmt(Om[r][c]),rc(r),pop);};
+    const waste=()=>{for(let r=0;r<t-1;r++)for(let c=0;c<D;c++)put(O.cells[r][c],fmt(Om[r][c]),'kv-redo kv-waste');nx.classList.add('on');};
+    if(!anim){for(let r=0;r<t;r++){fillRow(r);fillA(r);fillO(r);}waste();return;}
+    [Q,K,A,V,O].forEach(M=>M.cells.flat().forEach(c=>put(c,'','kv-blank')));
+    await wait(400,run);
+    for(let r=0;r<t;r++){fillRow(r,true);await wait(460,run);}
+    await wait(250,run);
+    for(let r=0;r<t;r++){fillA(r,true);await wait(360,run);}
+    for(let r=0;r<t;r++){fillO(r,true);await wait(280,run);}
+    await wait(450,run);
+    waste();
+  }
+
+  // ---- lane B: KV cache, compute only the new token ----
+  async function laneB(t,anim,run){
+    const {m,ln}=laneHead(laneBEl,'kvB','With KV cache','compute only the new token, read the rest back');
+    if(!t){ln.appendChild(el('div','kvempty','waiting for token 1'));return;}
+    m.innerHTML=`this step: <b>1</b> K/V row \u00b7 <b>${t}</b> scores &nbsp;\u00b7&nbsp; K/V rows so far: <b>${t}</b> &nbsp;\u00b7&nbsp; cache holds <b>${t}</b>`;
+    const r=t-1;
+    const P=mat(`x_{${t}}\\,W_{Q,K,V}`,3,D,{rowLabels:[`q_{${t}}`,`k_{${t}}`,`v_{${t}}`],sub:`\u201c${WORDS[r]}\u201d \u00b7 this token only`});
+    const K=mat(`K_{1:${t}}^{\\top}`,D,t,{colLabels:lab('k',t),sub:t>1?`${t-1} cached + 1 new`:'1 new'});
+    const A=mat(`a_{${t}}`,1,t,{sub:'one row of scores'});
+    const V=mat(`V_{1:${t}}`,t,D,{rowLabels:lab('v',t),sub:t>1?`${t-1} cached + 1 new`:'1 new'});
+    const O=mat(`o_{${t}} = a_{${t}}V`,1,D,{sub:`= row ${t} of O above \u2713`});
+    const nx=el('div','kvnext');nx.innerHTML=`${kx('o_{'+t+'}')} \u2192 next: <b>${NEXTW[r]}</b>`;O.p.appendChild(nx);
+    ln.append(P.p,op(`q_{${t}}\\,\\cdot`),K.p,op('\\xrightarrow{\\text{softmax}}'),A.p,op('\\cdot'),V.p,op('='),O.p);
+    const vecs=[Qm[r],Km[r],Vm[r]];
+    const fillP=(k,pop)=>{for(let c=0;c<D;c++)put(P.cells[k][c],fmt(vecs[k][c]),'kv-new',pop);};
+    const fillCache=glow=>{for(let j=0;j<r;j++)for(let c=0;c<D;c++){
+      put(K.cells[c][j],fmt(Km[j][c]),'kv-cache'+(glow?' kv-glow':''));put(V.cells[j][c],fmt(Vm[j][c]),'kv-cache'+(glow?' kv-glow':''));}};
+    const fillNewK=pop=>{for(let c=0;c<D;c++)put(K.cells[c][r],fmt(Km[r][c]),'kv-new',pop);};
+    const fillNewV=pop=>{for(let c=0;c<D;c++)put(V.cells[r][c],fmt(Vm[r][c]),'kv-new',pop);};
+    const fillA=(j,pop)=>put(A.cells[0][j],fmt(Am[r][j]),'kv-new',pop);
+    const fillO=pop=>{for(let c=0;c<D;c++)put(O.cells[0][c],fmt(Om[r][c]),'kv-new',pop);};
+    if(!anim){for(let k=0;k<3;k++)fillP(k);fillCache(false);fillNewK();fillNewV();for(let j=0;j<t;j++)fillA(j);fillO();nx.classList.add('on');return;}
+    [P,K,A,V,O].forEach(M=>M.cells.flat().forEach(c=>put(c,'','kv-blank')));
+    fillCache(true);
+    await wait(600,run);
+    for(let k=0;k<3;k++){fillP(k,true);await wait(380,run);}
+    const colK=Array.from({length:D},(_,c)=>K.cells[c][r]);
+    await fly(P.cells[1],colK,Km[r],true,-90,run);fillNewK(true);
+    await wait(150,run);
+    await fly(P.cells[2],V.cells[r],Vm[r],false,0,run);fillNewV(true);
+    await wait(300,run);
+    for(let j=0;j<t;j++){
+      const hot=[...Array.from({length:D},(_,c)=>K.cells[c][j]),...P.cells[0]];
+      hot.forEach(c=>c.classList.add('kv-hot'));fillA(j,true);
+      await wait(440,run);
+      hot.forEach(c=>c.classList.remove('kv-hot'));
     }
-    hp.appendChild(hg);
-    hp.appendChild(el('div','psub',gqa?'4 query heads share each kv head':'one kv head per query head'));
-    stage.appendChild(hp);
-    const cacheKB=((t*nkv()*64*2*4)/1024).toFixed(1);
-    const fullKB=((t*NQ*64*2*4)/1024).toFixed(1);
-    status.textContent=`t=${t} · cache ${cacheKB} KB${gqa?` (vs ${fullKB} KB MHA — ${(100*(1-nkv()/NQ)).toFixed(0)}% smaller)`:' KB'}`;
+    await wait(250,run);
+    fillO(true);await wait(450,run);nx.classList.add('on');
   }
-  function gen(){
-    t++;
-    cap.innerHTML=t===1
-      ?'token 1: compute q,k,v — store k,v in the cache. No history yet.'
-      :`token ${t}: compute only this token's q,k,v. Append k,v to the cache; attend over all ${t} cached positions. The ${t-1} previous K/V were <b>not</b> recomputed.`;
-    render();
+
+  // ---- work count ----
+  async function costPanel(anim,run){
+    costEl.innerHTML='';const box=el('div','kvcost');costEl.appendChild(box);
+    const h=el('div','kvlh');h.innerHTML=`<span class="kvlt">Work to generate ${T} tokens</span><span class="dim">K/V rows computed at each step</span>`;box.appendChild(h);
+    const g=el('div','kvbars');box.appendChild(g);
+    const bars=[];
+    for(let t=1;t<=T;t++){
+      const l=el('div','kvrl');l.innerHTML=kx('t='+t);g.appendChild(l);
+      const col=el('div','kvbr');
+      const a=el('div','kvb a');a.innerHTML=`<span>no cache: ${t}</span>`;
+      const b=el('div','kvb b');b.innerHTML='<span>KV cache: 1</span>';
+      col.append(a,b);g.appendChild(col);bars.push([[a,t/T*78],[b,1/T*78]]);
+    }
+    const tot=el('div','kvtot');
+    tot.innerHTML=kx('\\text{no cache: } \\sum_{t=1}^{T} t = \\frac{T(T+1)}{2} = 10 \\qquad\\qquad \\text{KV cache: } \\sum_{t=1}^{T} 1 = T = 4',true)
+      +kx('T = 1000: \\quad 500{,}500 \\;\\text{ vs }\\; 1{,}000 \\text{ K/V rows} \\qquad \\text{scores per step: } t^2 \\to t',true);
+    box.appendChild(tot);
+    const setW=([e,w])=>{e.style.width=w+'%';};
+    if(!anim){bars.forEach(p=>p.forEach(setW));tot.classList.add('on');return;}
+    box.scrollIntoView({behavior:'smooth',block:'nearest'});
+    await wait(600,run);
+    for(const p of bars){p.forEach(setW);await wait(520,run);}
+    await wait(700,run);tot.classList.add('on');
   }
-  document.getElementById('s14-gen').onclick=gen;
-  document.getElementById('s14-gqa').onclick=()=>{gqa=!gqa;
-    cap.innerHTML=gqa
-      ?'GQA: 8 query heads now share 2 K/V heads — the cache shrinks 4×, decode speeds up, quality barely moves.'
-      :'back to full multi-head attention: one K/V head per query head.';
-    render();};
-  document.getElementById('s14-reset').onclick=()=>{t=0;gqa=false;cap.innerHTML='';render();};
-  render();
-  return {play:()=>{}};
+
+  // ---- MHA -> GQA -> MQA ----
+  const NH=8,YQ=45,YK=185,GX=k=>60+k*(780/7);
+  const NKV={mha:8,gqa:2,mqa:1};
+  const MODE_T={mha:'\\text{MHA}:\\; n_q = 8,\\; n_{kv} = 8',gqa:'\\text{GQA}:\\; n_q = 8,\\; n_{kv} = 2',mqa:'\\text{MQA}:\\; n_q = 8,\\; n_{kv} = 1'};
+  function gTarget(md,k){
+    if(md==='mha')return {x:GX(k),o:1};
+    if(md==='gqa'){const g=Math.floor(k/4);return {x:(GX(4*g)+GX(4*g+3))/2,o:k%4===0?1:0};}
+    return {x:(GX(0)+GX(7))/2,o:k===0?1:0};
+  }
+  const kvLabel=(md,k)=>md==='mha'?`K\\!V_{${k+1}}`:md==='gqa'?`K\\!V_{${Math.floor(k/4)+1}}`:'K\\!V';
+  const REAL={
+    mha:'',
+    gqa:'e.g. Llama 3 8B (32 query heads, 8 K/V heads): '+kx('2 \\cdot \\underbrace{32}_{\\text{layers}} \\cdot \\underbrace{8}_{n_{kv}} \\cdot \\underbrace{128}_{d_{\\text{head}}} \\cdot \\underbrace{2\\,\\text{B}}_{\\text{fp16}} = 128\\,\\text{KiB per token}')+' \u2192 an 8k-token context is about 1 GiB of cache; with 32 K/V heads (MHA) it would be 4 GiB.',
+    mqa:kx('\\text{cache} = \\tfrac{1}{n_q} \\text{ of MHA}')+' \u2014 the smallest cache, but every query head has to read the same keys and values, so quality drops more. GQA sits between MHA and MQA.'
+  };
+  async function gqaPanel(md,anim,run,from){
+    gqaEl.innerHTML='';const box=el('div','kvgqa');gqaEl.appendChild(box);
+    const h=el('div','kvlh');const ht=el('span','kvmt');h.appendChild(ht);
+    h.appendChild(el('span','dim','each line: which K/V head a query head reads'));box.appendChild(h);
+    const area=el('div','kvgarea');box.appendChild(area);
+    const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');
+    svg.setAttribute('viewBox','0 0 900 230');svg.setAttribute('preserveAspectRatio','none');area.appendChild(svg);
+    const lines=[],qs=[],kvs=[];
+    for(let k=0;k<NH;k++){const l=document.createElementNS('http://www.w3.org/2000/svg','line');svg.appendChild(l);lines.push(l);}
+    for(let k=0;k<NH;k++){const q=el('div','kvhead q');q.innerHTML=kx(`Q_{${k+1}}`);q.style.left=(GX(k)/9)+'%';q.style.top=(YQ/2.3)+'%';area.appendChild(q);qs.push(q);}
+    for(let k=0;k<NH;k++){const v=el('div','kvhead kv');v.style.top=(YK/2.3)+'%';area.appendChild(v);kvs.push(v);}
+    const mem=el('div');mem.innerHTML='<div class="kvmemlbl"></div><div class="kvmem"><i></i></div><div class="kvreal"></div>';box.appendChild(mem);
+    const memLbl=mem.querySelector('.kvmemlbl'),memBar=mem.querySelector('.kvmem i'),real=mem.querySelector('.kvreal');
+    function apply(st){st.forEach((s,k)=>{kvs[k].style.left=(s.x/9)+'%';kvs[k].style.opacity=s.o;
+      const l=lines[k];l.setAttribute('x1',GX(k));l.setAttribute('y1',YQ+17);l.setAttribute('x2',s.x);l.setAttribute('y2',YK-17);});}
+    function setMode(m){ht.innerHTML=kx(MODE_T[m]);kvs.forEach((v,k)=>{v.innerHTML=kx(kvLabel(m,k));});
+      const n=NKV[m];memLbl.innerHTML=`K/V cache per token: <b>${n} of 8</b> heads \u00b7 <b>${n===1?'12.5':(100*n/8)}%</b> of MHA`;
+      memBar.style.width=(100*n/8)+'%';real.innerHTML=REAL[m];}
+    const st=m=>Array.from({length:NH},(_,k)=>gTarget(m,k));
+    if(!anim){apply(st(md));setMode(md);return;}
+    if(!from){
+      apply(st(md));setMode(md);
+      box.scrollIntoView({behavior:'smooth',block:'nearest'});
+      lines.forEach(l=>{l.style.strokeDasharray='140';l.style.strokeDashoffset='140';});
+      qs.concat(kvs).forEach(e=>e.style.opacity=0);
+      await wait(500,run);
+      await tween(ms(1800),e=>{qs.forEach(q=>q.style.opacity=Math.min(1,e*2.2));
+        lines.forEach(l=>l.style.strokeDashoffset=String(140*(1-e)));kvs.forEach(v=>v.style.opacity=Math.max(0,e*2-1));},run);
+      lines.forEach(l=>{l.style.strokeDasharray='';l.style.strokeDashoffset='';});
+      return;
+    }
+    apply(st(from));setMode(from);
+    box.scrollIntoView({behavior:'smooth',block:'nearest'});
+    await wait(700,run);
+    const a=st(from),b=st(md);
+    memBar.style.width=(100*NKV[md]/8)+'%';
+    await tween(ms(1900),e=>apply(a.map((s,k)=>({x:s.x+(b[k].x-s.x)*e,o:s.o+(b[k].o-s.o)*e}))),run);
+    setMode(md);
+  }
+
+  // ---- captions ----
+  function caption(s){
+    const K=kx;
+    if(s===0)return `We generate one token at a time. At step ${K('t')} the newest token needs its query ${K('q_t')} and the keys and values of <b>every earlier token</b>: ${K('o_t=\\mathrm{softmax}(q_t K_{1:t}^{\\top}/\\sqrt{d})\\,V_{1:t}')}. Press <b>Next step \u25b8</b> (or space) to feed token 1.`;
+    if(s<=8){const t=Math.ceil(s/2),w=WORDS[t-1],nw=NEXTW[t-1];
+      if(s%2===1)return t===1
+        ?`<b>Token 1 \u201c${w}\u201d, no cache.</b> Compute ${K('Q, K, V')} for the only token, attend, and read ${K('o_1')} \u2192 predicts \u201c${nw}\u201d. Nothing is wasted yet.`
+        :`<b>Token ${t} \u201c${w}\u201d, no cache.</b> The model re-runs the whole prefix: rows ${K('1..'+(t-1))} of ${K('Q, K, V')} are <span class="kvred">recomputed \u21bb</span> with exactly the values from last step. It fills the full ${K(t+'\\times'+t)} attention matrix and ${t} output rows, then keeps only ${K('o_{'+t+'}')}; the rest is thrown away.`;
+      return t===1
+        ?`<b>Token 1, with a KV cache.</b> Compute ${K('q_1, k_1, v_1')} once. ${K('k_1')} becomes column 1 of ${K('K^{\\top}')} (it turns sideways as it lands, which is the transpose) and ${K('v_1')} becomes row 1 of ${K('V')}. Both <b>stay</b> in the cache.`
+        :`<b>Token ${t} \u201c${w}\u201d, with a KV cache.</b> Compute only ${K(`q_{${t}}, k_{${t}}, v_{${t}}`)}. The ${t-1} earlier keys and values come straight from the <span class="kvblue">cache</span>: append one column to ${K('K^{\\top}')} and one row to ${K('V')}, then ${K(`q_{${t}}`)} dots each key for one row of scores ${K(`a_{${t}}`)}. ${K(`o_{${t}}`)} matches row ${t} of ${K('O')} above: same answer, a fraction of the work.`;
+    }
+    if(s===9)return `<b>Count the work.</b> Without a cache, step ${K('t')} recomputes ${K('t')} K/V rows and ${K('t^2')} scores, so ${K('T')} tokens cost ${K('\\tfrac{T(T+1)}{2}')} K/V rows. With the cache it is one row per step, ${K('T')} in total. The price is memory: every token leaves ${K('2 \\cdot n_{\\text{layers}} \\cdot n_{kv} \\cdot d_{\\text{head}}')} numbers in the cache.`;
+    if(s===10)return `<b>Now shrink the cache itself.</b> Attention runs several heads in parallel. In standard multi-head attention (MHA) each of the 8 query heads has its own K/V head, so all 8 K/V heads are cached for every token, in every layer.`;
+    if(s===11)return `<b>Grouped-query attention (GQA).</b> Each group of 4 query heads shares one K/V head: watch the K/V heads merge 8 \u2192 2, and the cache shrink 4\u00d7. Every query head still asks its own question, so quality barely drops. Llama 3 and Mistral use it.`;
+    return `<b>Multi-query attention (MQA)</b> is the extreme: all 8 query heads share 1 K/V head, for an 8\u00d7 smaller cache but a bigger quality cost. Press <b>Next lesson \u25b8</b> to move on.`;
+  }
+
+  // ---- state machine ----
+  function updCount(){
+    const end=i>=N&&!busy;
+    cnt.textContent=end?'done':`step ${i} / ${N}`;
+    nextBtn.innerHTML=end?'Next lesson &#9656;':'Next step &#9656;';
+  }
+  function renderState(s){
+    RUN++;killFlies();setDur();busy=false;
+    renderToks(s,true);
+    laneA(tA(s),false);laneB(tB(s),false);
+    if(s>=9)costPanel(false);else costEl.innerHTML='';
+    if(s>=10)gqaPanel(MODES[s-10],false);else gqaEl.innerHTML='';
+    cap.innerHTML=caption(s);shown=s;updCount();
+  }
+  async function animateStep(s,run){
+    if(s<=8){if(s%2)await laneA(tA(s),true,run);else await laneB(tB(s),true,run);}
+    else if(s===9)await costPanel(true,run);
+    else await gqaPanel(MODES[s-10],true,run,s===10?null:MODES[s-11]);
+  }
+  async function next(){
+    if(busy){renderState(i);return;}                 // pressing Next mid-animation finishes the step
+    if(i>=N){const k=window.__order?window.__order.indexOf('s14'):-1;if(k>=0&&window.__show)window.__show(k+1);return;}
+    if(shown!==i)renderState(i);
+    i++;busy=true;const run=++RUN;setDur();
+    cap.innerHTML=caption(i);renderToks(i,false);updCount();
+    try{await animateStep(i,run);if(run===RUN){renderToks(i,true);shown=i;}}
+    catch(e){if(e!==ABORT)console.error(e);}
+    if(run===RUN){busy=false;updCount();}
+  }
+  function back(){playing=false;setPlay();i=Math.max(0,i-1);renderState(i);}
+  function replay(){playing=false;setPlay();i=0;renderState(0);}
+  function setPlay(){playBtn.innerHTML=playing?'&#10074;&#10074; Pause':'&#9654; Play all';}
+  async function playAll(){
+    if(playing){playing=false;setPlay();return;}
+    playing=true;setPlay();
+    if(busy)renderState(i);
+    if(i>=N){i=0;renderState(0);}
+    while(playing&&i<N){
+      await next();
+      if(!playing||i>=N)break;
+      try{await wait(1300,RUN);}catch(e){break;}
+    }
+    playing=false;setPlay();
+  }
+  nextBtn.onclick=()=>next();
+  $('s14-back').onclick=back;
+  $('s14-replay').onclick=replay;
+  playBtn.onclick=playAll;
+  const spBtns=[...document.querySelectorAll('#s14-speed button')];
+  const markSp=()=>spBtns.forEach(b=>b.classList.toggle('on',Math.abs(+b.dataset.sp-SP)<1e-6));
+  spBtns.forEach(b=>b.onclick=()=>{SP=+b.dataset.sp;markSp();setDur();try{localStorage.setItem('model-lab-speed',String(SP));}catch(e){}});
+  markSp();
+  renderState(0);
+  window.__kv={Qm,Km,Vm,Am,Om,state:()=>({i,busy,shown,SP})};
+  return {play:()=>{},next,back,replay};
 }
 
 /* ================= SLIDE 15: residual networks ================= */
@@ -2814,9 +3172,9 @@ function boot(){
 
   // keyed by slide (section) id
   const PLAY={s1:s2.play,s2:s3.play,s3:ssub.play,s4:s4.play,s7:s7.play,s8:s8.play,s9:s9.play,s10:s10.play,
-    s11:s11.play,s12:s12.play,s13:s13.play,s14:s14.play,s15:s15.play};
+    s11:s11.play,s12:s12.play,s13:s13.play,s15:s15.play};
   const STOP={s5:()=>l2.stopPlay(),s6:()=>sim3.stopPlay(),s7:()=>sim4.stopPlay()};
-  const SPACE={s5:()=>l2.stepOnce(),s6:()=>sim3.step(),s7:()=>sim4.step(),
+  const SPACE={s14:()=>s14.next(),s5:()=>l2.stepOnce(),s6:()=>sim3.step(),s7:()=>sim4.step(),
     r2:()=>r2.next(),r3:()=>r3.next(),r4:()=>r4.next(),r6:()=>r6.next()};
 
   const ORDER=[],META={};
