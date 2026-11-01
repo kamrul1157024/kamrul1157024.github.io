@@ -3,11 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Backprop, lesson by lesson — from one number to LoRA</title>
+<title>Backprop from scratch — animated lessons</title>
 <style>
 :root{
   --bg:#0d0d0f; --fg:#e8e6e3; --mut:#8f8f8f; --line:#2b2b30;
-  --acc:#ff5c39; --blue:#2f6fdb; --red:#e5484d;
+  --acc:#ff5c39; --blue:#2f6fdb; --red:#e5484d; --ok:#3fb68b;
   --cw:54px; --ch:34px;
 }
 *{box-sizing:border-box}
@@ -15,16 +15,15 @@ body{margin:0;background:var(--bg);color:var(--fg);
   font:13px/1.45 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
   padding:20px 22px 60px;}
 h1{font-size:14px;letter-spacing:.14em;text-transform:uppercase;margin:0;font-weight:700}
-h2{font-size:15px;margin:4px 0 6px;letter-spacing:.04em}
+h2{font-size:16px;margin:2px 0 6px;letter-spacing:.03em}
 .sub{color:var(--mut);font-size:12px;margin-top:4px}
-header{border-bottom:1px solid var(--line);padding-bottom:14px}
+header{border-bottom:1px solid var(--line);padding-bottom:12px}
 .headrow{display:flex;flex-wrap:wrap;gap:14px;align-items:flex-end;justify-content:space-between}
-.lessonnav{display:flex;flex-wrap:wrap}
-.lessonnav button{border-right:none}
-.lessonnav button:last-child{border-right:1px solid var(--line)}
-.lessonnav button.on{background:var(--fg);color:#000}
-button{
-  background:transparent;color:var(--fg);border:1px solid var(--line);
+.snav{display:flex;flex-wrap:wrap}
+.snav button{border-right:none;padding:6px 10px}
+.snav button:last-child{border-right:1px solid var(--line)}
+.snav button.on{background:var(--fg);color:#000}
+button{background:transparent;color:var(--fg);border:1px solid var(--line);
   font:inherit;padding:6px 12px;cursor:pointer;text-transform:uppercase;
   letter-spacing:.08em;font-size:11px;border-radius:0}
 button:hover{border-color:var(--fg)}
@@ -38,29 +37,53 @@ label.ctl{color:var(--mut);font-size:11px;text-transform:uppercase;letter-spacin
 input[type=range]{width:90px;accent-color:var(--acc)}
 .status{color:var(--mut);font-size:11px;letter-spacing:.08em;text-transform:uppercase}
 .controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:12px 0}
-.lesson{display:none;margin-top:20px}
-.lesson.active{display:block}
+.slide{display:none;margin-top:18px}
+.slide.active{display:block}
 .kick{color:var(--acc);font-size:10px;letter-spacing:.3em;text-transform:uppercase}
-.prose{max-width:76ch;color:var(--fg);font-size:12.5px;margin:6px 0 4px}
-.prose .dim, .dim{color:var(--mut)}
+.prose{max-width:78ch;font-size:12.5px;margin:6px 0 4px}
+.dim{color:var(--mut)}
 .rulebox{border:1px solid var(--line);background:#111114;padding:10px 14px;margin-top:16px;
   font-size:12px;white-space:pre-wrap;max-width:1100px}
 .rulebox b{color:var(--acc)}
 .nextlesson{margin-top:18px}
-/* scalar / vector lessons */
-.gate{display:flex;align-items:center;gap:8px;margin:8px 0;flex-wrap:wrap}
-.nb{border:1px solid var(--line);background:#101013;padding:5px 10px;min-width:74px;text-align:center}
-.nb.trainable{border-color:var(--acc)}
-.nbname{font-size:10px;color:var(--mut);letter-spacing:.06em}
-.nbval{font-size:15px;font-weight:700;min-height:20px}
-.nbgrad{font-size:11px;color:var(--acc);min-height:15px}
-.nb.hl{outline:2px solid var(--acc);outline-offset:1px}
-.opc{border:1px solid var(--line);border-radius:50%;width:28px;height:28px;flex:0 0 28px;
-  display:flex;align-items:center;justify-content:center;color:var(--acc);font-size:14px}
-.gate .grule{color:var(--mut);font-size:11px;margin-left:6px}
-.chain{border:1px dashed var(--acc);padding:8px 12px;margin-top:12px;font-size:12px;
-  min-height:36px;max-width:1100px}
-.chain .dim{color:var(--mut)}
+/* ---- gate graph ---- */
+.gwrap{position:relative;width:940px;max-width:100%;height:280px;border:1px solid var(--line);
+  background:#101013;margin-top:14px;overflow:hidden}
+.gwrap.small{width:460px;height:250px}
+.gwrap svg.edges{position:absolute;inset:0;width:100%;height:100%}
+.gnode{position:absolute;transform:translate(-50%,-50%);text-align:center;min-width:64px}
+.gnode .nb{border:1px solid var(--line);background:#141418;padding:4px 8px;min-width:64px}
+.gnode.trainable .nb{border-color:var(--acc)}
+.gnode .nbname{font-size:10px;color:var(--mut);letter-spacing:.06em}
+.gnode .nbval{font-size:14px;font-weight:700;min-height:18px}
+.gnode .nbgrad{font-size:11px;color:var(--acc);min-height:14px}
+.gnode.pulse .nb{outline:2px solid var(--acc);outline-offset:1px}
+.gatec{position:absolute;transform:translate(-50%,-50%);width:30px;height:30px;border:1px solid var(--acc);
+  border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--acc);
+  font-size:15px;background:#0d0d0f;z-index:2}
+.gatec.pulse{outline:2px solid var(--acc);outline-offset:2px}
+.pkt{position:absolute;transform:translate(-50%,-50%);background:var(--acc);color:#000;
+  font-size:10px;font-weight:700;padding:2px 6px;white-space:nowrap;z-index:3;pointer-events:none}
+.pkt.fwd{background:var(--blue);color:#fff}
+.copyflash{position:absolute;transform:translate(-50%,-50%);color:var(--acc);font-size:11px;
+  font-weight:700;z-index:3;pointer-events:none;opacity:0}
+/* ---- formula bar / morph ---- */
+.fbar{border:1px solid var(--line);background:#111114;padding:14px 16px;margin-top:14px;
+  font-size:17px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;min-height:60px;max-width:1100px}
+.ftok{display:inline-block;padding:2px 4px;position:relative;white-space:nowrap}
+.ftok.enter{opacity:0}
+.ftok{transition:opacity .45s, transform .6s cubic-bezier(.2,.7,.2,1)}
+.ftok.changed{background:rgba(255,92,57,.18)}
+.ftok.big{font-size:22px;font-weight:700}
+.ftok .shape{position:absolute;left:50%;transform:translateX(-50%);top:100%;font-size:10px;
+  color:var(--mut);white-space:nowrap}
+.ftok .shape.bad{color:var(--red);font-weight:700}
+.ftok .shape.good{color:var(--ok);font-weight:700}
+.ftok.flipx{animation:flipx .7s cubic-bezier(.2,.7,.2,1)}
+@keyframes flipx{0%{transform:rotateX(0)}50%{transform:rotateX(90deg)}100%{transform:rotateX(0)}}
+.fcaption{max-width:1100px;color:var(--mut);font-size:12px;margin-top:26px;min-height:34px}
+.fcaption b{color:var(--fg)}
+/* ---- ledger lessons (vector widget) ---- */
 .ledgerwrap{display:flex;gap:14px;align-items:flex-start;margin-top:14px;flex-wrap:wrap}
 .ledger{border:1px solid var(--line);background:#111114;height:190px;overflow-y:auto;
   padding:8px 10px;font-size:12px;flex:1;min-width:340px;max-width:760px}
@@ -68,6 +91,8 @@ input[type=range]{width:90px;accent-color:var(--acc)}
 .ledger .bwd{color:var(--acc)}
 .ledger .upd{color:var(--fg);font-weight:700;border-top:1px dashed var(--line);margin-top:4px;padding-top:4px}
 .ledger .sys{color:var(--mut)}
+.chain{border:1px dashed var(--acc);padding:8px 12px;margin-top:12px;font-size:12px;
+  min-height:36px;max-width:1100px}
 .sliders{display:flex;gap:16px;flex-wrap:wrap;margin-top:12px}
 canvas.spark{border:1px solid var(--line);background:#101013}
 .l2rows{display:flex;flex-direction:column;gap:8px;margin-top:10px}
@@ -80,9 +105,15 @@ canvas.spark{border:1px solid var(--line);background:#101013}
 .cell.hl{box-shadow:0 0 0 2px var(--acc) inset;z-index:2;position:relative}
 .cell.trainable{border-color:var(--acc)}
 .cell.gradcell{color:var(--acc);background:#101013}
-/* matrix sim (lessons 3-4) */
+.nb{border:1px solid var(--line);background:#101013;padding:5px 10px;min-width:74px;text-align:center}
+.nb.trainable{border-color:var(--acc)}
+.nbname{font-size:10px;color:var(--mut);letter-spacing:.06em}
+.nbval{font-size:15px;font-weight:700;min-height:20px}
+.nbgrad{font-size:11px;color:var(--acc);min-height:15px}
+.gate{display:flex;align-items:center;gap:8px;margin:8px 0;flex-wrap:wrap}
+/* ---- matrix sim ---- */
 .formulas{border:1px solid var(--line);padding:10px 14px;margin:12px 0 0;white-space:pre-wrap;
-  font-size:12px;color:var(--fg);background:#111114}
+  font-size:12px;background:#111114}
 .stage{margin-top:14px;overflow-x:auto}
 .lane{display:flex;align-items:center;gap:10px;padding:14px 0;min-width:min-content}
 .lane + .lane{border-top:1px dashed var(--line)}
@@ -114,79 +145,172 @@ footer{margin-top:26px;color:var(--mut);font-size:11px;border-top:1px solid var(
 <header>
   <div class="headrow">
     <div>
-      <h1>Backprop, lesson by lesson</h1>
-      <div class="sub">from one number to an N×M matrix — and why LoRA works</div>
+      <h1>Backprop from scratch</h1>
+      <div class="sub">animated lessons: one number → a vector → a matrix → LoRA</div>
     </div>
-    <nav class="lessonnav" id="lessonnav">
-      <button data-l="0" class="on">1 · a number</button>
-      <button data-l="1">2 · a vector</button>
-      <button data-l="2">3 · a matrix</button>
-      <button data-l="3">4 · fine-tuning</button>
+    <nav class="snav" id="snav">
+      <button data-s="0" class="on">1 the question</button>
+      <button data-s="1">2 multiply</button>
+      <button data-s="2">3 add distributes</button>
+      <button data-s="3">4 the chain</button>
+      <button data-s="4">5 → vectors</button>
+      <button data-s="5">6 → matrices</button>
+      <button data-s="6">7 bias &amp; LoRA</button>
     </nav>
   </div>
 </header>
 
-<!-- ================= LESSON 1 ================= -->
-<section class="lesson active" id="lesson1">
-  <div class="kick">Lesson 1</div>
-  <h2>One weight, one number</h2>
-  <p class="prose">All of backpropagation is four local rules chained together. This is the smallest
-  network that shows all four: <b>y = w·x + b</b>, loss <b>L = (y − t)²</b>. Press <b>Next ▸</b> and watch
-  every single arithmetic step — forward to the loss, backward as each node hands a gradient to its
-  inputs, then the update that nudges w and b downhill.</p>
-  <div id="l1"></div>
-  <div class="rulebox"><b>THE FOUR RULES</b> — every backward pass ever written is these, chained:
-  <b>×</b> multiply   each input gets: upstream gradient × the OTHER input        (∂s/∂w = x, ∂s/∂x = w)
-  <b>+</b> add        the upstream gradient copies to both inputs, unchanged      (∂y/∂s = 1, ∂y/∂b = 1)
-  <b>−</b> subtract   +1 to the first input, −1 to the second                     (∂e/∂y = 1, ∂e/∂t = −1)
-  <b>²</b> square     upstream gradient × 2·the input                             (∂L/∂e = 2e)
-chain rule: to reach an earlier node, multiply the local rules along the path — ∂L/∂w = 2e · 1 · x</div>
-  <button class="nextlesson" data-go="1">Next: a vector ▸</button>
+<!-- ============ SLIDE 1: the question ============ -->
+<section class="slide active" id="s1">
+  <div class="kick">Slide 1</div>
+  <h2>The question backprop answers</h2>
+  <p class="prose">The smallest possible network: <b>y = w·x + b</b>, loss <b>L = (y − t)²</b>.
+  Move the sliders — the forward pass recomputes live. The whole of training is one question:
+  <b>which way do we turn w and b to make L smaller, and by how much?</b> Press
+  <b>Animate forward ▸</b> to watch numbers flow through the graph.</p>
+  <div class="controls">
+    <button class="primary" id="s1-play">Animate forward ▸</button>
+    <span class="status" id="s1-status"></span>
+  </div>
+  <div id="s1-graph"></div>
+  <div class="sliders" id="s1-sliders"></div>
+  <div class="rulebox"><b>THE GRAPH</b>
+  w ─┐
+     × → s ─┐
+  x ─┘      + → y ─┐
+        b ─┘       − → e → ² → L
+              t ───┘
+every node is one tiny function; every edge is a number. Training = nudging w and b so L shrinks.</div>
+  <button class="nextlesson" data-go="1">Next: the multiply rule ▸</button>
 </section>
 
-<!-- ================= LESSON 2 ================= -->
-<section class="lesson" id="lesson2">
-  <div class="kick">Lesson 2</div>
-  <h2>A neuron: many inputs, still one output</h2>
-  <p class="prose">A neuron computes <b>y = x₀w₀ + x₁w₁ + x₂w₂ + x₃w₃ + b</b> — N lesson-1 multiplications
-  sharing one sum. The rules don't change: each weight's gradient is still just
-  <b>upstream gradient × its own input</b>. Watch the four product cells, then the four gradients.</p>
+<!-- ============ SLIDE 2: multiply ============ -->
+<section class="slide" id="s2">
+  <div class="kick">Slide 2</div>
+  <h2>Local rule №1: multiply</h2>
+  <p class="prose">Zoom into one gate: <b>s = w·x</b>. A gradient <b>g</b> arrives at s from the right
+  ("L changes this much when s changes"). The gate hands it backward to <i>both</i> inputs —
+  but each one scaled by <b>the other input</b>. Press <b>Animate backward ▸</b>.</p>
+  <div class="controls">
+    <button class="primary" id="s2-play">Animate backward ▸</button>
+  </div>
+  <div id="s2-graph"></div>
+  <div class="fbar" id="s2-formula"></div>
+  <div class="fcaption" id="s2-cap"></div>
+  <div class="rulebox"><b>MULTIPLY RULE</b>
+  s = w·x      ∂s/∂w = x        ∂s/∂x = w
+  ∂L/∂w = g · x      ← w's gradient is the upstream gradient, scaled by the OTHER input
+  ∂L/∂x = g · w
+why: nudge w by ε and s moves by x·ε — the gate amplifies w's influence by exactly x.</div>
+  <button class="nextlesson" data-go="2">Next: the add rule ▸</button>
+</section>
+
+<!-- ============ SLIDE 3: add distributes ============ -->
+<section class="slide" id="s3">
+  <div class="kick">Slide 3</div>
+  <h2>Local rule №2: addition is distribution</h2>
+  <p class="prose">The gate <b>y = s + b</b> does nothing to the gradient at all — it
+  <b>photocopies</b> it. One gradient g arrives at y; two identical copies leave, one down each
+  input branch. Watch it split.</p>
+  <div class="controls">
+    <button class="primary" id="s3-play">Animate the split ▸</button>
+  </div>
+  <div id="s3-graph"></div>
+  <div class="fbar" id="s3-formula"></div>
+  <div class="fcaption" id="s3-cap"></div>
+  <div class="rulebox"><b>ADD RULE — GRADIENT DISTRIBUTES</b>
+  y = s + b      ∂y/∂s = 1      ∂y/∂b = 1
+  ∂L/∂s = g      ∂L/∂b = g      ← the upstream gradient COPIES to every input, unchanged
+and the mirror image: when one value feeds N different places, its total gradient is the
+SUM of all N copies coming back. Distribution forward, summation backward. (Slide 7 uses this.)</div>
+  <button class="nextlesson" data-go="3">Next: chain them ▸</button>
+</section>
+
+<!-- ============ SLIDE 4: the chain ============ -->
+<section class="slide" id="s4">
+  <div class="kick">Slide 4</div>
+  <h2>The chain: every gate does its one rule</h2>
+  <p class="prose">Same graph as slide 1, now running <b>backward</b>. Watch the gradient packet
+  travel right to left: the square gate scales it, the subtract gate signs it, the add gate
+  copies it, the multiply gate scales it again. What arrives at w <i>is</i> the chain rule —
+  one multiplication per gate on the path.</p>
+  <div class="controls">
+    <button class="primary" id="s4-play">Animate backward ▸</button>
+    <button id="s4-update">Apply update ▸</button>
+    <button id="s4-train">Train 10 epochs ▸▸</button>
+    <button id="s4-reset">Reset</button>
+    <span class="status" id="s4-status"></span>
+  </div>
+  <div id="s4-graph"></div>
+  <div class="fbar" id="s4-formula"></div>
+  <div class="fcaption" id="s4-cap"></div>
+  <div class="side">
+    <canvas class="spark" id="s4-spark" width="240" height="60"></canvas>
+  </div>
+  <div class="rulebox"><b>CHAIN RULE</b> — the gradient at w is the product of the local rules along the path:
+  ∂L/∂w = <b>2e</b> (square) · <b>1</b> (subtract) · <b>1</b> (add) · <b>x</b> (multiply)
+nothing else exists. Every backprop in every framework is these local rules, composed.</div>
+  <button class="nextlesson" data-go="4">Next: same rule, vectors ▸</button>
+</section>
+
+<!-- ============ SLIDE 5: scalar → vector ============ -->
+<section class="slide" id="s5">
+  <div class="kick">Slide 5</div>
+  <h2>The formula morphs: one weight → a vector of weights</h2>
+  <p class="prose">A neuron has four inputs and four weights: <b>y = x₀w₀ + x₁w₁ + x₂w₂ + x₃w₃ + b</b>.
+  Press <b>Morph ▸</b> and watch the multiply rule from slide 2 change shape —
+  <b>spoiler: it doesn't. Only the subscripts do.</b></p>
+  <div class="controls">
+    <button class="primary" id="s5-morph">Morph ▸</button>
+    <button id="s5-replay">↺ replay</button>
+  </div>
+  <div class="fbar" id="s5-formula"></div>
+  <div class="fcaption" id="s5-cap"></div>
   <div id="l2"></div>
   <div class="rulebox"><b>DOT PRODUCT RULE</b>
-  y = Σᵢ xᵢ·wᵢ + b        ∂L/∂wᵢ = ∂L/∂y · xᵢ        ∂L/∂xᵢ = ∂L/∂y · wᵢ        ∂L/∂b = ∂L/∂y
+  y = Σᵢ xᵢ·wᵢ + b        ∂L/∂wᵢ = g · xᵢ        ∂L/∂b = g
 wᵢ appears in exactly one product, so its gradient touches exactly one input: xᵢ.
-Note also what the update can't do: many different w give y = t — gradient descent walks to the one
-nearest the starting point. Remember this under-determination; lesson 4 is built on it.</div>
-  <button class="nextlesson" data-go="2">Next: a matrix ▸</button>
+The add gates distribute g to every product; each multiply gate scales it by its own xᵢ.</div>
+  <button class="nextlesson" data-go="5">Next: same rule, matrices ▸</button>
 </section>
 
-<!-- ================= LESSON 3 ================= -->
-<section class="lesson" id="lesson3">
-  <div class="kick">Lesson 3</div>
-  <h2>The matrix: B samples, M outputs</h2>
-  <p class="prose">Tile lesson 2 over B=8 samples and M=3 outputs and the dot products pack into a
-  matrix product <b>Y = X·W + b</b>. Same rules — the only new idea is <b>shape bookkeeping</b>: the
-  transpose appears exactly where dimensions need to line up. Step through epochs, watch the loss
-  curve, and hover any cell to see its exact arithmetic.</p>
+<!-- ============ SLIDE 6: vector → matrix ============ -->
+<section class="slide" id="s6">
+  <div class="kick">Slide 6</div>
+  <h2>The formula morphs again: vectors → matrices</h2>
+  <p class="prose">Now B=8 samples and M=3 outputs at once: <b>Y = X·W + b</b>. The gradient formula
+  must morph too — press <b>Morph ▸</b>. The interesting moment: the product only fits together
+  one way, and that's where the <b>transpose</b> comes from. It's not a new rule — it's the
+  multiply rule with shapes that line up.</p>
+  <div class="controls">
+    <button class="primary" id="s6-morph">Morph ▸</button>
+    <button id="s6-replay">↺ replay</button>
+  </div>
+  <div class="fbar" id="s6-formula"></div>
+  <div class="fcaption" id="s6-cap"></div>
   <div id="l3"></div>
-  <div class="rulebox"><b>THE MATRIX RULES</b> — lesson 1's rules with transposes to make shapes fit:
-  ∂L/∂W = Xᵀ · G       (N×B)(B×M) → N×M      gradient w.r.t. a factor = upstream gradient × the OTHER
-  ∂L/∂X = G · Wᵀ       (B×M)(M×N) → B×N      factor, transposed so inner dimensions cancel
-  ∂L/∂b = Σ_b G        b is added to every row, so it collects every row's gradient
-element-wise: ∂L/∂W[i,j] = Σ_b X[b,i]·G[b,j] = (col i of X) · (col j of G)
-— the multiplication rule of lesson 1, summed over the batch. Each weight listens to exactly one
-input feature and one output error.</div>
-  <button class="nextlesson" data-go="3">Next: fine-tuning ▸</button>
+  <div class="rulebox"><b>THE MATRIX RULES</b>
+  ∂L/∂W = Xᵀ · G   (N×B)(B×M) → N×M      gradient w.r.t. a factor = upstream gradient × the OTHER
+  ∂L/∂X = G · Wᵀ   (B×M)(M×N) → B×N      factor, transposed so inner dimensions cancel
+  element-wise: ∂L/∂W[i,j] = Σ_b X[b,i]·G[b,j] = (col i of X) · (col j of G)
+  — lesson 2's multiply rule, summed over the batch.</div>
+  <button class="nextlesson" data-go="6">Next: bias &amp; LoRA ▸</button>
 </section>
 
-<!-- ================= LESSON 4 ================= -->
-<section class="lesson" id="lesson4">
-  <div class="kick">Lesson 4</div>
-  <h2>Fine-tuning: full vs LoRA</h2>
-  <p class="prose">Fine-tuning is lesson 3 with a constraint. <b>Full fine-tuning</b> moves every entry
-  of W. <b>LoRA</b> freezes W and learns a rank-r update A·B instead — the same gradient XᵀG exists, but
-  only its projections through the bottleneck are ever applied. Flip between the modes; both start
-  from the identical W, so the loss curves are a fair race.</p>
+<!-- ============ SLIDE 7: bias & LoRA ============ -->
+<section class="slide" id="s7">
+  <div class="kick">Slide 7</div>
+  <h2>Distribution in reverse — and LoRA</h2>
+  <p class="prose">The bias b is added to <b>all 8 rows</b> of Y. Slide 3 said a value used in N
+  places collects N gradient copies that <b>sum</b> — so ∂L/∂b = Σ_b G. Press <b>Animate ▸</b>
+  to watch 8 copies converge into one. Then the same chain with a constraint: LoRA freezes W and
+  learns a rank-r update A·B instead.</p>
+  <div class="controls">
+    <button class="primary" id="s7-play">Animate the sum ▸</button>
+  </div>
+  <div class="gwrap small" id="s7-graph" style="width:640px"></div>
+  <div class="fbar" id="s7-formula"></div>
+  <div class="fcaption" id="s7-cap"></div>
   <div id="l4"></div>
   <div class="rulebox"><b>WHY LORA WORKS</b>
   full:  W ← W − η·XᵀG                  trains N·M parameters directly
@@ -198,8 +322,8 @@ The payoff: a fraction of the parameters, one frozen base model, many swappable 
 
 <footer>
   Backpropagation is four local rules — multiply, add, subtract, square — chained over a computation
-  graph. Scalars make the rules visible; matrices only add bookkeeping. LoRA is the same chain with a
-  rank constraint on where the gradient is allowed to act.
+  graph. Addition distributes the gradient; multiplication scales it by the other input; matrices only
+  add shape bookkeeping. LoRA is the same chain with a rank constraint on where it may act.
 </footer>
 
 <script>
@@ -240,20 +364,456 @@ function drawSparkInto(cv,hist,label){
   });
   ctx.stroke();
 }
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 
-/* ================= scripted stepper lessons (1 & 2) ================= */
+/* ================= gate graph ================= */
+function makeGraph(container,spec){
+  container.innerHTML='';
+  const wrap=el('div','gwrap'+(spec.small?' small':''));
+  if(spec.width)wrap.style.width=spec.width+'px';
+  container.appendChild(wrap);
+  const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');
+  svg.setAttribute('class','edges');
+  wrap.appendChild(svg);
+  const nodes={};
+  spec.nodes.forEach(n=>{
+    const d=el('div','gnode'+(n.trainable?' trainable':''));
+    d.style.left=n.x+'px'; d.style.top=n.y+'px';
+    const nb=el('div','nb');
+    nb.appendChild(el('div','nbname',n.label));
+    const val=el('div','nbval','·'); nb.appendChild(val);
+    const grad=el('div','nbgrad',''); nb.appendChild(grad);
+    d.appendChild(nb); wrap.appendChild(d);
+    nodes[n.id]={el:d,val,grad,x:n.x,y:n.y};
+  });
+  spec.gates.forEach(g=>{
+    const d=el('div','gatec',g.op);
+    d.style.left=g.x+'px'; d.style.top=g.y+'px';
+    d.id='gate-'+g.id;
+    wrap.appendChild(d);
+    nodes[g.id]={el:d,x:g.x,y:g.y,isGate:true};
+  });
+  spec.edges.forEach(e=>{
+    const a=nodes[e[0]], b=nodes[e[1]];
+    const line=document.createElementNS('http://www.w3.org/2000/svg','line');
+    line.setAttribute('x1',a.x);line.setAttribute('y1',a.y);
+    line.setAttribute('x2',b.x);line.setAttribute('y2',b.y);
+    line.setAttribute('stroke','#2b2b30');line.setAttribute('stroke-width','1.5');
+    svg.appendChild(line);
+  });
+  function setVal(id,t){if(nodes[id].val)nodes[id].val.textContent=t;}
+  function setGrad(id,t){if(nodes[id].grad)nodes[id].grad.textContent=t;}
+  function pulse(id,on){nodes[id].el.classList.toggle('pulse',on!==false);}
+  function clearPulses(){Object.keys(nodes).forEach(k=>pulse(k,false));}
+  function packet(fromId,toId,o){
+    o=Object.assign({label:'',cls:'',dur:650},o);
+    const a=nodes[fromId], b=nodes[toId];
+    return new Promise(res=>{
+      const p=el('div','pkt '+o.cls,o.label);
+      wrap.appendChild(p);
+      const t0=performance.now();
+      (function frame(t){
+        const k=Math.min(1,(t-t0)/o.dur);
+        const x=a.x+(b.x-a.x)*k, y=a.y+(b.y-a.y)*k;
+        p.style.left=x+'px'; p.style.top=y+'px';
+        if(k<1)requestAnimationFrame(frame); else res(p);
+      })(t0);
+    });
+  }
+  function flash(x,y,txt){
+    const f=el('div','copyflash',txt);
+    f.style.left=x+'px'; f.style.top=y+'px';
+    wrap.appendChild(f);
+    f.animate([{opacity:0,transform:'translate(-50%,-50%) scale(.6)'},
+      {opacity:1,transform:'translate(-50%,-50%) scale(1.15)',offset:.4},
+      {opacity:0,transform:'translate(-50%,-90%) scale(1)'}],{duration:900});
+    setTimeout(()=>f.remove(),950);
+  }
+  function clearPackets(){wrap.querySelectorAll('.pkt,.copyflash').forEach(p=>p.remove());}
+  return {nodes,setVal,setGrad,pulse,clearPulses,packet,flash,clearPackets,wrap};
+}
+
+/* ================= formula bar with FLIP morph ================= */
+function makeFormula(container){
+  function render(tokens){
+    container.innerHTML='';
+    tokens.forEach(tok=>{
+      const s=el('span','ftok '+(tok.cls||''));
+      s.dataset.key=tok.k;
+      s.innerHTML=tok.t+(tok.shape?`<span class="shape${tok.shapeCls?' '+tok.shapeCls:''}">${tok.shape}</span>`:'');
+      container.appendChild(s);
+    });
+  }
+  function morphTo(tokens,changedKeys){
+    const old={};
+    container.querySelectorAll('.ftok').forEach(s=>{old[s.dataset.key]=s.getBoundingClientRect();});
+    render(tokens);
+    container.querySelectorAll('.ftok').forEach(s=>{
+      const o=old[s.dataset.key];
+      if(o){
+        const n=s.getBoundingClientRect();
+        const dx=o.left-n.left, dy=o.top-n.top;
+        s.style.transition='none';
+        s.style.transform=`translate(${dx}px,${dy}px)`;
+        requestAnimationFrame(()=>{s.style.transition='';s.style.transform='';});
+      }else{
+        s.classList.add('enter');
+        requestAnimationFrame(()=>s.classList.remove('enter'));
+      }
+      if(changedKeys&&changedKeys.includes(s.dataset.key)){
+        s.classList.add('changed');
+        setTimeout(()=>s.classList.remove('changed'),900);
+      }
+    });
+  }
+  return {render,morphTo};
+}
+
+/* ================= SLIDES 1 & 4: full scalar graph ================= */
+const GRAPH_SPEC={
+  nodes:[
+    {id:'w',x:50,y:50,label:'w (trainable)',trainable:true},
+    {id:'x',x:50,y:210,label:'x (fixed)'},
+    {id:'s',x:265,y:130,label:'s'},
+    {id:'b',x:330,y:235,label:'b (trainable)',trainable:true},
+    {id:'y',x:470,y:130,label:'y'},
+    {id:'t',x:540,y:235,label:'t (fixed)'},
+    {id:'e',x:680,y:130,label:'e'},
+    {id:'L',x:885,y:130,label:'L'},
+  ],
+  gates:[
+    {id:'gmul',x:160,y:130,op:'×'},
+    {id:'gadd',x:370,y:130,op:'+'},
+    {id:'gsub',x:575,y:130,op:'−'},
+    {id:'gsq',x:780,y:130,op:'²'},
+  ],
+  edges:[['w','gmul'],['x','gmul'],['gmul','s'],['s','gadd'],['b','gadd'],['gadd','y'],
+    ['y','gsub'],['t','gsub'],['gsub','e'],['e','gsq'],['gsq','L']]
+};
+function scalarVals(st){const s=st.w*st.x,y=s+st.b,e=y-st.t;return {s,y,e,L:e*e};}
+function scalarGrads(st){const {s,y,e}=scalarVals(st);
+  const ge=2*e, gy=ge, gt=-ge, gs=gy, gb=gy, gw=gs*st.x, gx=gs*st.w;
+  return {ge,gy,gt,gs,gb,gw,gx};}
+
+function buildSlide1(){
+  const st={w:1,x:2,b:0.5,t:5,eta:0.05};
+  const G=makeGraph(document.getElementById('s1-graph'),GRAPH_SPEC);
+  const sliders=document.getElementById('s1-sliders');
+  function paint(){
+    const v=scalarVals(st);
+    G.setVal('w',fmt(st.w));G.setVal('x',fmt(st.x));G.setVal('b',fmt(st.b));G.setVal('t',fmt(st.t));
+    G.setVal('s',fmt(v.s));G.setVal('y',fmt(v.y));G.setVal('e',fmt(v.e));G.setVal('L',fmt(v.L));
+  }
+  [['w',-2,4],['x',0.5,4],['b',-2,2],['t',0,8]].forEach(([name,mn,mx])=>{
+    const lab=el('label','ctl');lab.append(name+' ');
+    const inp=el('input');inp.type='range';inp.min=mn;inp.max=mx;inp.step=0.1;inp.value=st[name];
+    const span=el('span',null,fmt(st[name]));
+    inp.oninput=()=>{st[name]=+inp.value;span.textContent=fmt(st[name]);paint();};
+    lab.append(inp,span);sliders.appendChild(lab);
+  });
+  paint();
+  let playing=false;
+  async function play(){
+    if(playing)return; playing=true;
+    G.clearPackets();G.clearPulses();
+    const v=scalarVals(st);
+    const seq=[
+      ['w','gmul',fmt(st.w)],['x','gmul',fmt(st.x)],['gmul','s',fmt(v.s)],
+      ['s','gadd',fmt(v.s)],['b','gadd',fmt(st.b)],['gadd','y',fmt(v.y)],
+      ['y','gsub',fmt(v.y)],['t','gsub',fmt(st.t)],['gsub','e',fmt(v.e)],
+      ['e','gsq',fmt(v.e)],['gsq','L',fmt(v.L)]];
+    for(const [a,b2,label] of seq){
+      G.pulse(a);G.pulse(b2);
+      await G.packet(a,b2,{label,cls:'fwd',dur:480});
+      G.clearPulses();
+    }
+    document.getElementById('s1-status').textContent=`L = ${fmt(v.L)} — now: which way should w move?`;
+    playing=false;
+  }
+  document.getElementById('s1-play').onclick=play;
+  return {play};
+}
+
+function buildSlide4(){
+  const st={w:1,x:2,b:0.5,t:5,eta:0.05,epoch:0,hist:[]};
+  const G=makeGraph(document.getElementById('s4-graph'),GRAPH_SPEC);
+  const F=makeFormula(document.getElementById('s4-formula'));
+  const cap=document.getElementById('s4-cap');
+  F.render([{k:'h',t:'<span class="dim">the chain rule assembles here as the packet travels</span>'}]);
+  function paint(){
+    const v=scalarVals(st);
+    G.setVal('w',fmt(st.w));G.setVal('x',fmt(st.x));G.setVal('b',fmt(st.b));G.setVal('t',fmt(st.t));
+    G.setVal('s',fmt(v.s));G.setVal('y',fmt(v.y));G.setVal('e',fmt(v.e));G.setVal('L',fmt(v.L));
+  }
+  paint();
+  let playing=false;
+  async function play(){
+    if(playing)return; playing=true;
+    G.clearPackets();G.clearPulses();
+    Object.keys(G.nodes).forEach(k=>G.setGrad(k,''));
+    const v=scalarVals(st), g=scalarGrads(st);
+    // square gate
+    G.pulse('gsq');await G.packet('L','gsq',{label:'1',dur:500});
+    G.setGrad('e','∂L/∂e = '+fmt(g.ge));
+    F.render([{k:'a',t:'∂L/∂w = '},{k:'g1',t:fmt(g.ge),cls:'changed'},{k:'c1',t:'<span class="dim">· (square: 2e)</span>'}]);
+    cap.innerHTML='the <b>square</b> gate scales the incoming 1 by 2e = '+fmt(g.ge);
+    // subtract gate
+    G.pulse('gsq',false);G.pulse('gsub');
+    await G.packet('gsq','gsub',{label:fmt(g.ge),dur:500});
+    const p1=G.packet('gsub','y',{label:fmt(g.gy),dur:420});
+    const p2=G.packet('gsub','t',{label:fmt(g.gt),dur:420});
+    G.setGrad('y','∂L/∂y = '+fmt(g.gy));G.setGrad('t','∂L/∂t = '+fmt(g.gt));
+    await Promise.all([p1,p2]);
+    F.render([{k:'a',t:'∂L/∂w = '},{k:'g1',t:fmt(g.ge)},{k:'g2',t:'· 1',cls:'changed'},
+      {k:'c1',t:'<span class="dim">· (subtract: +1 to y, −1 to t)</span>'}]);
+    cap.innerHTML='the <b>subtract</b> gate: +1 to the first input, −1 to the second';
+    // add gate — the distribution moment
+    G.pulse('gsub',false);G.pulse('gadd');
+    await G.packet('gsub','gadd',{label:fmt(g.gy),dur:500});
+    G.flash(G.nodes.gadd.x,G.nodes.gadd.y-28,'copy ×2');
+    const p3=G.packet('gadd','s',{label:fmt(g.gs),dur:420});
+    const p4=G.packet('gadd','b',{label:fmt(g.gb),dur:420});
+    G.setGrad('s','∂L/∂s = '+fmt(g.gs));G.setGrad('b','∂L/∂b = '+fmt(g.gb));
+    await Promise.all([p3,p4]);
+    F.render([{k:'a',t:'∂L/∂w = '},{k:'g1',t:fmt(g.ge)},{k:'g2',t:'· 1'},{k:'g3',t:'· 1',cls:'changed'},
+      {k:'c1',t:'<span class="dim">· (add: copies to both — distribution)</span>'}]);
+    cap.innerHTML='the <b>add</b> gate photocopies the gradient to both inputs — slide 3’s distribution';
+    // multiply gate
+    G.pulse('gadd',false);G.pulse('gmul');
+    await G.packet('gadd','gmul',{label:fmt(g.gs),dur:500});
+    const p5=G.packet('gmul','w',{label:fmt(g.gs)+'·'+fmt(st.x),dur:420});
+    const p6=G.packet('gmul','x',{label:fmt(g.gs)+'·'+fmt(st.w),dur:420});
+    G.setGrad('w','∂L/∂w = '+fmt(g.gw));G.setGrad('x','∂L/∂x = '+fmt(g.gx));
+    await Promise.all([p5,p6]);
+    F.render([{k:'a',t:'∂L/∂w = '},{k:'g1',t:fmt(g.ge)},{k:'g2',t:'· 1'},{k:'g3',t:'· 1'},
+      {k:'g4',t:'· '+fmt(st.x),cls:'changed'},{k:'eq',t:' = <b>'+fmt(g.gw)+'</b>',cls:'changed'},
+      {k:'c1',t:'<span class="dim">· (multiply: × the other input)</span>'}]);
+    cap.innerHTML='the <b>multiply</b> gate scales by the other input — and the chain is complete: ∂L/∂w = 2e·1·1·x = <b>'+fmt(g.gw)+'</b>';
+    G.clearPulses();
+    playing=false;
+  }
+  function update(){
+    const g=scalarGrads(st);
+    st.w=st.w-st.eta*g.gw; st.b=st.b-st.eta*g.gb;
+    const v=scalarVals(st);
+    st.epoch++;st.hist.push(v.L);
+    drawSparkInto(document.getElementById('s4-spark'),st.hist,'loss / epoch');
+    document.getElementById('s4-status').textContent=
+      `epoch ${st.epoch} · w=${fmt(st.w)} b=${fmt(st.b)} L=${fmt(v.L)}`;
+    paint();
+  }
+  document.getElementById('s4-play').onclick=play;
+  document.getElementById('s4-update').onclick=()=>{update();};
+  document.getElementById('s4-train').onclick=()=>{for(let i=0;i<10;i++)update();};
+  document.getElementById('s4-reset').onclick=()=>{st.w=1;st.b=0.5;st.epoch=0;st.hist=[];
+    G.clearPackets();G.clearPulses();
+    Object.keys(G.nodes).forEach(k=>G.setGrad(k,''));
+    document.getElementById('s4-status').textContent='';
+    drawSparkInto(document.getElementById('s4-spark'),[],'loss / epoch');
+    F.render([{k:'h',t:'<span class="dim">the chain rule assembles here as the packet travels</span>'}]);
+    cap.innerHTML='';paint();};
+  return {play};
+}
+
+/* ================= SLIDE 2: multiply zoom ================= */
+function buildSlide2(){
+  const spec={
+    small:true,
+    nodes:[
+      {id:'w',x:60,y:60,label:'w',trainable:true},
+      {id:'x',x:60,y:190,label:'x'},
+      {id:'s',x:320,y:125,label:'s'},
+      {id:'g',x:420,y:125,label:'g (from L)'},
+    ],
+    gates:[{id:'gmul',x:190,y:125,op:'×'}],
+    edges:[['w','gmul'],['x','gmul'],['gmul','s'],['s','g']]
+  };
+  const G=makeGraph(document.getElementById('s2-graph'),spec);
+  const F=makeFormula(document.getElementById('s2-formula'));
+  const cap=document.getElementById('s2-cap');
+  const w=1,x=2,g=-5;
+  G.setVal('w',fmt(w));G.setVal('x',fmt(x));G.setVal('s',fmt(w*x));G.setVal('g',fmt(g));
+  F.render([{k:'h',t:'<span class="dim">s = w·x — press Animate backward ▸</span>'}]);
+  let playing=false;
+  async function play(){
+    if(playing)return; playing=true;
+    G.clearPackets();G.clearPulses();
+    F.render([{k:'h',t:'<span class="dim">g arrives at s…</span>'}]);
+    G.pulse('gmul');
+    await G.packet('g','s',{label:'g = '+fmt(g),dur:600});
+    await G.packet('s','gmul',{label:fmt(g),dur:450});
+    const p1=G.packet('gmul','w',{label:'g·x = '+fmt(g*x),dur:550});
+    const p2=G.packet('gmul','x',{label:'g·w = '+fmt(g*w),dur:550});
+    G.setGrad('w','∂L/∂w = '+fmt(g*x));G.setGrad('x','∂L/∂x = '+fmt(g*w));
+    await Promise.all([p1,p2]);
+    F.render([
+      {k:'a',t:'∂L/∂w = g·x = ',cls:''},{k:'av',t:'<b>'+fmt(g*x)+'</b>',cls:'changed'},
+      {k:'sp',t:'&nbsp;&nbsp;'},
+      {k:'b',t:'∂L/∂x = g·w = '},{k:'bv',t:'<b>'+fmt(g*w)+'</b>',cls:'changed'}]);
+    cap.innerHTML='one packet in, two out — each scaled by <b>the other input</b>. That is the entire multiply rule.';
+    G.clearPulses();playing=false;
+  }
+  document.getElementById('s2-play').onclick=play;
+  return {play};
+}
+
+/* ================= SLIDE 3: add distributes ================= */
+function buildSlide3(){
+  const spec={
+    small:true,
+    nodes:[
+      {id:'s',x:60,y:60,label:'s'},
+      {id:'b',x:60,y:190,label:'b',trainable:true},
+      {id:'y',x:320,y:125,label:'y'},
+      {id:'g',x:420,y:125,label:'g (from L)'},
+    ],
+    gates:[{id:'gadd',x:190,y:125,op:'+'}],
+    edges:[['s','gadd'],['b','gadd'],['gadd','y'],['y','g']]
+  };
+  const G=makeGraph(document.getElementById('s3-graph'),spec);
+  const F=makeFormula(document.getElementById('s3-formula'));
+  const cap=document.getElementById('s3-cap');
+  const s=2,b=0.5,g=-5;
+  G.setVal('s',fmt(s));G.setVal('b',fmt(b));G.setVal('y',fmt(s+b));G.setVal('g',fmt(g));
+  F.render([{k:'h',t:'<span class="dim">y = s + b — press Animate the split ▸</span>'}]);
+  let playing=false;
+  async function play(){
+    if(playing)return; playing=true;
+    G.clearPackets();G.clearPulses();
+    F.render([{k:'h',t:'<span class="dim">g arrives at y…</span>'}]);
+    G.pulse('gadd');
+    await G.packet('g','y',{label:'g = '+fmt(g),dur:600});
+    await G.packet('y','gadd',{label:fmt(g),dur:450});
+    G.flash(G.nodes.gadd.x,G.nodes.gadd.y-28,'copy ×2');
+    await sleep(250);
+    const p1=G.packet('gadd','s',{label:'g = '+fmt(g),dur:550});
+    const p2=G.packet('gadd','b',{label:'g = '+fmt(g),dur:550});
+    G.setGrad('s','∂L/∂s = '+fmt(g));G.setGrad('b','∂L/∂b = '+fmt(g));
+    await Promise.all([p1,p2]);
+    F.render([
+      {k:'a',t:'∂L/∂s = g = '},{k:'av',t:'<b>'+fmt(g)+'</b>',cls:'changed'},
+      {k:'sp',t:'&nbsp;&nbsp;'},
+      {k:'b',t:'∂L/∂b = g = '},{k:'bv',t:'<b>'+fmt(g)+'</b>',cls:'changed'}]);
+    cap.innerHTML='<b>addition distributes</b>: the gradient photocopies to every input, unchanged. '+
+      'And read it backward: a value used in N places collects N copies that <b>sum</b>.';
+    G.clearPulses();playing=false;
+  }
+  document.getElementById('s3-play').onclick=play;
+  return {play};
+}
+
+/* ================= SLIDE 5: scalar → vector morph ================= */
+function buildSlide5(){
+  const F=makeFormula(document.getElementById('s5-formula'));
+  const cap=document.getElementById('s5-cap');
+  const states=[
+    {toks:[{k:'l',t:'∂L/∂w'},{k:'e',t:'='},{k:'g',t:'g'},{k:'m',t:'·'},{k:'x',t:'x'}],
+     cap:'slide 2’s multiply rule, for one weight.'},
+    {toks:[{k:'l',t:'∂L/∂wᵢ'},{k:'e',t:'='},{k:'g',t:'g'},{k:'m',t:'·'},{k:'x',t:'xᵢ'}],
+     cap:'four weights now — but each one still listens to <b>exactly one input</b>. Only a subscript appeared.'},
+    {toks:[{k:'l',t:'∂L/∂𝐰',cls:'big'},{k:'e',t:'='},{k:'g',t:'g',cls:'big'},{k:'m',t:'·',cls:'big'},{k:'x',t:'𝐱',cls:'big'}],
+     cap:'all four at once: the gradient vector is the upstream g times the input vector. <b>The rule did not change.</b>'},
+  ];
+  let i=0;
+  F.render(states[0].toks); cap.innerHTML=states[0].cap;
+  document.getElementById('s5-morph').onclick=()=>{
+    i=(i+1)%states.length;
+    F.morphTo(states[i].toks,['l','x','g','m']);
+    cap.innerHTML=states[i].cap;
+  };
+  document.getElementById('s5-replay').onclick=()=>{i=0;F.morphTo(states[0].toks,['l','x']);cap.innerHTML=states[0].cap;};
+  return {play:()=>{}};
+}
+
+/* ================= SLIDE 6: vector → matrix morph ================= */
+function buildSlide6(){
+  const F=makeFormula(document.getElementById('s6-formula'));
+  const cap=document.getElementById('s6-cap');
+  const states=[
+    {toks:[{k:'l',t:'∂L/∂𝐰'},{k:'e',t:'='},{k:'g',t:'g'},{k:'m',t:'·'},{k:'x',t:'𝐱'}],
+     cap:'slide 5’s rule, vector form.'},
+    {toks:[{k:'l',t:'∂L/∂W',shape:'N×M'},{k:'e',t:'='},
+           {k:'g',t:'G',shape:'B×M'},{k:'m',t:'·'},{k:'x',t:'X',shape:'B×N'}],
+     cap:'batch it: B gradient rows become G, B input rows become X. But look at the shapes…'},
+    {toks:[{k:'l',t:'∂L/∂W',shape:'N×M'},{k:'e',t:'='},
+           {k:'g',t:'G',shape:'B×M',shapeCls:'bad'},{k:'m',t:'·'},{k:'x',t:'X',shape:'B×N',shapeCls:'bad'}],
+     cap:'<b>(B×M)·(B×N) does not multiply</b> — inner dimensions clash. The formula is right; the shapes must line up.'},
+    {toks:[{k:'l',t:'∂L/∂W',shape:'N×M'},{k:'e',t:'='},
+           {k:'x',t:'Xᵀ',shape:'N×B',shapeCls:'good'},{k:'m',t:'·'},{k:'g',t:'G',shape:'B×M',shapeCls:'good'}],
+     cap:'flip X to Xᵀ and swap: <b>(N×B)(B×M) → N×M ✓</b>. The transpose is not a new rule — it is the multiply rule with shapes that fit.'},
+    {toks:[{k:'l',t:'∂L/∂W[i,j]'},{k:'e',t:'='},{k:'s',t:'Σ_b',cls:'changed'},
+           {k:'x',t:'X[b,i]'},{k:'m',t:'·'},{k:'g',t:'G[b,j]'}],
+     cap:'element-wise: each weight’s gradient is (col i of X) · (col j of G), <b>summed over the batch</b> — lesson 1’s multiply, plus slide 3’s summation.'},
+  ];
+  let i=0;
+  F.render(states[0].toks); cap.innerHTML=states[0].cap;
+  document.getElementById('s6-morph').onclick=()=>{
+    i=(i+1)%states.length;
+    F.morphTo(states[i].toks,['l','x','g','s']);
+    if(i===3){const xt=document.querySelector('#s6-formula .ftok[data-key="x"]');
+      if(xt){xt.classList.add('flipx');setTimeout(()=>xt.classList.remove('flipx'),750);}}
+    cap.innerHTML=states[i].cap;
+  };
+  document.getElementById('s6-replay').onclick=()=>{i=0;F.morphTo(states[0].toks,['l','x','g']);cap.innerHTML=states[0].cap;};
+  return {play:()=>{}};
+}
+
+/* ================= SLIDE 7: bias sum + LoRA ================= */
+function buildSlide7(){
+  const spec={
+    small:true,width:'640',
+    nodes:[
+      {id:'r0',x:80,y:30,label:'G[0,j]'},
+      {id:'r1',x:80,y:75,label:'G[1,j]'},
+      {id:'r2',x:80,y:120,label:'…'},
+      {id:'r7',x:80,y:165,label:'G[7,j]'},
+      {id:'b',x:520,y:100,label:'b[j]',trainable:true},
+    ],
+    gates:[{id:'gsum',x:330,y:100,op:'Σ'}],
+    edges:[['r0','gsum'],['r1','gsum'],['r2','gsum'],['r7','gsum'],['gsum','b']]
+  };
+  const G=makeGraph(document.getElementById('s7-graph'),spec);
+  const F=makeFormula(document.getElementById('s7-formula'));
+  const cap=document.getElementById('s7-cap');
+  const vals=[0.05,-0.03,0.01,-0.02];
+  G.setVal('r0',fmt(vals[0]));G.setVal('r1',fmt(vals[1]));
+  G.setVal('r2','⋮');G.setVal('r7',fmt(vals[3]));
+  G.setVal('b','·');
+  F.render([{k:'h',t:'<span class="dim">b is added to all 8 rows of Y — so 8 gradient copies come back…</span>'}]);
+  let playing=false;
+  async function play(){
+    if(playing)return; playing=true;
+    G.clearPackets();G.clearPulses();G.setVal('b','·');
+    G.pulse('gsum');
+    const ps=['r0','r1','r2','r7'].map((r,i)=>G.packet(r,'gsum',{label:fmt(vals[i]),dur:500+i*120}));
+    await Promise.all(ps);
+    const sum=vals.reduce((a,c)=>a+c,0);
+    await G.packet('gsum','b',{label:'Σ = '+fmt(sum),dur:450});
+    G.setVal('b',fmt(sum));
+    G.setGrad('b','∂L/∂b[j]');
+    F.render([
+      {k:'a',t:'∂L/∂b[j] = Σ_b G[b,j] = '},
+      {k:'v',t:vals.map(fmt).join(' + ')},{k:'e',t:' = <b>'+fmt(sum)+'</b>',cls:'changed'}]);
+    cap.innerHTML='slide 3 in reverse: b was <b>distributed</b> to 8 rows in the forward pass, so its gradient is the <b>sum</b> of the 8 copies that return.';
+    G.clearPulses();playing=false;
+  }
+  document.getElementById('s7-play').onclick=play;
+  return {play};
+}
+
+/* ================= scripted lesson infra (vector widget, slide 5) ================= */
 function createScriptedLesson(root, build){
   const api={st:null};
   root.innerHTML=`
     <div class="controls">
       <button class="primary q-next">Next ▸</button>
       <button class="q-play">▶ Play</button>
-      <button class="q-fast">▸▸ ×10</button>
+      <button class="q-fast">▸▸ ×25</button>
       <button class="q-reset">Reset</button>
       <span class="status q-status"></span>
     </div>
     <div class="q-stage"></div>
-    <div class="chain q-chain"><span class="dim">The composed chain rule appears here once the backward pass has run.</span></div>
+    <div class="chain q-chain"><span class="dim">The composed rule appears here once the backward pass has run.</span></div>
     <div class="ledgerwrap">
       <div class="ledger q-ledger"></div>
       <canvas class="spark q-spark" width="220" height="56"></canvas>
@@ -273,7 +833,7 @@ function createScriptedLesson(root, build){
   }
   function stepOnce(){
     const st=api.st;
-    if(st.busy||st.idx>=st.script.length)return;
+    if(st.idx>=st.script.length)return;
     const s=st.script[st.idx++];
     if(s.line)ledger(s.line,s.cls);
     if(s.apply)s.apply();
@@ -284,7 +844,6 @@ function createScriptedLesson(root, build){
   function newScript(){build(api,ui,ledger);setStatus();}
   ui.next.onclick=()=>stepOnce();
   ui.fast.onclick=()=>{for(let k=0;k<api.st.fastN;k++)runEpoch();};
-  api.setFastLabel=()=>{ui.fast.textContent=`▸▸ ×${api.st.fastN}`;};
   ui.play.onclick=function(){
     const st=api.st;
     st.playing=!st.playing;
@@ -293,7 +852,7 @@ function createScriptedLesson(root, build){
     else clearInterval(st.timer);
   };
   ui.reset.onclick=()=>{api.stopPlay();api.st.reset();ui.ledger.innerHTML='';ui.chain.innerHTML=
-    '<span class="dim">The composed chain rule appears here once the backward pass has run.</span>';
+    '<span class="dim">The composed rule appears here once the backward pass has run.</span>';
     api.st.render();newScript();};
   api.stopPlay=()=>{const st=api.st;if(st&&st.playing){st.playing=false;clearInterval(st.timer);ui.play.textContent='▶ Play';}};
   api.stepOnce=stepOnce; api.newScript=newScript; api.ledger=ledger; api.ui=ui;
@@ -301,102 +860,7 @@ function createScriptedLesson(root, build){
   return api;
 }
 
-/* ---------------- LESSON 1: scalar ---------------- */
-function buildScalarLesson(api,ui,ledger){
-  if(!api.st){
-    const st={x:2,w:1,b:0.5,t:5,eta:0.05,epoch:0,hist:[],script:[],idx:0,playing:false,timer:null,fastN:10};
-    st.reset=()=>{st.x=2;st.w=1;st.b=0.5;st.t=5;st.epoch=0;st.hist=[];st.idx=0;
-      ui.sliders.querySelectorAll('input').forEach(inp=>{inp.value=inp.dataset.init;
-        inp.nextElementSibling.textContent=(+inp.dataset.init).toFixed(2);});};
-    st.render=renderGates;
-    api.st=st;
-    // sliders
-    [['x',0.5,4,0.1,st.x],['w',-2,4,0.1,st.w],['b',-2,2,0.1,st.b],['t',0,8,0.1,st.t]].forEach(([name,mn,mx,stp,val])=>{
-      const lab=el('label','ctl');lab.append(name+' ');
-      const inp=el('input');inp.type='range';inp.min=mn;inp.max=mx;inp.step=stp;inp.value=val;inp.dataset.init=val;
-      const span=el('span',null,(+val).toFixed(2));
-      inp.oninput=()=>{st[name]=+inp.value;span.textContent=(+inp.value).toFixed(2);
-        api.stopPlay();st.epoch=0;st.hist=[];renderGates();api.newScript();
-        ledger(`— ${name} set to ${fmt(st[name])}; run restarted —`,'sys');};
-      lab.append(inp,span);ui.sliders.appendChild(lab);
-    });
-    const etalab=el('label','ctl');etalab.append('η ');
-    const ei=el('input');ei.type='range';ei.min=0.02;ei.max=0.2;ei.step=0.01;ei.value=st.eta;
-    const es=el('span',null,st.eta.toFixed(2));
-    ei.oninput=()=>{st.eta=+ei.value;es.textContent=st.eta.toFixed(2);};
-    etalab.append(ei,es);ui.sliders.appendChild(etalab);
-    // helpers (defined before use: renderGates below calls them)
-    var set=(n,v)=>{ui.stage.querySelectorAll(`.nb[data-n="${n}"] .nbval`).forEach(c=>c.textContent=fmt(v));};
-    var setG=(n,g)=>{ui.stage.querySelectorAll(`.nb[data-n="${n}"] .nbgrad`).forEach(c=>c.textContent='∂L/∂'+n+' = '+fmt(g));};
-    var hl=ns=>{ui.stage.querySelectorAll('.nb').forEach(c=>c.classList.remove('hl'));
-      ns.forEach(n=>ui.stage.querySelectorAll(`.nb[data-n="${n}"]`).forEach(c=>c.classList.add('hl')));};
-    var clearComputed=()=>{
-      ['s','y','e','L'].forEach(n=>{ui.stage.querySelectorAll(`.nb[data-n="${n}"] .nbval`).forEach(c=>c.textContent='·');});
-      ui.stage.querySelectorAll('.nbgrad').forEach(c=>c.textContent='');
-      hl([]);
-    };
-    var renderGates=()=>{
-      set('x',st.x);set('w',st.w);set('b',st.b);set('t',st.t);
-      clearComputed();
-      drawSparkInto(ui.spark,st.hist,'loss / epoch');
-    };
-    var gateRow=(op,ins,out,rule)=>{
-      const row=el('div','gate');
-      ins.forEach(([n,tr])=>row.appendChild(nb(n,tr)));
-      row.appendChild(el('div','opc',op));
-      row.appendChild(nb(out,null));
-      row.appendChild(el('span','grule',rule));
-      return row;
-    };
-    var nb=(n,trainable)=>{
-      const d=el('div','nb'+(trainable===true?' trainable':''));
-      d.dataset.n=n;
-      d.appendChild(el('div','nbname',n+(trainable===true?' (trainable)':trainable===false?' (fixed)':'')));
-      d.appendChild(el('div','nbval','·'));
-      d.appendChild(el('div','nbgrad',''));
-      return d;
-    };
-    st.ui={set,setG,hl,clearComputed,renderGates};
-    api.setFastLabel();
-    // gates
-    const gates=ui.stage;
-    gates.innerHTML='';
-    gates.appendChild(gateRow('×',[['w',true],['x',false]],'s','s = w·x'));
-    gates.appendChild(gateRow('+',[['s',null],['b',true]],'y','y = s + b'));
-    gates.appendChild(gateRow('−',[['y',null],['t',false]],'e','e = y − t'));
-    gates.appendChild(gateRow('²',[['e',null]],'L','L = e²'));
-    renderGates();
-  }
-  const st=api.st;
-  const {x,w,b,t,eta}=st;
-  const s=w*x, y=s+b, e=y-t, L=e*e;
-  const ge=2*e, gy=ge, gt=-ge, gs=gy, gb=gy, gw=gs*x, gx=gs*w;
-  const U=st.ui;
-  st.script=[
-    {line:`forward  s = w·x = ${fmt(w)}·${fmt(x)} = ${fmt(s)}`,apply:()=>{U.set('s',s);U.hl(['w','x','s']);}},
-    {line:`forward  y = s + b = ${fmt(s)} + ${fmt(b)} = ${fmt(y)}`,apply:()=>{U.set('y',y);U.hl(['s','b','y']);}},
-    {line:`forward  e = y − t = ${fmt(y)} − ${fmt(t)} = ${fmt(e)}`,apply:()=>{U.set('e',e);U.hl(['y','t','e']);}},
-    {line:`forward  L = e² = (${fmt(e)})² = ${fmt(L)}   ← the number we want to shrink`,apply:()=>{U.set('L',L);U.hl(['e','L']);}},
-    {line:`backward ∂L/∂e = 2·e = 2·${fmt(e)} = ${fmt(ge)}   (square rule)`,cls:'bwd',apply:()=>{U.setG('e',ge);U.hl(['e','L']);}},
-    {line:`backward ∂L/∂y = ∂L/∂e · ∂e/∂y = ${fmt(ge)} · 1 = ${fmt(gy)}   (subtract: +1 to first input)`,cls:'bwd',apply:()=>{U.setG('y',gy);U.hl(['y','e']);}},
-    {line:`backward ∂L/∂t = ∂L/∂e · (−1) = ${fmt(gt)}   (subtract: −1 to second input)`,cls:'bwd',apply:()=>{U.setG('t',gt);U.hl(['t','e']);}},
-    {line:`backward ∂L/∂s = ∂L/∂y · ∂y/∂s = ${fmt(gy)} · 1 = ${fmt(gs)}   (add: gradient copies to both inputs)`,cls:'bwd',apply:()=>{U.setG('s',gs);U.hl(['s','y']);}},
-    {line:`backward ∂L/∂b = ∂L/∂y · 1 = ${fmt(gb)}`,cls:'bwd',apply:()=>{U.setG('b',gb);U.hl(['b','y']);}},
-    {line:`backward ∂L/∂w = ∂L/∂s · ∂s/∂w = ${fmt(gs)} · x = ${fmt(gs)}·${fmt(x)} = ${fmt(gw)}   (multiply: grad × the OTHER input)`,cls:'bwd',apply:()=>{U.setG('w',gw);U.hl(['w','x','s']);
-        ui.chain.innerHTML=`chain rule for w:  ∂L/∂w = <span class="dim">2e</span> · <span class="dim">1</span> · <span class="dim">x</span> = 2·(${fmt(e)}) · 1 · ${fmt(x)} = <b>${fmt(gw)}</b>   <span class="dim">— one multiplication per gate on the path</span>`;}},
-    {line:`backward ∂L/∂x = ∂L/∂s · w = ${fmt(gs)}·${fmt(w)} = ${fmt(gx)}`,cls:'bwd',apply:()=>{U.setG('x',gx);U.hl(['x','w','s']);}},
-    {line:`update   w ← w − η·∂L/∂w = ${fmt(w)} − ${fmt(eta)}·${fmt(gw)} = ${fmt(w-eta*gw)}`,cls:'upd',apply:()=>{st.w=w-eta*gw;U.set('w',st.w);U.hl(['w']);}},
-    {line:`update   b ← b − η·∂L/∂b = ${fmt(b)} − ${fmt(eta)}·${fmt(gb)} = ${fmt(b-eta*gb)}   → epoch done; next Next ▸ starts the forward pass again`,cls:'upd',apply:()=>{st.b=b-eta*gb;U.set('b',st.b);U.hl(['b']);}},
-  ];
-  st.idx=0;
-  st.afterScript=()=>{
-    st.epoch++;st.hist.push(L);
-    drawSparkInto(ui.spark,st.hist,'loss / epoch');
-    U.clearComputed();api.newScript();
-  };
-}
-
-/* ---------------- LESSON 2: vector ---------------- */
+/* ---------------- vector lesson (slide 5 widget) ---------------- */
 function buildVectorLesson(api,ui,ledger){
   const N=4;
   if(!api.st){
@@ -412,7 +876,6 @@ function buildVectorLesson(api,ui,ledger){
     const es=el('span',null,st.eta.toFixed(2));
     ei.oninput=()=>{st.eta=+ei.value;es.textContent=st.eta.toFixed(2);};
     etalab.append(ei,es);ui.sliders.appendChild(etalab);
-    // helpers as var so renderAll (called during init) sees them initialized
     var setC=(kind,i,v)=>{ui.stage.querySelector(`.cell[data-k="${kind}"][data-i="${i}"]`).textContent=v==null?'·':fmt(v);};
     var hlC=pairs=>{ui.stage.querySelectorAll('.cell').forEach(c=>c.classList.remove('hl'));
       pairs.forEach(([k,i])=>{const c=ui.stage.querySelector(`.cell[data-k="${k}"][data-i="${i}"]`);if(c)c.classList.add('hl');});};
@@ -449,9 +912,7 @@ function buildVectorLesson(api,ui,ledger){
       return d;
     };
     st.ui={setC,hlC,setB,setBG,hlB,clearComputed,renderAll};
-    api.setFastLabel();
     st.render=renderAll;
-    // stage: rows x, w, p, dw + y/b/t/L boxes
     const stg=ui.stage; stg.innerHTML='';
     const rows=el('div','l2rows'); stg.appendChild(rows);
     rows.appendChild(gridRow('x',N,'x'));
@@ -482,12 +943,13 @@ function buildVectorLesson(api,ui,ledger){
     cls:'bwd',apply:()=>{U.setBG('y',gy);U.hlB(['y','L']);}});
   for(let i=0;i<N;i++)script.push({line:`backward ∂L/∂w${i} = ∂L/∂y · x${i} = ${fmt(gy)}·${fmt(x[i])} = ${fmt(dw[i])}   (multiply rule: w${i} only ever sees its own x${i})`,
     cls:'bwd',apply:()=>{U.setC('dw',i,dw[i]);U.hlC([['w',i],['x',i],['dw',i]]);}});
-  script.push({line:`backward ∂L/∂b = ∂L/∂y = ${fmt(db)}`,cls:'bwd',apply:()=>{U.setBG('b',db);U.hlB(['b','y']);}});
+  script.push({line:`backward ∂L/∂b = ∂L/∂y = ${fmt(db)}   (add rule: g copies straight through)`,
+    cls:'bwd',apply:()=>{U.setBG('b',db);U.hlB(['b','y']);}});
   script.push({line:`update   w ← w − η·∂L/∂w   b ← b − η·∂L/∂b   → all ${N+1} parameters move at once`,cls:'upd',
     apply:()=>{
       for(let i=0;i<N;i++){st.w[i]=w[i]-eta*dw[i];U.setC('w',i,st.w[i]);}
       st.b=b-eta*db;U.setB('b',st.b);
-      ui.chain.innerHTML=`the whole gradient in one line:  ∂L/∂wᵢ = 2(y−t)·xᵢ   <span class="dim">— N independent lesson-1 multiplications sharing one upstream gradient</span>`;
+      ui.chain.innerHTML=`the whole gradient in one line:  ∂L/∂wᵢ = 2(y−t)·xᵢ   <span class="dim">— N independent slide-2 multiplications sharing one distributed gradient</span>`;
       U.hlC([...Array(N)].map((_,i)=>['w',i]));U.hlB(['b']);}});
   st.script=script; st.idx=0;
   st.afterScript=()=>{
@@ -497,7 +959,7 @@ function buildVectorLesson(api,ui,ledger){
   };
 }
 
-/* ================= matrix sim factory (lessons 3 & 4) ================= */
+/* ================= matrix sim factory (slides 6 & 7) ================= */
 function createMatrixSim(root,opts){
   const o=Object.assign({B:8,N:4,M:3,r0:1,lr0:0.5,allowLora:false,seed:7},opts);
   const S={B:o.B,N:o.N,M:o.M,r:o.r0,lr:o.lr0,mode:'full',seed:o.seed,
@@ -797,30 +1259,45 @@ function createMatrixSim(root,opts){
 }
 
 /* ================= boot ================= */
-const l1=createScriptedLesson(document.getElementById('l1'),buildScalarLesson);
+const s1=buildSlide1();
+const s2=buildSlide2();
+const s3=buildSlide3();
+const s4=buildSlide4();
+const s5=buildSlide5();
+const s6=buildSlide6();
+const s7=buildSlide7();
 const l2=createScriptedLesson(document.getElementById('l2'),buildVectorLesson);
 const sim3=createMatrixSim(document.getElementById('l3'),{allowLora:false});
 const sim4=createMatrixSim(document.getElementById('l4'),{allowLora:true});
-window.__lessons={l1,l2,sim3,sim4};
+window.__lessons={s1,s2,s3,s4,s5,s6,s7,l2,sim3,sim4};
 
-let activeLesson=0;
-const stoppers=[()=>l1.stopPlay(),()=>l2.stopPlay(),()=>sim3.stopPlay(),()=>sim4.stopPlay()];
-const primaries=[()=>l1.stepOnce(),()=>l2.stepOnce(),()=>sim3.step(),()=>sim4.step()];
-function showLesson(i){
-  activeLesson=i;
-  document.querySelectorAll('.lesson').forEach((s,k)=>s.classList.toggle('active',k===i));
-  document.querySelectorAll('#lessonnav button').forEach((b,k)=>b.classList.toggle('on',k===i));
+const players=[s1.play,s2.play,s3.play,s4.play,()=>{},()=>{},s7.play];
+const stoppers=[()=>{},()=>{},()=>{},()=>{},()=>l2.stopPlay(),()=>sim3.stopPlay(),()=>sim4.stopPlay()];
+let cur=0;
+const played=new Array(7).fill(false);
+function show(i){
+  cur=Math.max(0,Math.min(6,i));
+  document.querySelectorAll('.slide').forEach((s,k)=>s.classList.toggle('active',k===cur));
+  document.querySelectorAll('#snav button').forEach((b,k)=>b.classList.toggle('on',k===cur));
   stoppers.forEach(f=>f());
+  history.replaceState(null,'','#'+(cur+1));
+  if(!played[cur]){played[cur]=true;players[cur]&&players[cur]();}
   window.scrollTo({top:0,behavior:'smooth'});
-  history.replaceState(null,'','#'+(i+1));
 }
-document.querySelectorAll('#lessonnav button').forEach(b=>b.onclick=()=>showLesson(+b.dataset.l));
-document.querySelectorAll('.nextlesson').forEach(b=>b.onclick=()=>showLesson(+b.dataset.go));
+document.querySelectorAll('#snav button').forEach(b=>b.onclick=()=>show(+b.dataset.s));
+document.querySelectorAll('.nextlesson').forEach(b=>b.onclick=()=>show(+b.dataset.go));
 document.addEventListener('keydown',e=>{
-  if(e.code==='Space'&&e.target===document.body){e.preventDefault();primaries[activeLesson]();}
+  if(e.target!==document.body)return;
+  if(e.code==='ArrowRight')show(cur+1);
+  else if(e.code==='ArrowLeft')show(cur-1);
+  else if(e.code==='Space'){e.preventDefault();
+    if(cur<=3)players[cur]&&players[cur]();
+    else if(cur===4)l2.stepOnce();
+    else if(cur===5)sim3.step();
+    else sim4.step();}
 });
 const h=parseInt((location.hash||'').slice(1),10);
-if(h>=1&&h<=4)showLesson(h-1);
+if(h>=1&&h<=7)show(h-1);
 </script>
 </body>
 </html>
