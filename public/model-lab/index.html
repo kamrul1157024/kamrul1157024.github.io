@@ -194,6 +194,8 @@ footer{margin-top:26px;color:var(--mut);font-size:12px;border-top:1px solid var(
   <button data-s="11"><span class="n">12</span>layernorm</button>
   <button data-s="12"><span class="n">13</span>the full block</button>
   <button data-s="13"><span class="n">14</span>KV cache &amp; GQA</button>
+  <button data-s="14"><span class="n">15</span>residual networks</button>
+  <button data-s="15"><span class="n">16</span>regularization</button>
 </aside>
 <main>
 
@@ -432,22 +434,25 @@ footer{margin-top:26px;color:var(--mut);font-size:12px;border-top:1px solid var(
 <!-- ============ SLIDE 10: FFN ============ -->
 <section class="slide" id="s10">
   <div class="kick">Slide 10</div>
-  <h2>The feed-forward network (kept as a black box)</h2>
+  <h2>The feed-forward network: what the matrix actually does</h2>
   <p class="prose">Every token position passes through the same little network:
-  <b>FFN(h) = W₂ · gelu(W₁h + b₁) + b₂</b>. We keep it a black box here — what matters is that
-  it's differentiable, so the gradient flows straight through it, scaled by its Jacobian.
-  Watch g enter the output and emerge at the input.</p>
+  <b>FFN(h) = W₂ · gelu(W₁h + b₁) + b₂</b> — a vector in, a vector out. The key is the matrix
+  multiply: <b>every output unit is a dot product with every input feature</b>, so each output
+  relates everything to everything. Stack many such equations with their own parameters and the
+  network can capture a huge variety of features. Step through one row, then the whole matrix,
+  then the backward pass.</p>
   <div class="controls">
     <button class="primary" id="s10-next">Next step ▸</button>
     <button id="s10-replay">↺ Replay</button>
     <span class="stepcount" id="s10-count"></span>
   </div>
-  <div id="s10-stage" style="margin-top:10px"></div>
+  <div id="s10-stage" style="margin-top:10px;display:flex;gap:14px;flex-wrap:wrap;align-items:center"></div>
   <div class="fcaption" id="s10-cap"></div>
-  <div class="rulebox"><b>BLACK-BOX RULE</b> — any differentiable block passes gradient through:
-  <div class="tex" data-tex="\frac{\partial L}{\partial h} = J_{\text{FFN}}^{\top} \, g \qquad \frac{\partial L}{\partial W_1}, \frac{\partial L}{\partial W_2} \; \text{collected inside}"></div>
-  we don't need the internals to use it — the block hands the input-gradient to the left and
-  weight-gradients to its own parameters. That's all backprop ever asks of a component.</div>
+  <div class="rulebox"><b>FFN = MANY EQUATIONS, EACH MIXING EVERYTHING</b>
+  <div class="tex" data-tex="y_j = \varphi\!\left(\textstyle\sum_i W_{ji}\, h_i + b_j\right) \qquad \text{every } y_j \text{ sees every } h_i"></div>
+  <div class="tex" data-tex="\frac{\partial L}{\partial W_{ji}} = g_j\, h_i \qquad \frac{\partial L}{\partial h_i} = \textstyle\sum_j g_j\, W_{ji}"></div>
+  one row of W is one equation; the gradient of W[j,i] is again "upstream × the other input".
+  The second matmul (W₂) remixes the hidden features back down — same rule, twice.</div>
   <button class="nextlesson" data-go="10">Next: attention ▸</button>
 </section>
 
@@ -523,6 +528,8 @@ footer{margin-top:26px;color:var(--mut);font-size:12px;border-top:1px solid var(
   <button class="nextlesson" data-go="13">Next: KV cache &amp; GQA ▸</button>
 </section>
 
+
+
 <!-- ============ SLIDE 14: KV cache & GQA ============ -->
 <section class="slide" id="s14">
   <div class="kick">Slide 14</div>
@@ -544,6 +551,61 @@ footer{margin-top:26px;color:var(--mut);font-size:12px;border-top:1px solid var(
   <div class="tex" data-tex="\text{step } t: \; K_{1..t}, V_{1..t} \text{ cached} \;\Rightarrow\; \text{compute only } q_t, k_t, v_t \qquad \text{cache} = O(t \cdot n_{\text{heads}} \cdot d)"></div>
   <div class="tex" data-tex="\text{MHA: } n_q = n_{kv} \qquad \text{GQA: } n_{kv} < n_q \; (\text{e.g. } 8q \to 2kv) \qquad \text{cache} \downarrow \; \tfrac{n_{kv}}{n_q}"></div>
   MQA is GQA with one K/V head. Fewer K/V heads = smaller cache, faster decode, tiny quality cost.</div>
+</section>
+
+<!-- ============ SLIDE 15: residual networks ============ -->
+<section class="slide" id="s15">
+  <div class="kick">Slide 15</div>
+  <h2>Residual networks: the add gate that saves deep learning</h2>
+  <p class="prose">Stack many layers and gradients vanish — each multiply shrinks them. The residual
+  connection is disarmingly simple: <b>y = F(x) + x</b>. It exists <i>because</i> of slide 2: the
+  add gate <b>photocopies the gradient</b>, so a copy of g reaches every early layer unscaled, no
+  matter how deep. Watch the gradient split at the add and one copy travel the skip path untouched.</p>
+  <div class="controls">
+    <button class="primary" id="s15-next">Next step ▸</button>
+    <button id="s15-replay">↺ Replay</button>
+    <span class="stepcount" id="s15-count"></span>
+  </div>
+  <div id="s15-stage" style="margin-top:10px"></div>
+  <div class="fcaption" id="s15-cap"></div>
+  <div class="rulebox"><b>RESIDUAL RULE</b> — the skip is the add gate from slide 2:
+  <div class="tex" data-tex="y = F(x) + x \qquad \frac{\partial L}{\partial x} = g \cdot J_F + g"></div>
+  the gradient is the transformed part <b>plus an untouched copy of g</b> — the "+g" term is why a
+  100-layer network still trains. Residuals don't remove the work; they guarantee a clean highway
+  for the gradient to flow home.</div>
+  <div class="rulebox" style="border-color:var(--red)"><b>PITFALLS</b> — what residuals do <i>not</i> fix:
+  • <b>not a free lunch</b> — F(x) can still learn to be useless (dead branches); the skip just keeps the gradient alive.
+  • <b>shape must match</b> — x and F(x) need the same dimensions, or you need a projection on the skip.
+  • <b>scale drift</b> — without normalization the residual stream can grow with depth (that's why LN sits inside the block).
+  • <b>shallow illusion</b> — very deep residual nets behave like ensembles of shallower paths; depth ≠ depth of computation.</div>
+  <button class="nextlesson" data-go="15">Next: regularization ▸</button>
+</section>
+
+<!-- ============ SLIDE 16: regularization ============ -->
+<section class="slide" id="s16">
+  <div class="kick">Slide 16</div>
+  <h2>Regularization: keep the weights honest</h2>
+  <p class="prose">A big enough network memorizes the training set. Regularization fights that.
+  <b>L2</b> penalizes the square of the weights — the pull on each weight is <b>proportional to its
+  own value</b>, so big weights shrink fast, small weights barely move. <b>L1</b> penalizes the
+  absolute value — the pull is a <b>constant</b>, so every weight walks toward zero at the same rate
+  and small ones fall off entirely (sparsity). <b>Dropout</b> randomly silences units each step so no
+  single unit can carry the answer. Drag the weight and watch the two penalties differ.</p>
+  <div class="controls">
+    <label class="ctl">w <input type="range" id="s16-w" min="-3" max="3" step="0.05" value="2"><span id="s16-wval">2.00</span></label>
+    <button class="primary" id="s16-drop">Dropout: mask a step ▸</button>
+    <span class="status" id="s16-status"></span>
+  </div>
+  <div style="display:flex;gap:18px;flex-wrap:wrap;align-items:flex-start">
+    <canvas id="s16-pen" width="480" height="230" style="border:1px solid var(--line);background:#101013"></canvas>
+    <div id="s16-dropstage" style="flex:1;min-width:340px"></div>
+  </div>
+  <div class="fcaption" id="s16-cap"></div>
+  <div class="rulebox"><b>L1 vs L2 vs DROPOUT</b>
+  <div class="tex" data-tex="L_2 = L + \tfrac{\lambda}{2}\lVert w\rVert^2 \;\Rightarrow\; \partial_{w} = -\lambda w \;(\text{proportional}) \qquad L_1 = L + \lambda\lVert w\rVert_1 \;\Rightarrow\; \partial_{w} = -\lambda\,\mathrm{sign}(w) \;(\text{constant})"></div>
+  <div class="tex" data-tex="\text{dropout: } \tilde{h} = h \odot m, \;\; m \sim \mathrm{Bernoulli}(p), \;\; \text{scale by } 1/p \text{ at train, off at test}"></div>
+  <b>what's used most:</b> L2 (weight decay) is the default almost everywhere; dropout is standard in
+  FFNs and attention; L1 is rarer, used when you actually want sparse weights.</div>
 </section>
 
 </main>
@@ -1555,12 +1617,12 @@ function createMatrixSim(root,opts){
   function apply(mode){
     document.body.classList.toggle('light',mode==='light');
     btn.textContent=mode==='light'?'☾ dark mode':'☀ light mode';
-    try{localStorage.setItem('backprop-lab-theme',mode);}catch(e){}
+    try{localStorage.setItem('model-lab-theme',mode);}catch(e){}
     document.querySelectorAll('canvas.spark').forEach(cv=>{
       const evt=new Event('redraw');cv.dispatchEvent(evt);});
   }
   let mode='dark';
-  try{mode=localStorage.getItem('backprop-lab-theme')||'dark';}catch(e){}
+  try{mode=localStorage.getItem('model-lab-theme')||'dark';}catch(e){}
   btn.onclick=()=>apply(document.body.classList.contains('light')?'dark':'light');
   apply(mode);
   window.__applyTheme=apply;
@@ -1747,55 +1809,72 @@ function buildSlide9(){
   return {play:()=>ST.play()};
 }
 
-/* ================= SLIDE 10: FFN black box ================= */
+/* ================= SLIDE 10: FFN deep-dive ================= */
 function buildSlide10(){
   const stage=document.getElementById('s10-stage');
   const cap=document.getElementById('s10-cap');
   const cnt=document.getElementById('s10-count');
-  const G=makeGraph(stage,{
-    nodes:[
-      {id:'h',x:70,y:140,label:'h (in)'},
-      {id:'y',x:640,y:140,label:'FFN(h) (out)'},
-      {id:'g',x:820,y:140,label:'g (from L)'},
-      {id:'W1',x:300,y:40,label:'W₁,b₁',trainable:true},
-      {id:'W2',x:520,y:40,label:'W₂,b₂',trainable:true},
-    ],
-    gates:[{id:'ffn',x:355,y:140,op:'ƒ'}],
-    edges:[['h','ffn'],['ffn','y'],['y','g'],['W1','ffn'],['W2','ffn']]
-  });
-  G.setVal('h','·');G.setVal('y','·');G.setVal('g','·');
-  G.setVal('W1','·');G.setVal('W2','·');
-  const ST=makeStepper();
-  function base(){
-    G.clearPackets();G.clearPulses();
-    ['h','y','g','W1','W2'].forEach(n=>{G.setVal(n,'·');G.setGrad(n,'');});
-    cap.innerHTML='';cnt.textContent=ST.count();
+  const R=rng(31);
+  const N=4, H=3;                     // input 4, hidden 3
+  const W1=Array.from({length:H},()=>Array.from({length:N},()=>+(R()*2-1).toFixed(2)));
+  const h=Array.from({length:N},()=>+(R()*2-1).toFixed(2));
+  const b1=Array.from({length:H},()=>+(R()*0.4-0.2).toFixed(2));
+  const pre=W1.map((row,j)=>row.reduce((s,w,i)=>s+w*h[i],b1[j]));
+  const hid=pre.map(v=>+(v>0?v*(1/(1+Math.exp(-v))):v*0.1).toFixed(2)); // gelu-ish
+  const g=Array.from({length:H},()=>+(R()*2-1).toFixed(2));
+  function matPanel(title,mat,sub){
+    const p=el('div','panel');
+    p.appendChild(el('div','ptitle',title));
+    const g2=el('div','grid');g2.style.gridTemplateColumns=`repeat(${mat[0].length},var(--cw))`;
+    mat.forEach(row=>row.forEach(v=>g2.appendChild(el('div','cell',fmt(v)))));
+    p.appendChild(g2);
+    if(sub)p.appendChild(el('div','psub',sub));
+    return p;
   }
+  function vecPanel(title,vals,sub){
+    const p=el('div','panel');
+    p.appendChild(el('div','ptitle',title));
+    const g2=el('div','grid');g2.style.gridTemplateColumns=`repeat(${vals.length},var(--cw))`;
+    vals.forEach(v=>g2.appendChild(el('div','cell',fmt(v))));
+    p.appendChild(g2);
+    if(sub)p.appendChild(el('div','psub',sub));
+    return p;
+  }
+  const ST=makeStepper();
+  function base(){stage.innerHTML='';cap.innerHTML='';cnt.textContent=ST.count();}
   base();
   ST.add(async()=>{
-    G.pulse('ffn');
-    await G.packet('h','ffn',{label:'h',cls:'fwd'});
-    await G.packet('ffn','y',{label:'FFN(h)',cls:'fwd'});
-    G.setVal('h','vec');G.setVal('y','vec');
-    cap.innerHTML='forward: each token vector passes through the same FFN — expand, nonlinearity, project back.';
+    stage.appendChild(vecPanel('h (in, '+N+')',h,'vector in'));
+    stage.appendChild(el('div','op','→'));
+    const w=matPanel('W₁ ('+H+'×'+N+')',W1,H+' equations, each a row');
+    stage.appendChild(w);
+    stage.appendChild(el('div','op','+'));
+    stage.appendChild(vecPanel('b₁',b1));
+    cap.innerHTML='the FFN is just matrix multiplication: W₁ has <b>'+H+' rows — '+H+' separate equations</b>, each one a dot product with the whole input vector.';
     cnt.textContent=ST.count();
   });
   ST.add(async()=>{
-    await G.packet('g','y',{label:'g'});
-    await G.packet('y','ffn',{label:'g'});
-    G.setVal('g','vec');
-    cap.innerHTML='backward: g arrives at the output of the black box.';
+    // highlight row 0 and show its equation
+    const wp=stage.querySelectorAll('.panel')[1];
+    const cells=wp.querySelectorAll('.cell');
+    for(let i=0;i<N;i++)cells[i].classList.add('hl');
+    stage.querySelectorAll('.panel')[0].querySelectorAll('.cell').forEach(c=>c.classList.add('hl'));
+    cap.innerHTML=`row 0: y₀ = φ( ${W1[0].map((w,i)=>`(${fmt(w)})(${fmt(h[i])})`).join(' + ')} + ${fmt(b1[0])} ) = φ(${fmt(pre[0])}) = <b>${fmt(hid[0])}</b> — <b>every input feature feeds this one output</b>.`;
     cnt.textContent=ST.count();
   });
   ST.add(async()=>{
-    const p1=G.packet('ffn','h',{label:'Jᵀ g'});
-    const p2=G.packet('ffn','W1',{label:'∂L/∂W₁'});
-    const p3=G.packet('ffn','W2',{label:'∂L/∂W₂'});
-    G.setGrad('h','∂L/∂h = Jᵀg');
-    G.setGrad('W1','∂L/∂W₁');G.setGrad('W2','∂L/∂W₂');
-    await Promise.all([p1,p2,p3]);
-    cap.innerHTML='the box hands <b>Jᵀg</b> to the input and weight-gradients to its own parameters — that is all backprop needs from any component.';
-    G.clearPulses();cnt.textContent=ST.count();
+    stage.appendChild(el('div','op','='));
+    stage.appendChild(vecPanel('hidden (φ)',hid,'vector out — wider, richer'));
+    cap.innerHTML='each row is a different equation with its own parameters, so each hidden unit captures a different mix of the input — <b>many equations, many features</b>. Then W₂ mixes them back down the same way.';
+    cnt.textContent=ST.count();
+  });
+  ST.add(async()=>{
+    // backward: show dW row and dh
+    const dw=matPanel('∂L/∂W₁',W1.map((row,j)=>row.map((w,i)=>+(g[j]*h[i]).toFixed(2))),'gⱼ · hᵢ — upstream × other input');
+    stage.appendChild(el('div','op','←'));
+    stage.appendChild(dw);
+    cap.innerHTML='backward is the same multiply rule from slide 1: ∂L/∂W[j,i] = gⱼ·hᵢ, and ∂L/∂hᵢ = Σⱼ gⱼ·W[j,i] — every weight listens to its own input and its own output error.';
+    cnt.textContent=ST.count();
   });
   document.getElementById('s10-next').onclick=()=>ST.next();
   document.getElementById('s10-replay').onclick=()=>{ST.reset();base();};
@@ -2078,6 +2157,150 @@ function buildSlide14(){
   return {play:()=>{}};
 }
 
+/* ================= SLIDE 15: residual networks ================= */
+function buildSlide15(){
+  const stage=document.getElementById('s15-stage');
+  const cap=document.getElementById('s15-cap');
+  const cnt=document.getElementById('s15-count');
+  const G=makeGraph(stage,{
+    nodes:[
+      {id:'x',x:70,y:150,label:'x'},
+      {id:'F',x:330,y:80,label:'F(x) — the block'},
+      {id:'add',x:590,y:150,label:'+'},
+      {id:'y',x:790,y:150,label:'y'},
+      {id:'g',x:920,y:150,label:'g (from L)'},
+    ],
+    gates:[],
+    edges:[['x','F'],['F','add'],['x','add'],['add','y'],['y','g']]
+  });
+  G.wrap.style.width='980px';
+  // draw the skip edge as a curved path underneath
+  const svg=G.wrap.querySelector('svg.edges');
+  const skip=document.createElementNS('http://www.w3.org/2000/svg','path');
+  skip.setAttribute('d','M 70 150 C 70 250, 590 250, 590 150');
+  skip.setAttribute('stroke','#3fb68b');skip.setAttribute('stroke-width','2');
+  skip.setAttribute('fill','none');skip.setAttribute('stroke-dasharray','5,4');
+  svg.appendChild(skip);
+  ['x','F','add','y','g'].forEach(n=>G.setVal(n,'·'));
+  const ST=makeStepper();
+  function base(){
+    G.clearPackets();G.clearPulses();
+    ['x','F','add','y','g'].forEach(n=>{G.setVal(n,'·');G.setGrad(n,'');});
+    cap.innerHTML='';cnt.textContent=ST.count();
+  }
+  base();
+  ST.add(async()=>{
+    G.pulse('x');G.pulse('F');
+    await G.packet('x','F',{label:'x',cls:'fwd'});
+    await G.packet('F','add',{label:'F(x)',cls:'fwd'});
+    cap.innerHTML='forward: the block transforms x into F(x)…';
+    cnt.textContent=ST.count();
+  });
+  ST.add(async()=>{
+    await G.packet('x','add',{label:'x',cls:'fwd',dur:700});
+    await G.packet('add','y',{label:'F(x)+x',cls:'fwd'});
+    G.setVal('y','vec');
+    cap.innerHTML='…and the skip connection adds x back: <b>y = F(x) + x</b>. The green dashed path is the skip.';
+    cnt.textContent=ST.count();
+  });
+  ST.add(async()=>{
+    await G.packet('g','y',{label:'g'});
+    await G.packet('y','add',{label:'g'});
+    G.setVal('g','vec');
+    cap.innerHTML='backward: g arrives at the add gate.';
+    cnt.textContent=ST.count();
+  });
+  ST.add(async()=>{
+    G.flash(G.nodes.add.x,G.nodes.add.y-32,'copy ×2');
+    const p1=G.packet('add','F',{label:'g'});
+    const p2=G.packet('add','x',{label:'g  (untouched!)',dur:700});
+    G.setGrad('F','∂L/∂F = g');
+    G.setGrad('x','∂L/∂x = g·J_F + g');
+    await Promise.all([p1,p2]);
+    cap.innerHTML='the add gate <b>photocopies</b> g: one copy goes through the block (scaled by its Jacobian), and one copy rides the skip path <b>untouched</b> — that "+g" is the residual highway.';
+    G.clearPulses();cnt.textContent=ST.count();
+  });
+  document.getElementById('s15-next').onclick=()=>ST.next();
+  document.getElementById('s15-replay').onclick=()=>{ST.reset();base();};
+  return {play:()=>ST.play()};
+}
+
+/* ================= SLIDE 16: regularization ================= */
+function buildSlide16(){
+  const pen=document.getElementById('s16-pen');
+  const ctx=pen.getContext('2d');
+  const cap=document.getElementById('s16-cap');
+  const wslider=document.getElementById('s16-w');
+  const wval=document.getElementById('s16-wval');
+  const status=document.getElementById('s16-status');
+  const dropstage=document.getElementById('s16-dropstage');
+  const LAM=0.5;
+  function penalties(w){
+    return { l2: LAM*Math.abs(w), l1: LAM };   // magnitude of the pull toward 0
+  }
+  function drawPen(){
+    const w=+wslider.value;
+    ctx.clearRect(0,0,pen.width,pen.height);
+    const light=document.body.classList.contains('light');
+    ctx.fillStyle=light?'#6b6659':'#8f8f8f';ctx.font='10px ui-monospace,monospace';
+    ctx.fillText('pull toward 0 (|gradient of penalty|) vs w',6,12);
+    const x0=40,x1=pen.width-16,y0=pen.height-30,ytop=20;
+    // axes
+    ctx.strokeStyle=light?'#d8d2c4':'#2b2b30';ctx.beginPath();
+    ctx.moveTo(x0,ytop);ctx.lineTo(x0,y0);ctx.lineTo(x1,y0);ctx.stroke();
+    const wx=v=>x0+(v+3)/6*(x1-x0), py=v=>y0-Math.min(1.6,v)/1.6*(y0-ytop);
+    // L2 curve: proportional
+    ctx.strokeStyle='#ff5c39';ctx.lineWidth=2;ctx.beginPath();
+    for(let px=x0;px<=x1;px++){
+      const wv=-3+(px-x0)/(x1-x0)*6;
+      const v=LAM*Math.abs(wv);
+      px===x0?ctx.moveTo(px,py(v)):ctx.lineTo(px,py(v));
+    }
+    ctx.stroke();
+    // L1 curve: constant
+    ctx.strokeStyle='#2f6fdb';ctx.beginPath();
+    ctx.moveTo(x0,py(LAM));ctx.lineTo(x1,py(LAM));ctx.stroke();
+    // current w marker
+    const {l2,l1}=penalties(w);
+    ctx.fillStyle='#ff5c39';ctx.beginPath();ctx.arc(wx(w),py(l2),5,0,7);ctx.fill();
+    ctx.fillStyle='#2f6fdb';ctx.beginPath();ctx.arc(wx(w),py(l1),5,0,7);ctx.fill();
+    ctx.fillStyle=light?'#1a1a1a':'#e8e6e3';ctx.font='11px ui-monospace,monospace';
+    ctx.fillText('L2 ∝ |w|',x1-70,py(LAM*2.4)-6);
+    ctx.fillText('L1 = const',x1-80,py(LAM)-8);
+    wval.textContent=w.toFixed(2);
+    cap.innerHTML=`at w = <b>${w.toFixed(2)}</b>: L2 pulls with force <b>${l2.toFixed(2)}</b> (proportional — big weights shrink hardest),
+      L1 pulls with a constant <b>${l1.toFixed(2)}</b> — so L1 keeps pushing even tiny weights all the way to 0 (sparsity), L2 lets them linger.`;
+  }
+  wslider.oninput=drawPen;
+  // dropout widget
+  const units=Array.from({length:8},(_,i)=>i);
+  function drawDrop(mask){
+    dropstage.innerHTML='';
+    const p=el('div','panel');
+    p.appendChild(el('div','ptitle','dropout on a hidden layer'));
+    const g=el('div','grid');g.style.gridTemplateColumns='repeat(8,var(--cw))';
+    units.forEach(i=>{
+      const on=!mask||mask[i];
+      const c=el('div','cell',on?'h'+(i+1):'0');
+      if(!on){c.style.opacity='0.3';c.style.textDecoration='line-through';}
+      g.appendChild(c);
+    });
+    p.appendChild(g);
+    p.appendChild(el('div','psub',mask?'some units silenced this step (scaled 1/p)':'all units active (test time)'));
+    dropstage.appendChild(p);
+  }
+  drawDrop(null);
+  document.getElementById('s16-drop').onclick=()=>{
+    const mask=units.map(()=>Math.random()<0.7);   // keep prob 0.7
+    drawDrop(mask);
+    const dropped=units.filter((_,i)=>!mask[i]).length;
+    status.textContent=`dropped ${dropped}/8 units — survivors scaled ×${(1/0.7).toFixed(2)}`;
+    cap.innerHTML+='<br>dropout: each training step randomly zeroes units, so the network can\'t rely on any single one — it must spread the answer across many. At test time all units stay on.';
+  };
+  drawPen();
+  return {play:()=>{}};
+}
+
 /* ================= boot ================= */
 function boot(){
   document.querySelectorAll('.tex[data-tex]').forEach(e=>{
@@ -2097,17 +2320,19 @@ function boot(){
   const s12=buildSlide12();
   const s13=buildSlide13();
   const s14=buildSlide14();
+  const s15=buildSlide15();
+  const s16=buildSlide16();
   const l2=createScriptedLesson(document.getElementById('l2'),buildVectorLesson);
   const sim3=createMatrixSim(document.getElementById('l3'),{allowLora:false});
   const sim4=createMatrixSim(document.getElementById('l4'),{allowLora:true});
-  window.__lessons={s2,s3,ssub,s4,s5,s6,s7,s8,s9,s10,s11,s12,s13,s14,l2,sim3,sim4};
+  window.__lessons={s2,s3,ssub,s4,s5,s6,s7,s8,s9,s10,s11,s12,s13,s14,s15,s16,l2,sim3,sim4};
 
-  const players=[s2.play,s3.play,ssub.play,s4.play,()=>{},()=>{},s7.play,s8.play,s9.play,s10.play,s11.play,s12.play,s13.play,s14.play];
-  const stoppers=[()=>{},()=>{},()=>{},()=>{},()=>l2.stopPlay(),()=>sim3.stopPlay(),()=>sim4.stopPlay(),()=>{},()=>{},()=>{},()=>{},()=>{},()=>{},()=>{}];
+  const players=[s2.play,s3.play,ssub.play,s4.play,()=>{},()=>{},s7.play,s8.play,s9.play,s10.play,s11.play,s12.play,s13.play,s14.play,s15.play,s16.play];
+  const stoppers=[()=>{},()=>{},()=>{},()=>{},()=>l2.stopPlay(),()=>sim3.stopPlay(),()=>sim4.stopPlay(),()=>{},()=>{},()=>{},()=>{},()=>{},()=>{},()=>{},()=>{},()=>{}];
   let cur=0;
-  const played=new Array(14).fill(false);
+  const played=new Array(16).fill(false);
   function show(i){
-    cur=Math.max(0,Math.min(13,i));
+    cur=Math.max(0,Math.min(15,i));
     document.querySelectorAll('.slide').forEach((s,k)=>s.classList.toggle('active',k===cur));
     document.querySelectorAll('#sidebar button').forEach((b,k)=>b.classList.toggle('on',k===cur));
     stoppers.forEach(f=>f());
@@ -2128,7 +2353,7 @@ function boot(){
       else sim4.step();}
   });
   const h=parseInt((location.hash||'').slice(1),10);
-  if(h>=1&&h<=14)show(h-1);
+  if(h>=1&&h<=16)show(h-1);
 }
 document.addEventListener('DOMContentLoaded',boot);
 </script>
