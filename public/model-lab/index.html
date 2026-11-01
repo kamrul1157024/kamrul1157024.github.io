@@ -4094,24 +4094,24 @@ function buildN3(){
       ctx.fillStyle=c.mut;ctx.font='10px ui-monospace,monospace';
       ctx.fillText('u = h·W + b',x+xw/2,top+28);
       ctx.fillText('h = tanh(u)',x+xw/2,top+42);
-      // input h distribution
-      const y0=top+52,h0=(bh-118)/4;
-      hist(S.acts[l===0?0:l-1]||S.acts[0],-1,1,40,hexA(c.blue,0.8),x+8,y0,xw-16,h0,g);
-      ctx.fillStyle=c.mut;ctx.textAlign='left';ctx.fillText('h in',x+8,y0+h0+10);
-      // u distribution
-      const y1=y0+h0+14;
+      // four rows: label, histogram, axis labels
+      const rowH=(bh-52-34)/4,h0=rowH-30;
+      const row=(y,label,labCol,a,lo,hi,col)=>{
+        ctx.fillStyle=labCol;ctx.textAlign='left';ctx.font='10px ui-monospace,monospace';ctx.fillText(label,x+8,y+9);
+        hist(a,lo,hi,44,col,x+8,y+12,xw-16,h0,g);
+        ctx.strokeStyle=c.line;ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(x+8,y+12+h0+0.5);ctx.lineTo(x+8+xw-16,y+12+h0+0.5);ctx.stroke();
+        ctx.fillStyle=c.mut;ctx.font='9.5px ui-monospace,monospace';
+        ctx.textAlign='left';ctx.fillText(sh(lo),x+8,y+12+h0+11);
+        ctx.textAlign='center';ctx.fillText('0',x+8+(xw-16)/2,y+12+h0+11);
+        ctx.textAlign='right';ctx.fillText('+'+sh(hi),x+8+xw-16,y+12+h0+11);
+        ctx.textAlign='left';ctx.font='10px ui-monospace,monospace';};
+      const y0=top+52;
+      row(y0,'h in \u2014 received',c.blue,S.acts[l===0?0:l-1]||S.acts[0],-1,1,hexA(c.blue,0.8));
       const ab=Array.from(S.us[l],Math.abs).sort((a,b)=>a-b);let R=ab[Math.floor(0.98*(ab.length-1))]*1.15;if(!(R>0))R=rmsU(l)*3||1e-12;
-      hist(S.us[l],-R,R,40,hexA(c.acc,0.8),x+8,y1,xw-16,h0,g);
-      ctx.fillStyle=c.mut;ctx.fillText('u',x+8,y1+h0+10);
-      // output h distribution
-      const y2=y1+h0+14;
-      hist(S.acts[l],-1,1,40,hexA(c.blue,0.8),x+8,y2,xw-16,h0,g);
-      ctx.fillStyle=c.mut;ctx.fillText('h out',x+8,y2+h0+10);
-      // gradient distribution
-      const y3=y2+h0+14;
+      row(y0+rowH,'u = h\u00b7W + b',c.acc,S.us[l],-R,R,hexA(c.acc,0.8));
+      row(y0+2*rowH,'h out = tanh(u)',c.blue,S.acts[l],-1,1,hexA(c.blue,0.8));
       const ab2=Array.from(S.du[l],Math.abs).sort((a,b)=>a-b);let R2=ab2[Math.floor(0.98*(ab2.length-1))]*1.15;if(!(R2>0))R2=rmsD(l)*3||1e-12;
-      hist(S.du[l],-R2,R2,40,hexA(c.red,0.8),x+8,y3,xw-16,h0,g);
-      ctx.fillStyle=c.mut;ctx.fillText('∂L/∂u',x+8,y3+h0+10);
+      row(y0+3*rowH,'\u2202L/\u2202u \u2014 gradient',c.red,S.du[l],-R2,R2,hexA(c.red,0.8));
       // ruler
       ruler(x+8,top+bh-2,xw-16,[rmsU(0),rmsU(9),rmsU(19),rmsU(29)],j);
       // stats
@@ -4144,7 +4144,7 @@ function buildN3(){
       const last=r.hist[r.hist.length-1];ctx.fillStyle=col;ctx.fillText(`${NORMS[n].padEnd(9)} init ${g.padEnd(3)} ${r.done?last.toFixed(3):'training…'}`,rect.x+rect.w+16,ly+8);
       ctx.strokeStyle=col;ctx.setLineDash(g==='0.5'?[]:g==='2.5'?[7,4]:[2,3]);ctx.beginPath();ctx.moveTo(rect.x+rect.w+16,ly+14);ctx.lineTo(rect.x+rect.w+60,ly+14);ctx.stroke();ctx.setLineDash([]);ly+=30;});
     const busyN=keys.filter(k=>RUNS[k]&&!RUNS[k].done).length;status.textContent=busyN?`training ${busyN} network${busyN>1?'s':''} in your browser…`:'';
-    P.c.st.innerHTML='solid = small init, dashed = large init · <span style="color:var(--red)">red: no normalization</span> · <span style="color:var(--ok)">green: LayerNorm</span> · <span style="color:var(--blue)">blue: BatchNorm</span>';}
+    P.c.st.innerHTML='<b>how to read:</b> x-axis = training step, y-axis = loss on 256 held-out inputs (log scale, lower = better). Flat at 0.203 = the network learned nothing (it just predicts the average). · solid = small init, dashed = large init · <span style="color:var(--red)">red: no normalization</span> · <span style="color:var(--ok)">green: LayerNorm</span> · <span style="color:var(--blue)">blue: BatchNorm</span>';}
   function render(S){shownS=S;if(!user)cur={...PRE[S]};markG(cur.g);markN(cur.n);build();const k=cur.g+'|'+cur.n;
     drawChain(k,1,S>=1||user?4:0);
     if(S>=2||user)drawGrad(k);else{cctx(P.g.cv);P.g.st.innerHTML='';}
