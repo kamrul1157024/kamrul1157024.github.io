@@ -419,6 +419,17 @@ body.light .vbox.cur{background:rgba(214,60,20,.1)}
 .vlegend{font-size:10.5px;color:var(--mut);margin-top:10px;line-height:1.5}
 @media (max-width:1100px){.blkwrap{flex-direction:column}.blkpipe{position:static;max-height:none;flex-basis:auto;width:100%}}
 #s13 .cell{font-size:10.5px;white-space:nowrap}
+/* ---- two layers deep (m2) ---- */
+#m2 .cell{font-size:11px;white-space:nowrap}
+#m2 .cell.brow{border-top:2px dashed var(--acc)}
+#m2 .blkmain .op{font-size:15px}
+.mlpnet svg{display:block;margin:0 auto}
+.mlprow{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:11px;color:var(--mut);margin:8px 0 0 2px}
+.mlprow .seg button{padding:3px 9px;font-size:11px}
+.ftab{border-collapse:collapse;font-size:12.5px;margin:10px 0 4px}
+.ftab th,.ftab td{border:1px solid var(--line);padding:5px 10px;text-align:left}
+.ftab th{color:var(--mut);font-weight:400}
+.ftab td.n{text-align:right;font-variant-numeric:tabular-nums}
 #s13 .narrow .cell{font-size:9.5px;letter-spacing:-.2px}
 #s13 .blkmain .dlane{padding-left:10px;padding-right:10px}
 #s13 .blkmain .lane{gap:7px}
@@ -481,7 +492,7 @@ footer{margin-top:26px;color:var(--mut);font-size:12px;border-top:1px solid var(
   <div class="tex" data-tex="y = s + b \qquad \frac{\partial y}{\partial s} = 1 \qquad \frac{\partial y}{\partial b} = 1"></div>
   <div class="tex" data-tex="\frac{\partial L}{\partial s} = g \qquad \frac{\partial L}{\partial b} = g"></div>
   and the mirror image: when one value feeds N different places, its total gradient is the
-  <b>sum</b> of all N copies coming back. Distribution forward, summation backward. (Slide 7 uses this.)</div>
+  <b>sum</b> of all N copies coming back. Distribution forward, summation backward. (Slide <span class="sref" data-s="s7"></span> uses this.)</div>
   <button class="nextlesson" data-go="2">Next: subtract &amp; square ▸</button>
 </section>
 
@@ -594,14 +605,13 @@ footer{margin-top:26px;color:var(--mut);font-size:12px;border-top:1px solid var(
   <button class="nextlesson" data-go="6">Next: bias &amp; LoRA ▸</button>
 </section>
 
-<!-- ============ SLIDE 7: bias & LoRA ============ -->
+<!-- ============ SLIDE 7: the bias ============ -->
 <section class="slide" id="s7">
   <div class="kick">Slide 7</div>
-  <h2>Distribution in reverse — and LoRA</h2>
+  <h2>Distribution in reverse: the bias</h2>
   <p class="prose">The bias b is added to <b>all 8 rows</b> of Y. Slide 2 said a value used in N
-  places collects N gradient copies that <b>sum</b> — so ∂L/∂b = Σ_b G. Step through the copies
-  converging into one. Then the same chain with a constraint: LoRA freezes W and learns a rank-r
-  update A·B instead.</p>
+  places collects N gradient copies that <b>sum</b>, so &part;L/&part;b = &Sigma;<sub>rows</sub> G. Step through the copies
+  converging into one. The next slide uses this rule in every layer.</p>
   <div class="controls">
     <button class="primary" id="s7-next">Next step ▸</button>
     <button id="s7-play">▶ Play all</button>
@@ -611,14 +621,39 @@ footer{margin-top:26px;color:var(--mut);font-size:12px;border-top:1px solid var(
   <div class="gwrap small" id="s7-graph" style="width:660px"></div>
   <div class="fbar" id="s7-formula"></div>
   <div class="fcaption" id="s7-cap"></div>
-  <div id="l4"></div>
-  <div class="rulebox"><b>WHY LORA WORKS</b>
-  <div class="tex" data-tex="\text{full: } W \leftarrow W - \eta\, X^{\top}G \qquad \text{lora: } A \leftarrow A - \eta\, (X^{\top}G) B^{\top}, \;\; B \leftarrow B - \eta\, A^{\top} (X^{\top}G)"></div>
-  <div class="tex" data-tex="\Delta W = A B, \quad \mathrm{rank}(\Delta W) \le r"></div>
-  The price: if the needed update isn't low-rank, LoRA plateaus where full fine-tuning would keep going.
-  The payoff: a fraction of the parameters, one frozen base model, many swappable adapters.</div>
+  <div class="rulebox"><b>THE BIAS RULE</b>
+  <div class="tex" data-tex="Y = XW + \mathbf{1}\,b \qquad \frac{\partial L}{\partial b} = \mathbf{1}^{\top} G = \sum_{\text{rows}} G"></div>
+  The bias is one row vector copied to every row of the batch (the column of ones does the copying). Backward, the
+  copies come back and add: the add rule from slide 2, once per row.</div>
 </section>
 
+<!-- ============ MATRICES 4: two layers deep ============ -->
+<section class="slide" id="m2">
+  <div class="kick">Slide</div>
+  <h2>Two layers deep: the same rules, chained</h2>
+  <p class="prose">Stack two layers with a tanh between them: <span class="tex-i" data-tex="H_1 = \tanh(XW_1 + b_1)"></span>,
+  then <span class="tex-i" data-tex="Y = H_1W_2 + b_2"></span>. Forward, each layer is the batch product from
+  slide <span class="sref" data-s="s6"></span>. Backward, each layer runs the same rules in reverse: its weights get
+  <span class="tex-i" data-tex="\text{input}^{\top}\times\text{upstream}"></span>, its bias gets the row sum, and its input gets
+  <span class="tex-i" data-tex="\text{upstream}\times W^{\top}"></span>, which becomes the upstream gradient of the layer below.
+  The task is XOR, which one layer cannot learn. The diagram on the left follows one example row through the network;
+  click a layer to jump to it, or switch to 3 layers to see the same pattern repeat.</p>
+  <div class="dbar"><div class="stepbar" id="m2-bar"></div><div class="scap" id="m2-cap"></div></div>
+  <div class="controls" style="margin-top:12px"><label class="ctl">depth</label><div class="seg" id="m2-depth"></div><span class="status">changing it resets the weights</span></div>
+  <div class="blkwrap"><div id="m2-net" class="blkpipe mlpnet"></div><div class="blkmain"><div id="m2-stage"></div></div></div>
+  <div class="dpanels" style="align-items:flex-start;margin-top:16px">
+    <div id="m2-loss"></div>
+    <div><div class="controls" id="m2-train"></div><div id="m2-pred"></div>
+      <div class="nstat" style="margin-top:6px">each update runs forward → backward → update on all 4 rows; the dashed gray curve is a single layer
+      (<span class="tex-i" data-tex="Y = XW + b"></span>) trained alongside on the same data, with the same learning rate</div></div>
+  </div>
+  <div class="rulebox"><b>ANY NUMBER OF LAYERS</b>
+  <div class="tex" data-tex="\text{forward: } U_\ell = H_{\ell-1}W_\ell + b_\ell,\quad H_\ell = \tanh(U_\ell),\quad H_0 = X"></div>
+  <div class="tex" data-tex="\text{backward, last layer down to 1:}\quad \frac{\partial L}{\partial W_\ell} = H_{\ell-1}^{\top}\,\frac{\partial L}{\partial U_\ell}\qquad \frac{\partial L}{\partial b_\ell} = \sum_{\text{rows}}\frac{\partial L}{\partial U_\ell}\qquad \frac{\partial L}{\partial U_{\ell-1}} = \Big(\frac{\partial L}{\partial U_\ell}\,W_\ell^{\top}\Big)\odot\big(1 - H_{\ell-1}^{2}\big)"></div>
+  The same three lines for every layer, from the loss back to the input; a deeper network adds no new rule. The tanh
+  is what makes depth worth it: without it <span class="tex-i" data-tex="(XW_1)W_2 = X(W_1W_2)"></span> is just one
+  matrix, and two layers could learn nothing that one layer cannot.</div>
+</section>
 
 <!-- ============ SLIDE 8: sampling & batching ============ -->
 <section class="slide" id="s8">
@@ -864,7 +899,7 @@ footer{margin-top:26px;color:var(--mut);font-size:12px;border-top:1px solid var(
   <h2>The full block: every matrix, every number, forward and backward</h2>
   <p class="prose">One real transformer block, small enough to show every number: 4 features per token, an 8-wide
   FFN and a 6-word vocabulary, <b>212 trainable numbers</b> (224 with a learned position table). It reads “the cat
-  sat” and predicts the next word at each position (cat, sat, on). Choose how positions enter (slides 33–37),
+  sat” and predicts the next word at each position (cat, sat, on). Choose how positions enter (slides <span class="sref" data-s="pe1"></span>–<span class="sref" data-s="pe5"></span>),
   then step through 11 forward stages, 13 backward stages and the update. The block diagram on the left shows where
   you are; click any block to jump to it. Every gradient matches a finite-difference check.</p>
   <div class="dbar"><div class="stepbar" id="s13-bar"></div><div class="scap" id="s13-cap"></div></div>
@@ -885,6 +920,33 @@ footer{margin-top:26px;color:var(--mut);font-size:12px;border-top:1px solid var(
 </section>
 
 
+
+<!-- ============ FINE-TUNING 1: LoRA ============ -->
+<section class="slide" id="ft1">
+  <div class="kick">Slide</div>
+  <h2>Fine-tuning with LoRA: freeze W, learn a small update</h2>
+  <p class="prose">A trained LLM is a stack of matrices. In the block from slide <span class="sref" data-s="s13"></span>,
+  <span class="tex-i" data-tex="W_Q, W_K, W_V, W_O, W_1, W_2"></span> and <span class="tex-i" data-tex="U"></span> are all layers
+  <span class="tex-i" data-tex="y = xW"></span> (slide <span class="sref" data-s="m1"></span>). Fine-tuning moves those matrices
+  toward a new task. <b>Full fine-tuning</b> updates every entry. <b>LoRA</b> (Hu et al., 2021) freezes
+  <span class="tex-i" data-tex="W"></span> and learns a low-rank update <span class="tex-i" data-tex="\Delta W = AB"></span>,
+  with <span class="tex-i" data-tex="A"></span> of shape <span class="tex-i" data-tex="d{\times}r"></span>,
+  <span class="tex-i" data-tex="B"></span> of shape <span class="tex-i" data-tex="r{\times}k"></span> and a small rank
+  <span class="tex-i" data-tex="r"></span>. The backward pass is the same multiply rule: the full-matrix gradient
+  <span class="tex-i" data-tex="X^{\top}G"></span> goes through <span class="tex-i" data-tex="B^{\top}"></span> to A and through
+  <span class="tex-i" data-tex="A^{\top}"></span> to B. Below, one “pretrained” matrix is fine-tuned both ways.</p>
+  <div id="l4"></div>
+  <div class="rulebox"><b>WHY LORA WORKS</b>
+  <div class="tex" data-tex="\text{full: } W \leftarrow W - \eta\, X^{\top}G \qquad \text{LoRA: } A \leftarrow A - \eta\, (X^{\top}G) B^{\top}, \;\; B \leftarrow B - \eta\, A^{\top} (X^{\top}G)"></div>
+  <div class="tex" data-tex="y = x\,(W + AB), \quad W \text{ frozen}, \quad \mathrm{rank}(AB) \le r"></div>
+  <table class="ftab"><tr><th>model</th><th>matrices adapted</th><th>full fine-tune trains</th><th>LoRA trains</th></tr>
+  <tr><td>this slide</td><td>W (4×3), rank 1</td><td class="n">12 (+3 bias)</td><td class="n">7 (A 4×1, B 1×3) (+3 bias)</td></tr>
+  <tr><td>the mini-LLM block, slide <span class="sref" data-s="s13"></span></td><td>W<sub>Q</sub>, W<sub>V</sub> (4×4 each), rank 1</td><td class="n">212</td><td class="n">16 (2 × (4 + 4))</td></tr>
+  <tr><td>a 7B LLaMA-sized model (d = 4096, 32 layers)</td><td>W<sub>q</sub>, W<sub>v</sub> in every layer, rank 8</td><td class="n">≈ 6.7 billion</td><td class="n">4.2 million (0.06%)</td></tr></table>
+  The price: if the update the task needs is not low-rank, LoRA plateaus where full fine-tuning would keep going.
+  The payoff: a tiny fraction of the numbers, one frozen base model, and many small swappable adapters. The 7B row:
+  2 × 4096 × 8 = 65,536 per matrix, × 2 matrices × 32 layers = 4,194,304.</div>
+</section>
 
 <!-- ============ SLIDE 14: KV cache & GQA ============ -->
 <section class="slide" id="s14">
@@ -1826,7 +1888,7 @@ function buildSlide6(){
   return {play:()=>{}};
 }
 
-/* ================= SLIDE 7: bias sum + LoRA ================= */
+/* ================= SLIDE 7: the bias, copies sum ================= */
 function buildSlide7(){
   const spec={
     small:true,width:'660',
@@ -1869,10 +1931,10 @@ function buildSlide7(){
   document.getElementById('s7-play').onclick=()=>ST.play();
   document.getElementById('s7-replay').onclick=()=>{G.clearPackets();G.clearPulses();
     G.setVal('b','·');G.setGrad('b','');ST.reset();base();};
-  return {play:()=>ST.play()};
+  return {play:()=>ST.play(),next:()=>ST.next()};
 }
 
-/* ================= matrix sim factory (slides 6 & 7) ================= */
+/* ================= matrix sim factory (the batch slide and the LoRA slide) ================= */
 function createMatrixSim(root,opts){
   const o=Object.assign({B:8,N:4,M:3,r0:1,lr0:0.5,allowLora:false,seed:7},opts);
   const S={B:o.B,N:o.N,M:o.M,r:o.r0,lr:o.lr0,mode:'full',seed:o.seed,
@@ -2661,7 +2723,7 @@ function buildSlide13(){
      const add=P.mode==='sin'||P.mode==='learned';
      const Xe=MP(add?'E[\\text{token}]':'X = E[\\text{token}]',C.Xe,{rl:TOKL,cl:dl(4),cls:'newv',blank:b});
      l.append(tk,kop('\\xrightarrow{\\text{look up row}}'),E,kop('\\to'),Xe);const outs=[Xe],hot=[...E.cells[1],...Xe.cells[1]];
-     if(add){const sn=P.mode==='sin';const l2=L('fwd',sn?'add the sinusoidal position vectors':'add the learned position vectors',sn?'fixed numbers (slide 34): pair 1 turns 1 rad per position, pair 2 only 0.01':'a trainable table, one row per position (slide 37)');
+     if(add){const sn=P.mode==='sin';const l2=L('fwd',sn?'add the sinusoidal position vectors':'add the learned position vectors',sn?'fixed numbers (slide '+SN('pe2')+'): pair 1 turns 1 rad per position, pair 2 only 0.01':'a trainable table, one row per position (slide '+SN('pe5')+')');
        const xe=MP('E[\\text{token}]',C.Xe,{rl:TOKL,cl:dl(4)}),pe=MP(sn?'\\mathrm{PE}\\;(\\text{fixed})':'P\\;(3{\\times}4)',C.PE,{rl:POSL,cl:dl(4),sub:sn?'sin, cos, sin, cos':'trainable'});
        const X=MP('X',C.X,{rl:TOKL,cl:dl(4),cls:'newv',blank:b});l2.append(xe,kop('+'),pe,kop('='),X);outs.push(X);hot.push(...pe.cells[1],...X.cells[1]);}
      return {outs,hot};},
@@ -2669,7 +2731,7 @@ function buildSlide13(){
      if(P.mode==='sin')return base+` Then the fixed position vector is added. \u201ccat\u201d sits at ${kx('t = 1')}: ${kx(`\\mathrm{PE}_1 = [\\sin 1,\\ \\cos 1,\\ \\sin 0.01,\\ \\cos 0.01] = [${C.PE[1].map(fmt).join(',\\,')}]`)}, so ${kx(`X_{\\text{cat}} = [${C.X[1].map(fmt).join(',\\,')}]`)}.`;
      if(P.mode==='learned')return base+` Then row ${kx('t = 1')} of the trainable position table is added: ${kx(`X_{\\text{cat}} = E_1 + P_1 = [${C.X[1].map(fmt).join(',\\,')}]`)}.`;
      if(P.mode==='rope')return base+` With <b>RoPE</b> nothing is added here: positions are applied inside attention, by rotating each query and key (stage 3).`;
-     return base+` <b>No positions:</b> attention will not know the word order (slide 33).`;}},
+     return base+` <b>No positions:</b> attention will not know the word order (slide ${SN('pe1')}).`;}},
   {ph:'f',box:['ln1'],tex:'\\hat x = \\frac{x-\\mu}{\\sigma},\\quad A_1 = \\gamma_1\\odot\\hat x + \\beta_1 \\quad(\\text{per row})',
    lanes(b){return lnLane(L('fwd','LayerNorm 1','normalize each token\u2019s 4 numbers, then scale and shift'),C.X,C.ln1,P.g1,P.b1n,C.A1,{x:'X',a:'A_1',g:'\\gamma_1',b:'\\beta_1',gb:'\\gamma_1,\\ \\beta_1'},b);},
    cap:()=>{const c=C.ln1;return `<b>LayerNorm 1</b>, one row at a time. \u201ccat\u201d: ${kx(`\\mu = ${fmt(c.mu[1])},\\ \\sigma = ${fmt(c.sd[1])}`)}, so ${kx(`\\hat x_1 = (${fmt(C.X[1][0])} - ${fmt(c.mu[1])})/${fmt(c.sd[1])} = ${fmt(c.xh[1][0])}`)} and ${kx(`a_1 = (${fmt(P.g1[0])})(${fmt(c.xh[1][0])}) + ${fmt(P.b1n[0])} = ${fmt(C.A1[1][0])}`)}.${updates?'':' At the start \u03b3 = 1 and \u03b2 = 0, so A\u2081 = x\u0302; training will move them.'}`;}},
@@ -2701,7 +2763,7 @@ function buildSlide13(){
    lanes(b){const l=L('fwd','residual add','the original embedding passes straight through; attention adds a correction');
      const x=MP('X',C.X,{rl:TOKL,cl:dl(4)}),oa=MP('O\\,W_O',C.Oa,{cl:dl(4)}),h=MP('H_1',C.H1,{rl:TOKL,cl:dl(4),cls:'newv',blank:b});
      l.append(x,kop('+'),oa,kop('='),h);return {outs:[h],hot:[x.cells[1][0],oa.cells[1][0],h.cells[1][0]]};},
-   cap:()=>`<b>Residual add</b>, entry by entry: \u201ccat\u201d, feature 1: ${kx(`${fmt(C.X[1][0])} + ${fmt(C.Oa[1][0])} = ${fmt(C.H1[1][0])}`)}. Backward, this + gate will copy the gradient to both inputs (slide 23).`},
+   cap:()=>`<b>Residual add</b>, entry by entry: \u201ccat\u201d, feature 1: ${kx(`${fmt(C.X[1][0])} + ${fmt(C.Oa[1][0])} = ${fmt(C.H1[1][0])}`)}. Backward, this + gate will copy the gradient to both inputs (slide ${SN('s15')}).`},
   {ph:'f',box:['ln2'],tex:'A_2 = \\gamma_2\\odot\\frac{H_1-\\mu}{\\sigma} + \\beta_2',
    lanes(b){return lnLane(L('fwd','LayerNorm 2','same recipe, its own \u03b3\u2082 and \u03b2\u2082'),C.H1,C.ln2,P.g2,P.b2n,C.A2,{x:'H_1',a:'A_2',g:'\\gamma_2',b:'\\beta_2',gb:'\\gamma_2,\\ \\beta_2'},b);},
    cap:()=>{const c=C.ln2;return `<b>LayerNorm 2.</b> \u201ccat\u201d: ${kx(`\\mu = ${fmt(c.mu[1])},\\ \\sigma = ${fmt(c.sd[1])}`)}, ${kx(`\\hat x_1 = (${fmt(C.H1[1][0])} - ${fmt(c.mu[1])})/${fmt(c.sd[1])} = ${fmt(c.xh[1][0])}`)}. Every row comes out with mean 0 and spread 1 before the FFN sees it.`;}},
@@ -2744,10 +2806,10 @@ function buildSlide13(){
    lanes(b){const r1=dWlane('gradient of U',C.A3,G.dLg,G.U,{x:'A_3',y:'\\,\\text{logits}',w:'U'},b,{rl:dl(4),cl:VL,wrl:dl(4)});
      const r2=dXlane('gradient into A\u2083',G.dLg,P.U,G.dA3,{y:'\\,\\text{logits}',w:'U',x:'A_3'},b,{cl:VL,wcl:dl(4),xcl:dl(4)});
      return {outs:[r1.w,r2.x],hot:[...r1.a.cells[0],...col(r1.g.cells,3),r1.w.cells[0][3]]};},
-   cap:()=>`<b>Through the unembedding</b>, the matrix multiply rule from slide 10: input\u1d40 \u00d7 upstream for the weights, upstream \u00d7 weights\u1d40 for the input. One entry: ${kx(`\\partial L/\\partial U_{1,\\text{on}} = ${dotT(col(C.A3,0),col(G.dLg,3),fmt,tg)} = ${tg(G.U[0][3])}`)}.`},
+   cap:()=>`<b>Through the unembedding</b>, the matrix multiply rule from slide ${SN('s6')}: input\u1d40 \u00d7 upstream for the weights, upstream \u00d7 weights\u1d40 for the input. One entry: ${kx(`\\partial L/\\partial U_{1,\\text{on}} = ${dotT(col(C.A3,0),col(G.dLg,3),fmt,tg)} = ${tg(G.U[0][3])}`)}.`},
   {ph:'b',box:['lnf'],tex:'\\frac{\\partial L}{\\partial\\gamma_f} = \\sum_t g\\odot\\hat x,\\quad \\frac{\\partial L}{\\partial\\beta_f} = \\sum_t g,\\quad \\frac{\\partial L}{\\partial H_2} = \\frac{1}{\\sigma}\\big(d - \\bar d - \\hat x\\,\\overline{d\\odot\\hat x}\\big),\\ d = \\gamma_f\\odot g',
    lanes(b){return lnBack(G.dA3,C.lnf,P.gf,G.gf,G.bfn,G.dH2,{name:'final LayerNorm',a:'A_3',x:'H_2',g:'\\gamma_f',b:'\\beta_f'},b);},
-   cap:()=>{const s=G.dH2[1].reduce((a,c)=>a+c,0);return `<b>Back through the final LayerNorm</b> (slide 29). \u03b3 and \u03b2 get their gradients summed over the 3 positions; the input gets the projected gradient. Each row of ${kx('\\partial L/\\partial H_2')} sums to zero (row \u201ccat\u201d: ${kx(Math.abs(s)<1e-9?'\\approx 0':tg(s))}): LayerNorm ignores any change that only shifts a whole row.`;}},
+   cap:()=>{const s=G.dH2[1].reduce((a,c)=>a+c,0);return `<b>Back through the final LayerNorm</b> (slide ${SN('s12')}). \u03b3 and \u03b2 get their gradients summed over the 3 positions; the input gets the projected gradient. Each row of ${kx('\\partial L/\\partial H_2')} sums to zero (row \u201ccat\u201d: ${kx(Math.abs(s)<1e-9?'\\approx 0':tg(s))}): LayerNorm ignores any change that only shifts a whole row.`;}},
   {ph:'b',box:['r2','f2'],tex:'\\frac{\\partial L}{\\partial F} = \\frac{\\partial L}{\\partial H_2}\\ (\\text{copy}),\\quad \\frac{\\partial L}{\\partial W_2} = G^{\\top}\\frac{\\partial L}{\\partial F},\\quad \\frac{\\partial L}{\\partial b_2} = \\sum_t \\frac{\\partial L}{\\partial F},\\quad \\frac{\\partial L}{\\partial G} = \\frac{\\partial L}{\\partial F}W_2^{\\top}',
    lanes(b){const l=L('bwd','residual 2 copies the gradient','one copy into the FFN, one straight down the skip path to H\u2081');
      const d=MP('\\partial L/\\partial H_2',G.dH2,{rl:TOKL,cl:dl(4),cls:'gv',f:fg}),f=MP('\\partial L/\\partial F',G.dFo,{cl:dl(4),cls:'gv',f:fg,blank:b}),s=MP('\\text{skip copy to } H_1',G.dH2,{cl:dl(4),cls:'gv',f:fg,blank:b});
@@ -2769,7 +2831,7 @@ function buildSlide13(){
      const l=L('bwd','merge the two paths','the skip copy and the FFN path add up (add rule in reverse)');
      const s=MP('\\text{skip: }\\partial L/\\partial H_2',G.dH2,{rl:TOKL,cl:dl(4),cls:'gv',f:fg}),f=MP('\\text{via FFN}',G.dH1ln,{cl:dl(4),cls:'gv',f:fg}),h=MP('\\partial L/\\partial H_1',G.dH1,{rl:TOKL,cl:dl(4),cls:'gv',f:fg,blank:b});
      l.append(s,kop('+'),f,kop('='),h);return {outs:[...r.outs,h],hot:[s.cells[1][0],f.cells[1][0],h.cells[1][0]]};},
-   cap:()=>`<b>LayerNorm 2, then merge.</b> The gradient that went through the FFN comes back out of LN 2 and is <b>added</b> to the copy that took the skip path: \u201ccat\u201d, feature 1: ${kx(`${tg(G.dH2[1][0])} + ${tg(G.dH1ln[1][0])} = ${tg(G.dH1[1][0])}`)}. The skip copy arrives untouched, which is why deep stacks still get a gradient (slide 23).`},
+   cap:()=>`<b>LayerNorm 2, then merge.</b> The gradient that went through the FFN comes back out of LN 2 and is <b>added</b> to the copy that took the skip path: \u201ccat\u201d, feature 1: ${kx(`${tg(G.dH2[1][0])} + ${tg(G.dH1ln[1][0])} = ${tg(G.dH1[1][0])}`)}. The skip copy arrives untouched, which is why deep stacks still get a gradient (slide ${SN('s15')}).`},
   {ph:'b',box:['r1','av'],tex:'\\frac{\\partial L}{\\partial (O W_O)} = \\frac{\\partial L}{\\partial H_1}\\ (\\text{copy}),\\quad \\frac{\\partial L}{\\partial W_O} = O^{\\top}\\frac{\\partial L}{\\partial H_1},\\quad \\frac{\\partial L}{\\partial O} = \\frac{\\partial L}{\\partial H_1}W_O^{\\top}',
    lanes(b){const r1=dWlane('gradient of W_O (residual 1 copied \u2202L/\u2202H\u2081 here and down to X)',C.O,G.dOa,G.Wo,{x:'O',y:'H_1',w:'W_O'},b,{rl:dl(4),cl:dl(4),wrl:dl(4)});
      const r2=dXlane('gradient into O',G.dOa,P.Wo,G.dO,{y:'H_1',w:'W_O',x:'O'},b,{cl:dl(4),wcl:dl(4),xcl:dl(4)});
@@ -2820,7 +2882,7 @@ function buildSlide13(){
        const x2=MP('\\partial L/\\partial X',G.dX,{rl:TOKL,cl:dl(4),cls:'gv',f:fg}),pp=MP('\\partial L/\\partial P\\;(3{\\times}4)',G.Pp,{rl:POSL,cl:dl(4),cls:'gv',f:fg,blank:b});
        l2.append(x2,kop('\\xrightarrow{\\text{row } t}'),pp);outs.push(pp);}
      return {outs,hot:[...x.cells[1],...e.cells[1]]};},
-   cap:()=>`<b>Into the embedding table.</b> The lookup copied rows of ${kx('E')}, so backward simply adds each row of ${kx('\\partial L/\\partial X')} to the row it came from. Rows on, mat and \u201c.\u201d get <b>exactly 0</b>: words not in the batch are not updated (slide 30).`+({learned:` The learned position table gets the same rows, indexed by position instead of by word: ${kx('\\partial L/\\partial P_t = \\partial L/\\partial X_t')}.`,sin:' The sin/cos position vectors are fixed numbers, so they get no update.',rope:' RoPE has no parameters, so there is nothing else to update.',none:''})[P.mode]},
+   cap:()=>`<b>Into the embedding table.</b> The lookup copied rows of ${kx('E')}, so backward simply adds each row of ${kx('\\partial L/\\partial X')} to the row it came from. Rows on, mat and \u201c.\u201d get <b>exactly 0</b>: words not in the batch are not updated (slide ${SN('s9')}).`+({learned:` The learned position table gets the same rows, indexed by position instead of by word: ${kx('\\partial L/\\partial P_t = \\partial L/\\partial X_t')}.`,sin:' The sin/cos position vectors are fixed numbers, so they get no update.',rope:' RoPE has no parameters, so there is nothing else to update.',none:''})[P.mode]},
   // ---------- update ----------
   {ph:'u',box:[],tex:()=>`\\theta \\leftarrow \\theta - \\eta\\,\\frac{\\partial L}{\\partial \\theta}\\quad\\text{for all ${blkParams(P).length} tensors (${NPARAM()} numbers)}`,
    lanes(b){const l=L('upd','one tensor in full: W_Q',`learning rate \u03b7 = ${lr}`);const N=blkStep(P,G,lr);
@@ -2874,14 +2936,14 @@ function buildSlide13(){
       host.appendChild(bx);});
     const lg=el('div','vlegend');lg.innerHTML='orange edge = trainable \u00b7 \u2713 = computed \u00b7 \u2016\u2207\u2016 = gradient size, filled in on the way back \u00b7 green bracket = residual skip \u00b7 click a block to jump to it \u00b7 small cells: 4e-3 = 0.004';colm.appendChild(lg);}
   // ---------- deck ----------
-  function build(s,blank){st.innerHTML='';drawPipe(s);if(!s){const d=el('div','fbox on');d.innerHTML=`<div class="fgrid"><span class="dim">model</span><span>one transformer block, ${kx('d = 4')}, FFN width 8, vocabulary of 6 words, ${NPARAM()} trainable numbers</span><span class="dim">positions</span><span>${({sin:'sinusoidal: fixed sin/cos vectors added to the embeddings (slides 34–35)',learned:'learned: a trainable 3×4 table added to the embeddings (slide 37)',rope:'RoPE: Q and K rotated by position inside attention (slide 36)',none:'none: attention cannot see the word order (slide 33)'})[P.mode]}</span><span class="dim">data</span><span>\u201cthe cat sat\u201d, predict the next word at every position: cat, sat, on</span><span class="dim">steps</span><span>11 forward stages, 13 backward stages, 1 update. Every number is computed live; gradients match finite differences.</span></div>`;st.appendChild(d);return {outs:[],hot:[]};}
+  function build(s,blank){st.innerHTML='';drawPipe(s);if(!s){const d=el('div','fbox on');d.innerHTML=`<div class="fgrid"><span class="dim">model</span><span>one transformer block, ${kx('d = 4')}, FFN width 8, vocabulary of 6 words, ${NPARAM()} trainable numbers</span><span class="dim">positions</span><span>${({sin:'sinusoidal: fixed sin/cos vectors added to the embeddings (slides '+SN('pe2')+'–'+SN('pe3')+')',learned:'learned: a trainable 3×4 table added to the embeddings (slide '+SN('pe5')+')',rope:'RoPE: Q and K rotated by position inside attention (slide '+SN('pe4')+')',none:'none: attention cannot see the word order (slide '+SN('pe1')+')'})[P.mode]}</span><span class="dim">data</span><span>\u201cthe cat sat\u201d, predict the next word at every position: cat, sat, on</span><span class="dim">steps</span><span>11 forward stages, 13 backward stages, 1 update. Every number is computed live; gradients match finite differences.</span></div>`;st.appendChild(d);return {outs:[],hot:[]};}
     const sg=S[s-1];const fb=el('div','fbox on');fb.innerHTML=kx(typeof sg.tex==='function'?sg.tex():sg.tex,true);st.appendChild(fb);return sg.lanes(blank);}
   function render(s){build(s,false);}
   async function animate(s,ctx,run){const r=build(s,true);
     r.hot.forEach(c=>c&&c.classList.add('hot'));await ctx.wait(900,run);
     for(const p of r.outs){for(let i=0;i<p.__M.length;i++){fillP(p,i,true);await ctx.wait(p.__M.length>4?120:240,run);}await ctx.wait(160,run);}
     await ctx.wait(500,run);r.hot.forEach(c=>c&&c.classList.remove('hot'));}
-  function caption(s){if(!s)return `A real one-block transformer, the same pipeline as slides 30\u201337: every matrix below is trainable and every number is computed in your browser. Press <b>Next step \u25b8</b> to run it one stage at a time: forward through 11 stages, backward through 13, then one update. ${updates?`<b>${updates} update${updates>1?'s':''} applied so far</b>, loss ${f3(C.L)}.`:''}`;return S[s-1].cap();}
+  function caption(s){if(!s)return `A real one-block transformer, the same pipeline as slides ${SN('s9')}\u2013${SN('pe5')}: every matrix below is trainable and every number is computed in your browser. Press <b>Next step \u25b8</b> to run it one stage at a time: forward through 11 stages, backward through 13, then one update. ${updates?`<b>${updates} update${updates>1?'s':''} applied so far</b>, loss ${f3(C.L)}.`:''}`;return S[s-1].cap();}
   const D=makeDeck('s13',{n:S.length,render,animate,caption});
   // ---------- training controls ----------
   const bar=document.getElementById('s13-train'),predH=document.getElementById('s13-pred'),lossH=document.getElementById('s13-loss');
@@ -5110,7 +5172,7 @@ function buildPE3(){
   const CL=Array.from({length:D},(_,j)=>j%2?`\\cos_${(j>>1)+1}`:`\\sin_${(j>>1)+1}`);
   function prodLane(m,n){const a=PEH.vec(m,D),b=PEH.vec(n,D),p=a.map((x,k)=>x*b[k]);const l=flowLane(st,'fwd',`positions ${m} and ${n}: distance ${m-n}`,'multiply column by column, then add up');
     l.append(peMat('\\text{the two position vectors}',[a,b],{rl:[`\\mathrm{PE}(${m})`,`\\mathrm{PE}(${n})`],cl:CL,cw:'44px'}),kop('\\xrightarrow{\\text{multiply columns}}'),peMat('\\text{products}',[p],{cl:CL,cw:'44px',c:'newv'}),kop('\\xrightarrow{\\sum}'),peMat('\\mathrm{PE}(m)\\cdot\\mathrm{PE}(n)',[[p.reduce((s,x)=>s+x,0)]],{c:'hot',f:PEH.f3,cw:'62px'}));}
-  // the 3-word example from slide 1, split into four score terms
+  // the 3-word example from the first positions slide, split into four score terms
   const E={dog:[1.0,0.2,-0.6,0.3],bites:[-0.3,0.9,0.4,-0.5],man:[0.4,-0.7,0.8,0.6]},order=['dog','bites','man'];
   const R=rng(31),G=gaussFrom(R);const Mk=()=>Array.from({length:4},()=>Array.from({length:4},()=>+(G()*0.8).toFixed(2)));const Wq=Mk(),Wk=Mk();
   const Ee=order.map(w=>E[w]),Pp=order.map((_,t)=>PEH.vec(t,4));
@@ -5134,7 +5196,7 @@ function buildPE3(){
       ctx.textAlign='right';[0,8,16].forEach(v=>ctx.fillText(String(v),Rr.x-4,Y(v)+3));ctx.textAlign='left';
       cu.st.innerHTML=`highest at distance 0 (${kx('d/2 = 16')}), falls off for far positions \u00b7 symmetric: ${kx('+k')} and ${kx('-k')} look the same`;}
     if(s>=5){const See=term(Ee,Ee),Sep=term(Ee,Pp),Spe=term(Pp,Ee),Spp=term(Pp,Pp),S=See.map((r,i)=>r.map((v,j)=>v+Sep[i][j]+Spe[i][j]+Spp[i][j]));
-      const L=order.map(w=>`\\text{${w}}`),l=flowLane(st,'fwd','what attention sees when positions are added: four terms','slide 1\u2019s sentence with x = e + p: the score splits into four pieces');
+      const L=order.map(w=>`\\text{${w}}`),l=flowLane(st,'fwd','what attention sees when positions are added: four terms','slide '+SN('pe1')+'\u2019s sentence with x = e + p: the score splits into four pieces');
       l.append(peMat('e\\cdot e',See,{rl:L,cl:L,cw:'44px'}),kop('+'),peMat('e\\cdot p',Sep,{cl:L,cw:'44px'}),kop('+'),peMat('p\\cdot e',Spe,{cl:L,cw:'44px'}),kop('+'),peMat('p\\cdot p',Spp,{cl:L,cw:'44px',c:'newv'}),kop('='),peMat('S',S,{rl:L,cl:L,cw:'44px',c:'hot'}));}}
   async function animate(s,ctx,run){render(s);const cells=[...st.querySelectorAll('.dlane:last-of-type .cell.newv,.dlane:last-of-type .cell.hot')];cells.forEach(c=>c.style.opacity=0);
     for(const c of cells){c.style.opacity='';c.classList.add('pop');await ctx.wait(90,run);}await ctx.wait(400,run);}
@@ -5267,15 +5329,218 @@ function buildPE5(){
   return makeDeck('pe5',{n:5,render,animate,caption});
 }
 
+/* ================= MATRICES 4: two layers deep (m2) ================= */
+/* a small multilayer perceptron on a batch of 4: XOR and AND of two +-1 inputs */
+const XR_X=[[-1,-1],[-1,1],[1,-1],[1,1]];
+const XR_T=[[-1,-1],[1,-1],[1,-1],[-1,1]];   // column 1: XOR (the signs differ), column 2: AND (both +1)
+const xrMm=(A,B)=>A.map(r=>B[0].map((_,j)=>r.reduce((s,v,k)=>s+v*B[k][j],0)));
+const xrT=A=>A[0].map((_,j)=>A.map(r=>r[j]));
+const xrColSum=A=>A[0].map((_,j)=>A.reduce((s,r)=>s+r[j],0));
+function xrInit(seed,depth,width){const R=rng(seed),g=gaussFrom(R),sz=[2,...Array(depth-1).fill(width),2];const W=[],b=[];
+  for(let l=0;l<depth;l++){const n=sz[l],m=sz[l+1],s=1/Math.sqrt(n);
+    W.push(Array.from({length:n},()=>Array.from({length:m},()=>Math.round(g()*s*100)/100)));b.push(Array(m).fill(0));}
+  return {W,b,depth,sz};}
+function xrForward(P){const H=[XR_X],U=[];
+  for(let l=0;l<P.depth;l++){const Z=xrMm(H[l],P.W[l]).map(r=>r.map((v,j)=>v+P.b[l][j]));U.push(Z);H.push(l<P.depth-1?Z.map(r=>r.map(Math.tanh)):Z);}
+  const Y=H[P.depth],BM=Y.length*Y[0].length,E=Y.map((r,i)=>r.map((v,j)=>v-XR_T[i][j]));
+  return {H,U,Y,E,L:E.flat().reduce((s,e)=>s+e*e,0)/BM,G:E.map(r=>r.map(e=>2*e/BM))};}
+function xrBackward(P,C){const dW=[],db=[],dU=[],dH=[];dU[P.depth-1]=C.G;
+  for(let l=P.depth-1;l>=0;l--){dW[l]=xrMm(xrT(C.H[l]),dU[l]);db[l]=xrColSum(dU[l]);
+    if(l>0){dH[l]=xrMm(dU[l],xrT(P.W[l]));dU[l-1]=dH[l].map((r,i)=>r.map((v,j)=>v*(1-C.H[l][i][j]**2)));}}
+  return {dW,db,dU,dH};}
+function xrStep(P,G,lr){return {...P,W:P.W.map((M,l)=>M.map((r,i)=>r.map((v,j)=>v-lr*G.dW[l][i][j]))),b:P.b.map((r,l)=>r.map((v,j)=>v-lr*G.db[l][j]))};}
+function xrCount(P){return P.W.reduce((s,M,l)=>s+M.length*M[0].length+P.b[l].length,0);}
+
+function buildM2(){
+  const sec=document.getElementById('m2'),st=document.getElementById('m2-stage'),net=document.getElementById('m2-net');
+  const SEED=3,WID=3,FLOOR=0.625;
+  let depth=2,P,P1,lr=0.3,hist=[],hist1=[],updates=0,row=1,C,G,C1;
+  const recompute=()=>{C=xrForward(P);G=xrBackward(P,C);C1=xrForward(P1);};
+  const reset=()=>{P=xrInit(SEED,depth,WID);P1=xrInit(SEED,1,WID);hist=[];hist1=[];updates=0;recompute();};
+  reset();
+  const SUB='\u2080\u2081\u2082\u2083\u2084\u2085\u2086\u2087\u2088\u2089',sb=n=>String(n).split('').map(d=>SUB[+d]).join('');
+  const RL=['1','2','3','4'],OL=['\\text{XOR}','\\text{AND}'],XL=['x_1','x_2'];
+  const unitL=a=>a===0?XL:a===depth?OL:Array.from({length:WID},(_,k)=>`\\text{n}_${k+1}`);   // labels of activation row a = 0..depth
+  const nmH=l=>l===0?'X':`H_{${l}}`, nmU=l=>l===depth-1?'Y':`U_{${l+1}}`, nmW=l=>`W_{${l+1}}`, nmB=l=>`b_{${l+1}}`;
+  const nmdU=l=>l===depth-1?'G':`\\partial L/\\partial U_{${l+1}}`, dUt=l=>l===depth-1?'G':`\\frac{\\partial L}{\\partial U_{${l+1}}}`;
+  const fg=v=>{const a=Math.abs(v);return a<1e-12?'0':a>=0.01?fmt(v):v.toExponential(0);};
+  const tg=v=>{const a=Math.abs(v);if(a<1e-12)return '0';if(a>=0.01)return fmt(v);const e=Math.floor(Math.log10(a)),m=v/Math.pow(10,e);return `${m.toFixed(1)}\\times 10^{${e}}`;};
+  const Lx=v=>v<0.001?tg(v):f3(v);   // loss inside KaTeX: 1.6e-5 reads as 1.6 x 10^-5
+  const CW='46px';
+  function MP(title,A,o){o=o||{};const M=Array.isArray(A[0])?A:[A];
+    const p=kmat(title,M.length,M[0].length,{rl:o.rl,cl:o.cl,cw:CW,sub:o.sub});
+    Object.assign(p,{__M:M,__cls:o.cls||'fwdv',__f:o.f||fmt,__brow:o.brow});if(!o.blank)fillP(p);return p;}
+  function fillP(p,r,pop){p.__M.forEach((rw,i)=>{if(r!=null&&i!==r)return;
+    rw.forEach((v,j)=>setc(p.cells[i][j],p.__f(v),p.__cls+(p.__brow!=null&&i===p.__brow?' brow':''),pop));});}
+  const L=(cls,title,sub)=>flowLane(st,cls,title,sub);
+  const withB=(W,b)=>W.concat([b]);
+  // ---------- stages (generated from the depth) ----------
+  const fwdStage=l=>({ph:'f',band:l,
+    tex:()=>l===depth-1?`Y = ${nmH(l)}\\,${nmW(l)} + ${nmB(l)}\\qquad\\text{(the output layer has no tanh)}`:`${nmU(l)} = ${nmH(l)}\\,${nmW(l)} + ${nmB(l)},\\qquad ${nmH(l+1)} = \\tanh(${nmU(l)})`,
+    lanes(b){const Hin=C.H[l],W=P.W[l],n=W.length,m=W[0].length;
+      const l1=L('fwd',`layer ${l+1}: one matrix product, then the bias`,`(4\u00d7${n})\u00b7(${n}\u00d7${m}) = 4\u00d7${m}; b${sb(l+1)} is added to every row`);
+      const x=MP(`${nmH(l)}\\;(4{\\times}${n})`,Hin,{rl:RL,cl:unitL(l),sub:l===0?'input, one row per example':`from layer ${l}`});
+      const w=MP(`${nmW(l)}\\;(${n}{\\times}${m})`,W,{rl:unitL(l),cl:unitL(l+1),sub:'trainable \u00b7 one column per neuron'});
+      const bb=MP(`${nmB(l)}\\;(1{\\times}${m})`,[P.b[l]],{cl:unitL(l+1),sub:'trainable'});
+      const u=MP(`${nmU(l)}\\;(4{\\times}${m})`,C.U[l],{rl:RL,cl:unitL(l+1),cls:'newv',blank:b});
+      l1.append(x,kop('\\cdot'),w,kop('+'),bb,kop('='),u);
+      const outs=[u],hot=[...x.cells[row],...w.cells.map(r=>r[0]),bb.cells[0][0],u.cells[row][0]];
+      if(l<depth-1){const l2=L('fwd','tanh, entry by entry','each number is squashed into (\u22121, 1) on its own; this bend is what one layer lacks');
+        const u2=MP(nmU(l),C.U[l],{rl:RL,cl:unitL(l+1)}),h=MP(`${nmH(l+1)} = \\tanh(${nmU(l)})`,C.H[l+1],{rl:RL,cl:unitL(l+1),cls:'newv',blank:b,sub:`input of layer ${l+2}`});
+        l2.append(u2,kop('\\xrightarrow{\\;\\tanh\\;}'),h);outs.push(h);hot.push(u2.cells[row][0]);}
+      return {outs,hot};},
+    cap:()=>{const Hin=C.H[l],W=P.W[l],u=C.U[l][row][0],terms=Hin[row].map((v,i)=>`(${fmt(v)})(${fmt(W[i][0])})`).join('+');
+      const lead=l===depth-1?`<b>Layer ${l+1}, the output layer.</b> Row ${row+1}, XOR column:`:`<b>Layer ${l+1}.</b> Row ${row+1}, neuron 1:`;
+      const tail=l===0?` Each column of ${kx('W_1')} is one neuron\u2019s weights (slide ${SN('m1')}); each row of ${kx('X')} is one example (slide ${SN('s6')}).`
+        :l===depth-1?` Same rule again, with ${kx(nmH(l))} as the input. No tanh here: the outputs are compared with the targets directly.`:` The output of layer ${l} is the input of layer ${l+1}: same rule, new matrix.`;
+      return `${lead} ${kx(`{${nmU(l)}}_{${row+1},1} = ${terms} + ${fmt(P.b[l][0])} = ${fmt(u)}`)}${l<depth-1?`, then ${kx(`\\tanh(${fmt(u)}) = ${fmt(C.H[l+1][row][0])}`)}`:''}.${tail}`;}});
+  const lossStage=()=>({ph:'loss',band:depth,
+    tex:()=>`L = \\tfrac{1}{8}\\textstyle\\sum (Y-T)^2,\\qquad G = \\frac{\\partial L}{\\partial Y} = \\frac{2\\,(Y-T)}{8}`,
+    lanes(b){const l1=L('fwd','loss: compare with the targets','8 numbers (4 rows \u00d7 2 outputs), mean of the squared errors');
+      const y=MP('Y',C.Y,{rl:RL,cl:OL}),t=MP('T\\;\\text{(targets)}',XR_T,{rl:RL,cl:OL}),e=MP('Y-T',C.E,{rl:RL,cl:OL,cls:'newv',blank:b}),lv=MP('L',[[C.L]],{f:f3,cls:'newv',blank:b});
+      l1.append(y,kop('-'),t,kop('='),e,kop('\\xrightarrow{\\;\\text{mean of squares}\\;}'),lv);
+      const l2=L('bwd','the gradient starts here','square rule, then \u00f78 because the loss is a mean over 8 numbers');
+      const e2=MP('Y-T',C.E,{rl:RL,cl:OL}),g=MP('G = \\partial L/\\partial Y\\;(4{\\times}2)',C.G,{rl:RL,cl:OL,cls:'gv',f:fg,blank:b});
+      l2.append(e2,kop('\\xrightarrow{\\;\\times\\,2/8\\;}'),g);
+      return {outs:[e,lv,g],hot:[y.cells[row][0],t.cells[row][0],e.cells[row][0],e2.cells[row][0],g.cells[row][0]]};},
+    cap:()=>`<b>Loss.</b> Row ${row+1}, XOR column: the network says ${kx(fmt(C.Y[row][0]))}, the target is ${kx(String(XR_T[row][0]))}, so ${kx(`G_{${row+1},1} = 2\\,(${fmt(C.Y[row][0])} - (${XR_T[row][0]}))/8 = ${tg(C.G[row][0])}`)}. Over all 8 numbers ${kx(`L = ${Lx(C.L)}`)}. From here on everything runs backward, one layer at a time, starting at the top.`});
+  const bwStage=l=>({ph:'b',band:l,
+    tex:()=>`\\frac{\\partial L}{\\partial ${nmW(l)}} = ${nmH(l)}^{\\top}\\,${dUt(l)},\\qquad \\frac{\\partial L}{\\partial ${nmB(l)}} = \\sum_{\\text{rows}} ${dUt(l)}`,
+    lanes(b){const Hin=C.H[l],dU=G.dU[l],n=Hin[0].length,m=dU[0].length;
+      const l1=L('bwd',`layer ${l+1}: gradient of W${sb(l+1)} = input\u1d40 \u00d7 upstream`,`(${n}\u00d74)\u00b7(4\u00d7${m}) = ${n}\u00d7${m}, the same shape as W${sb(l+1)} \u2713`);
+      const a=MP(`${nmH(l)}^{\\top}\\;(${n}{\\times}4)`,xrT(Hin),{rl:unitL(l),cl:RL,sub:'the layer\u2019s input, transposed'});
+      const g=MP(`${nmdU(l)}\\;(4{\\times}${m})`,dU,{rl:RL,cl:unitL(l+1),cls:'gv',f:fg,sub:'upstream'});
+      const w=MP(`\\partial L/\\partial ${nmW(l)}\\;(${n}{\\times}${m})`,G.dW[l],{rl:unitL(l),cl:unitL(l+1),cls:'gv',f:fg,blank:b});
+      l1.append(a,kop('\\cdot'),g,kop('='),w);
+      const l2=L('bwd',`layer ${l+1}: gradient of b${sb(l+1)}, the copies add up`,`b${sb(l+1)} was added to all 4 rows, so 4 copies come back and sum (slide ${SN('s7')})`);
+      const g2=MP(nmdU(l),dU,{rl:RL,cl:unitL(l+1),cls:'gv',f:fg}),bb=MP(`\\partial L/\\partial ${nmB(l)}\\;(1{\\times}${m})`,[G.db[l]],{cl:unitL(l+1),cls:'gv',f:fg,blank:b});
+      l2.append(g2,kop('\\xrightarrow{\\;\\sum_{\\text{rows}}\\;}'),bb);
+      return {outs:[w,bb],hot:[...a.cells[0],...g.cells.map(r=>r[0]),w.cells[0][0],...g2.cells.map(r=>r[0]),bb.cells[0][0]]};},
+    cap:()=>{const Hin=C.H[l],dU=G.dU[l],terms=Hin.map((r,i)=>`(${fmt(r[0])})(${tg(dU[i][0])})`).join('+');
+      return `<b>Layer ${l+1}, its own weights.</b> The multiply rule from slide ${SN('s6')}, one term per row of the batch: ${kx(`\\partial L/\\partial ${nmW(l)}[1,1] = ${terms} = ${tg(G.dW[l][0][0])}`)}. The bias adds up the 4 row copies: ${kx(`\\partial L/\\partial ${nmB(l)}[1] = ${tg(G.db[l][0])}`)}.${l===depth-1?'':` The upstream gradient ${kx(nmdU(l))} was made by layer ${l+2} one step earlier.`}${l===0?' Layer 1 is the bottom: its input is the data, which is not trained, so the backward pass stops here.':''}`;}});
+  const bxStage=l=>({ph:'b',band:l,node:l,
+    tex:()=>`\\frac{\\partial L}{\\partial H_{${l}}} = ${dUt(l)}\\,${nmW(l)}^{\\top},\\qquad \\frac{\\partial L}{\\partial U_{${l}}} = \\frac{\\partial L}{\\partial H_{${l}}}\\odot\\big(1-H_{${l}}^{2}\\big)`,
+    lanes(b){const dU=G.dU[l],W=P.W[l],n=W.length,m=W[0].length;
+      const l1=L('bwd',`layer ${l+1} \u2192 layer ${l}: upstream \u00d7 W${sb(l+1)}\u1d40`,`(4\u00d7${m})\u00b7(${m}\u00d7${n}) = 4\u00d7${n}, the same shape as H${sb(l)} \u2713`);
+      const g=MP(`${nmdU(l)}\\;(4{\\times}${m})`,dU,{rl:RL,cl:unitL(l+1),cls:'gv',f:fg,sub:'upstream'});
+      const wt=MP(`${nmW(l)}^{\\top}\\;(${m}{\\times}${n})`,xrT(W),{rl:unitL(l+1),cl:unitL(l),sub:'the same weights, transposed'});
+      const dh=MP(`\\partial L/\\partial H_{${l}}\\;(4{\\times}${n})`,G.dH[l],{rl:RL,cl:unitL(l),cls:'gv',f:fg,blank:b});
+      l1.append(g,kop('\\cdot'),wt,kop('='),dh);
+      const l2=L('bwd',`back through the tanh of layer ${l}`,'tanh\u2032(u) = 1 \u2212 tanh(u)\u00b2 = 1 \u2212 h\u00b2, entry by entry (slide '+SN('v3')+')');
+      const dh2=MP(`\\partial L/\\partial H_{${l}}`,G.dH[l],{rl:RL,cl:unitL(l),cls:'gv',f:fg});
+      const sl=MP(`1-H_{${l}}^{2}`,C.H[l].map(r=>r.map(h=>1-h*h)),{rl:RL,cl:unitL(l),sub:'slope of tanh'});
+      const du=MP(`\\partial L/\\partial U_{${l}}`,G.dU[l-1],{rl:RL,cl:unitL(l),cls:'gv',f:fg,blank:b,sub:`upstream for layer ${l}`});
+      l2.append(dh2,kop('\\odot'),sl,kop('='),du);
+      return {outs:[dh,du],hot:[...g.cells[row],...wt.cells.map(r=>r[0]),dh.cells[row][0],dh2.cells[row][0],sl.cells[row][0],du.cells[row][0]]};},
+    cap:()=>{const dU=G.dU[l],W=P.W[l],terms=dU[row].map((v,j)=>`(${tg(v)})(${fmt(W[0][j])})`).join('+'),h=C.H[l][row][0];
+      return `<b>Into layer ${l}\u2019s output.</b> Neuron 1 of layer ${l} fed every neuron of layer ${l+1}, so it gets one gradient copy from each, and they add: row ${row+1}, ${kx(`\\partial L/\\partial H_{${l}}[${row+1},1] = ${terms} = ${tg(G.dH[l][row][0])}`)}. Then the tanh slope: ${kx(`(${tg(G.dH[l][row][0])})\\,(1-(${fmt(h)})^2) = ${tg(G.dU[l-1][row][0])}`)}. A neuron near ${kx('\\pm 1')} has slope near 0 and passes little back.`;}});
+  const updStage=()=>({ph:'u',band:-1,
+    tex:()=>`W_\\ell \\leftarrow W_\\ell - \\eta\\,\\frac{\\partial L}{\\partial W_\\ell},\\qquad b_\\ell \\leftarrow b_\\ell - \\eta\\,\\frac{\\partial L}{\\partial b_\\ell}\\qquad (\\eta = ${lr},\\ \\text{every layer at once})`,
+    lanes(b){const Pn=xrStep(P,G,lr),Ln=xrForward(Pn).L,outs=[],hot=[];
+      for(let l=0;l<depth;l++){const n=P.W[l].length,m=P.W[l][0].length,rl=[...unitL(l),nmB(l)];
+        const ln=L('upd',`layer ${l+1}: W${sb(l+1)} and b${sb(l+1)} (dashed row)`,`${n*m+m} numbers, one step each`);
+        const w=MP(`${nmW(l)},\\ ${nmB(l)}`,withB(P.W[l],P.b[l]),{rl,cl:unitL(l+1),brow:n});
+        const g=MP(`\\partial L/\\partial ${nmW(l)},\\ \\partial L/\\partial ${nmB(l)}`,withB(G.dW[l],G.db[l]),{rl,cl:unitL(l+1),cls:'gv',f:fg,brow:n});
+        const nw=MP('\\text{new}',withB(Pn.W[l],Pn.b[l]),{rl,cl:unitL(l+1),cls:'newv',blank:b,brow:n});
+        ln.append(w,kop(`-\\;${lr}\\,\\cdot`),g,kop('='),nw);outs.push(nw);if(l===0)hot.push(w.cells[0][0],g.cells[0][0],nw.cells[0][0]);}
+      const lL=L('upd','run the same 4 rows again with the new weights','one update = forward + backward + this step');
+      const lm=MP('L\\;\\to\\;L_{\\text{new}}',[[C.L,Ln]],{cl:['\\text{before}','\\text{after}'],f:f3,cls:'newv',blank:b});lL.append(lm);outs.push(lm);
+      return {outs,hot};},
+    cap:()=>{const Pn=xrStep(P,G,lr),Ln=xrForward(Pn).L;
+      return `<b>Update every layer at once.</b> ${kx(`W_1[1,1]:\\ ${fmt(P.W[0][0][0])} - ${lr}\\cdot(${tg(G.dW[0][0][0])}) = ${fmt(Pn.W[0][0][0])}`)}. All ${xrCount(P)} numbers take one small step downhill and the loss goes from ${kx(Lx(C.L))} to ${kx(Lx(Ln))}. Keep training below and watch the XOR column: a single layer never gets it.`;}});
+  const makeStages=()=>{const S=[];for(let l=0;l<depth;l++)S.push(fwdStage(l));S.push(lossStage());
+    for(let l=depth-1;l>=0;l--){S.push(bwStage(l));if(l>0)S.push(bxStage(l));}S.push(updStage());return S;};
+  let STG=makeStages();
+  // ---------- vertical network diagram (one example row) ----------
+  function drawNet(s){net.innerHTML='';const bar=sec.querySelector('.dbar');if(bar&&bar.offsetHeight)sec.style.setProperty('--s13bar',(bar.offsetHeight+6)+'px');
+    const c=TC(),cur=s>0?STG[s-1]:null,sz=P.sz,NR=depth+1;let fwd=-1,loss=false;const gk=new Set();
+    for(let k=0;k<s;k++){const x=STG[k];if(x.ph==='f')fwd=x.band;if(x.ph==='loss'){loss=true;gk.add(depth);}if(x.node)gk.add(x.node);}
+    const W=232,top=30,gap=depth>2?92:112,Hh=top+(NR-1)*gap+56,R=19,SP=60,cx=128;
+    const xs=a=>Array.from({length:sz[a]},(_,k)=>cx+(k-(sz[a]-1)/2)*SP),ys=a=>top+a*gap;
+    const ns='http://www.w3.org/2000/svg',svg=document.createElementNS(ns,'svg');svg.setAttribute('width',W);svg.setAttribute('height',Hh);svg.setAttribute('viewBox',`0 0 ${W} ${Hh}`);
+    const mk=(t,at,txt)=>{const e=document.createElementNS(ns,t);for(const k in at)e.setAttribute(k,at[k]);if(txt!=null)e.textContent=txt;svg.appendChild(e);return e;};
+    const hiBand=l=>cur&&(cur.ph==='u'||cur.band===l)&&cur.ph!=='loss';
+    for(let l=0;l<depth;l++){const y0=ys(l),y1=ys(l+1),on=hiBand(l);
+      const bg=mk('rect',{x:34,y:y0+R+2,width:W-40,height:y1-y0-2*R-4,fill:on?hexA(c.acc,0.13):'transparent',stroke:on?c.acc:'none','stroke-dasharray':'3 3',rx:3});
+      bg.style.cursor='pointer';bg.onclick=()=>D.goto(STG.findIndex(x=>x.ph==='f'&&x.band===l)+1);bg.appendChild(document.createElementNS(ns,'title')).textContent=`jump to layer ${l+1}`;
+      xs(l).forEach((xa,i)=>xs(l+1).forEach((xb,j)=>{const w=P.W[l][i][j],e=mk('line',{x1:xa,y1:y0+R,x2:xb,y2:y1-R,stroke:w>=0?c.blue:c.red,'stroke-width':(0.6+2.4*Math.min(1,Math.abs(w)/1.5)).toFixed(2),'stroke-opacity':on?0.95:0.5});e.style.pointerEvents='none';}));
+      mk('text',{x:4,y:(y0+y1)/2-2,'font-size':12,fill:on?c.acc:c.fg,'font-family':'KaTeX_Math,serif','font-style':'italic'},`W${sb(l+1)}`);
+      mk('text',{x:4,y:(y0+y1)/2+11,'font-size':9.5,fill:c.mut,'font-family':'ui-monospace,monospace'},`${sz[l]}\u00d7${sz[l+1]}`);
+      mk('text',{x:4,y:(y0+y1)/2+23,'font-size':9.5,fill:c.mut,'font-family':'ui-monospace,monospace'},`+ b${sb(l+1)}`);}
+    for(let a=0;a<NR;a++){const known=a===0||fwd>=a-1,y=ys(a),curNode=cur&&((cur.ph==='f'&&cur.band===a-1)||(cur.ph==='loss'&&a===depth)||(cur.node===a));
+      const vals=C.H[a][row],grads=a>0&&gk.has(a)?G.dU[a-1][row]:null;
+      xs(a).forEach((x,k)=>{mk('circle',{cx:x,cy:y,r:R,fill:known?(vals[k]>=0?hexA(c.blue,Math.min(0.55,0.12+0.4*Math.abs(vals[k]))):hexA(c.red,Math.min(0.55,0.12+0.4*Math.abs(vals[k])))):c.bg2||'transparent',stroke:curNode?c.acc:c.line,'stroke-width':curNode?2.2:1.2});
+        mk('text',{x,y:grads?y-2:y+3.5,'text-anchor':'middle','font-size':10,fill:c.fg,'font-family':'ui-monospace,monospace'},known?fmt(vals[k]):'\u00b7');
+        if(grads)mk('text',{x,y:y+10,'text-anchor':'middle','font-size':8.5,fill:c.acc,'font-family':'ui-monospace,monospace','font-weight':700},fg(grads[k]));});
+      mk('text',{x:W-2,y:y+4,'text-anchor':'end','font-size':13,fill:curNode?c.acc:c.fg,'font-family':'KaTeX_Math,serif','font-style':'italic'},a===0?'X':a===depth?'Y':`H${sb(a)}`);}
+    const yb=ys(depth)+R+14;xs(depth).forEach((x,k)=>{mk('text',{x,y:yb,'text-anchor':'middle','font-size':9.5,fill:c.mut,'font-family':'ui-monospace,monospace'},`${k?'AND':'XOR'} t=${XR_T[row][k]>0?'+1':'\u22121'}`);});
+    const ph=el('div','vphase');ph.innerHTML=`<b>${!cur?'the network':cur.ph==='f'?'forward \u2193':cur.ph==='u'?'update':'backward \u2191'}</b> \u00b7 ${xrCount(P)} params \u00b7 row ${row+1}`;
+    net.appendChild(ph);net.appendChild(svg);
+    const rp=el('div','mlprow');rp.appendChild(el('span','','example row:'));const sg=el('div','seg');rp.appendChild(sg);net.appendChild(rp);
+    segInto(sg,XR_X.map((x,i)=>[String(i),`${i+1}`]),String(row),v=>{row=+v;after();});
+    const lg=el('div','vlegend');lg.innerHTML=`the diagram follows row ${row+1}, ${kx(`x = (${XR_X[row].join(',\\,')})`)} \u00b7 rows of nodes: input ${kx('X')}, hidden ${kx('H = \\tanh(U)')}, output ${kx('Y')} \u00b7 blue edge = positive weight, red = negative, thicker = larger \u00b7 node colour = its value \u00b7 orange = gradient ${kx('\\partial L/\\partial u')}, filled in on the way back \u00b7 click a layer to jump to it`;net.appendChild(lg);}
+  // ---------- deck ----------
+  function overview(){const fb=el('div','fbox on');
+    fb.innerHTML=`<div class="fgrid"><span class="dim">task</span><span>4 examples (rows), 2 inputs each (${kx('\\pm1')}), 2 targets: <b>XOR</b> (+1 when exactly one input is +1) and <b>AND</b> (+1 when both are)</span>
+      <span class="dim">network</span><span>${depth} layers, ${kx(P.sz.join('\\to'))}, tanh between layers, ${xrCount(P)} trainable numbers</span>
+      <span class="dim">why stack</span><span>one layer is a weighted sum plus a bias: it can only split the 4 points with a straight line, so it learns AND but never XOR. The tanh between two layers bends the space</span></div>`;st.appendChild(fb);
+    const l1=L('fwd','the data','one row per example, the same 4 rows every update');
+    l1.append(MP('X\\;(4{\\times}2)',XR_X,{rl:RL,cl:XL,sub:'inputs'}),kop('\\qquad'),MP('T\\;(4{\\times}2)',XR_T,{rl:RL,cl:OL,sub:'targets'}));
+    const l2=L('upd','the trainable matrices','bias in the dashed row; weights start small and random, biases at 0');
+    for(let l=0;l<depth;l++){if(l)l2.append(kop('\\quad'));l2.append(MP(`${nmW(l)},\\ ${nmB(l)}\\;(${P.sz[l]}{\\times}${P.sz[l+1]})`,withB(P.W[l],P.b[l]),{rl:[...unitL(l),nmB(l)],cl:unitL(l+1),brow:P.sz[l]}));}}
+  function build(s,blank){st.innerHTML='';drawNet(s);if(!s){overview();return {outs:[],hot:[]};}
+    const sg=STG[s-1],fb=el('div','fbox on');fb.innerHTML=kx(sg.tex(),true);st.appendChild(fb);return sg.lanes(blank);}
+  function render(s){build(s,false);}
+  async function animate(s,ctx,run){const r=build(s,true);
+    r.hot.forEach(c=>c&&c.classList.add('hot'));await ctx.wait(900,run);
+    for(const p of r.outs){for(let i=0;i<p.__M.length;i++){fillP(p,i,true);await ctx.wait(220,run);}await ctx.wait(160,run);}
+    await ctx.wait(500,run);r.hot.forEach(c=>c&&c.classList.remove('hot'));}
+  function caption(s){if(!s)return `A real ${depth}-layer network: every matrix is trainable and every number is computed in your browser. Press <b>Next step \u25b8</b>: ${depth} forward ${depth>1?'stages':'stage'}, the loss, ${2*depth-1} backward stages, then one update. ${updates?`<b>${updates} update${updates>1?'s':''} applied so far</b>, loss ${kx(Lx(C.L))}.`:''}`;return STG[s-1].cap();}
+  const cfg={n:STG.length,render,animate,caption};const D=makeDeck('m2',cfg);
+  // ---------- training ----------
+  const bar=document.getElementById('m2-train'),predH=document.getElementById('m2-pred'),lossH=document.getElementById('m2-loss');
+  const lp=cpanel('\\text{loss per update}',430,190);lossH.appendChild(lp);
+  function drawLoss(){const c=TC(),cv=lp.cv,ctx=cctx(cv),W=cv.__w,H=cv.__h,R={x:40,y:10,w:W-52,h:H-34};
+    const hs=hist.concat([C.L]),h1=hist1.concat([C1.L]),mx=Math.max(1.5,...hs,...h1),n=Math.max(1,hs.length-1);
+    ctx.strokeStyle=c.line;ctx.strokeRect(R.x,R.y,R.w,R.h);ctx.font='10.5px ui-monospace,monospace';ctx.fillStyle=c.mut;
+    ctx.fillText(mx.toFixed(1),6,R.y+8);ctx.fillText('0',26,R.y+R.h);ctx.fillText('update '+updates,R.x+R.w-74,H-8);ctx.fillText('loss',4,R.y+R.h/2);
+    const yf=R.y+R.h-FLOOR/mx*R.h;ctx.strokeStyle=hexA(c.mut,0.7);ctx.setLineDash([3,3]);ctx.beginPath();ctx.moveTo(R.x,yf);ctx.lineTo(R.x+R.w,yf);ctx.stroke();ctx.setLineDash([]);
+    ctx.fillText('0.625 = best one layer can do',R.x+R.w-212,yf-4);
+    const line=(arr,col,dash)=>{if(arr.length<2)return;ctx.strokeStyle=col;ctx.lineWidth=2;ctx.setLineDash(dash||[]);ctx.beginPath();arr.forEach((v,k)=>{const x=R.x+k/n*R.w,y=R.y+R.h-v/mx*R.h;k?ctx.lineTo(x,y):ctx.moveTo(x,y);});ctx.stroke();ctx.setLineDash([]);};
+    line(h1,c.mut,[5,3]);line(hs,c.acc);
+    [[hs,c.acc],[h1,c.mut]].forEach(([a,col])=>{const k=a.length-1,x=R.x+(a.length>1?R.w:0),y=R.y+R.h-a[k]/mx*R.h;ctx.fillStyle=col;ctx.beginPath();ctx.arc(x,y,3.5,0,7);ctx.fill();});
+    lp.st.innerHTML=`<span style="color:var(--acc)">\u25a0</span> ${depth} layers: loss ${kx(Lx(C.L))} \u00b7 <span style="color:var(--mut)">\u25a0</span> 1 layer: ${kx(f3(C1.L))} \u00b7 update ${updates}`;}
+  function drawPred(){const cell=(v,t)=>{const ok=v*t>0.05;   // right side of 0 by a margin: an output of 0.00 is not an answer
+   return `<td style="color:var(--${ok?'ok':'red'})">${fmt(v)} ${ok?'\u2713':'\u2717'}</td>`;};
+    predH.innerHTML=`<table class="dtab" style="margin-top:6px"><tr><th>row</th><th>x\u2081, x\u2082</th><th>XOR target</th><th>${depth} layers</th><th>1 layer</th><th>AND target</th><th>${depth} layers</th><th>1 layer</th></tr>${XR_X.map((x,i)=>
+      `<tr${i===row?' style="font-weight:700"':''}><td>${i+1}</td><td>${x.map(v=>v>0?'+1':'\u22121').join(', ')}</td><td>${XR_T[i][0]>0?'+1':'\u22121'}</td>${cell(C.Y[i][0],XR_T[i][0])}${cell(C1.Y[i][0],XR_T[i][0])}<td>${XR_T[i][1]>0?'+1':'\u22121'}</td>${cell(C.Y[i][1],XR_T[i][1])}${cell(C1.Y[i][1],XR_T[i][1])}</tr>`).join('')}</table>`;}
+  function after(){D.refresh();document.getElementById('m2-cap').innerHTML=caption(D.state().shown);drawLoss();drawPred();}
+  function stepOnce(){hist.push(C.L);hist1.push(C1.L);P=xrStep(P,G,lr);P1=xrStep(P1,xrBackward(P1,C1),lr);updates++;recompute();}
+  const b1=el('button','primary','Apply update \u21bb'),b2=el('button','','Train \u00d710 \u25b8\u25b8'),b3=el('button','','Train \u00d7100'),b4=el('button','','Reset weights');
+  const lb=el('label','ctl');lb.innerHTML=`learning rate <span class="nt">\u03b7</span> <input type="range" min="0.05" max="1" step="0.05" value="${lr}"><span>${lr}</span>`;
+  const er=lb.querySelector('input'),ev=lb.querySelector('span:last-child');
+  b1.onclick=()=>{stepOnce();after();};b2.onclick=()=>{for(let k=0;k<10;k++)stepOnce();after();};b3.onclick=()=>{for(let k=0;k<100;k++)stepOnce();after();};
+  b4.onclick=()=>{reset();after();};er.oninput=()=>{lr=+er.value;ev.textContent=lr.toFixed(2);after();};
+  const markD=segInto(document.getElementById('m2-depth'),[['2','2 layers'],['3','3 layers']],'2',v=>{depth=+v;markD(v);reset();STG=makeStages();cfg.n=STG.length;D.goto(0);after();});
+  bar.append(b1,b2,b3,b4,lb);drawLoss();drawPred();
+  window.__themeRedraws.push(drawLoss);
+  window.__m2={state:()=>({depth,updates,L:C.L,L1:C1.L,n:xrCount(P),stages:STG.length,row}),C:()=>C,G:()=>G,P:()=>P};
+  return D;
+}
+
+/* slide number of a lesson id, from the group list (so references stay right when slides move) */
+function SN(id){let k=0;for(const g of GROUPS)for(const [i] of g.ids){k++;if(i===id)return k;}return '?';}
+
 /* ================= boot ================= */
 const GROUPS=[
   {roman:'I',name:'Backprop on one number',short:'One number',ids:[['s1','the multiply rule'],['s2','add distributes'],['s3','subtract & square'],['s4','the chain']]},
   {roman:'II',name:'Vectors: same rules, per position',short:'Vectors',ids:[['v1','elementwise ops'],['v2','sum & dot product'],['v3','activations: g \u2299 f\u2032'],['s5','a full neuron']]},
-  {roman:'III',name:'Matrices: same rules, with shapes',short:'Matrices',ids:[['m1','a layer: y = xW'],['s6','a batch: X\u1d40G'],['s7','bias & LoRA']]},
+  {roman:'III',name:'Matrices: same rules, with shapes',short:'Matrices',ids:[['m1','a layer: y = xW'],['s6','a batch: X\u1d40G'],['s7','bias: copies sum'],['m2','two layers deep']]},
   {roman:'IV',name:'Learning from data',short:'Data & batches',ids:[['t1','sampling'],['s8','batch gradients'],['t2','SGD: more steps'],['t3','train / val / test']]},
   {roman:'V',name:'Regularization',short:'Regularization',ids:[['r1','why regularize'],['r2','regularization in backprop'],['r3','L2 · weight decay'],['r4','L1 · constant pull'],['r5','L1 vs L2 · the picture'],['r6','dropout'],['r7','in practice']]},
   {roman:'VI',name:'Going deep: residuals & normalization',short:'Going deep',ids:[['s15','residual networks'],['n1','activations & distributions'],['n2','vanishing gradients'],['n3','30 layers \u00b1 normalization'],['n4','batch norm'],['n5','batch vs layer norm'],['s12','layer norm in detail']]},
   {roman:'VII',name:'Build a mini-LLM',short:'Mini-LLM',ids:[['s9','embeddings'],['s10','the FFN'],['s11','attention'],['pe1','positions: why'],['pe2','sin & cos waves'],['pe3','dot product = distance'],['pe4','RoPE'],['pe5','learned positions'],['s13','the full block'],['s14','KV cache & GQA']]},
+  {roman:'VIII',name:'Fine-tune an LLM',short:'Fine-tuning',ids:[['ft1','LoRA: a low-rank update']]},
 ];
 function boot(){
   document.querySelectorAll('.tex[data-tex]').forEach(e=>{
@@ -5283,7 +5548,8 @@ function boot(){
   });
   document.querySelectorAll('.tex-i[data-tex]').forEach(e=>{e.innerHTML=kx(e.dataset.tex,false);});
   const NEW={v1:buildV1(),v2:buildV2(),v3:buildV3(),m1:buildM1(),t1:buildT1(),t2:buildT2(),t3:buildT3(),
-    n1:buildN1(),n2:buildN2(),n3:buildN3(),n4:buildN4(),n5:buildN5(),pe1:buildPE1(),pe2:buildPE2(),pe3:buildPE3(),pe4:buildPE4(),pe5:buildPE5()};
+    n1:buildN1(),n2:buildN2(),n3:buildN3(),n4:buildN4(),n5:buildN5(),pe1:buildPE1(),pe2:buildPE2(),pe3:buildPE3(),pe4:buildPE4(),pe5:buildPE5(),m2:buildM2()};
+  document.querySelectorAll('.sref').forEach(e=>{e.textContent=SN(e.dataset.s);});
   window.__decks=NEW;
   const s2=buildSlide2();
   const s3=buildSlide3();
@@ -5313,8 +5579,8 @@ function boot(){
   // keyed by slide (section) id
   const PLAY={s1:s2.play,s2:s3.play,s3:ssub.play,s4:s4.play,s7:s7.play,s8:s8.play,s9:s9.play,s10:s10.play,
     s11:s11.play,s12:s12.play,s13:s13.play,s15:s15.play};
-  const STOP={s6:()=>sim3.stopPlay(),s7:()=>sim4.stopPlay()};
-  const SPACE={s14:()=>s14.next(),s13:()=>s13.next(),...Object.fromEntries(Object.entries(NEW).map(([k,d])=>[k,()=>d.next()])),s5:()=>s5.next(),s12:()=>s12.next(),s6:()=>sim3.step(),s7:()=>sim4.step(),
+  const STOP={s6:()=>sim3.stopPlay(),ft1:()=>sim4.stopPlay()};
+  const SPACE={s14:()=>s14.next(),s13:()=>s13.next(),...Object.fromEntries(Object.entries(NEW).map(([k,d])=>[k,()=>d.next()])),s5:()=>s5.next(),s12:()=>s12.next(),s6:()=>sim3.step(),s7:()=>s7.next(),ft1:()=>sim4.step(),
     r2:()=>r2.next(),r3:()=>r3.next(),r4:()=>r4.next(),r6:()=>r6.next()};
 
   const ORDER=[],META={};
