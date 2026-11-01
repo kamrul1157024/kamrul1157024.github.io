@@ -373,6 +373,9 @@ body.light .cnode{background:#fffdf8}
 .nmat .cell{width:64px}
 .nstat{font-size:11.5px;color:var(--mut)}
 .ctl .nt{text-transform:none}
+.dlt.upd{color:var(--ok)}
+.opgap{align-self:stretch;width:0;border-left:1px dashed var(--line);margin:0 14px}
+.dk .cell.dead{opacity:.3;text-decoration:line-through}
 .splitbar{display:flex;height:14px;max-width:520px;border:1px solid var(--line);margin-top:6px}
 .splitbar i{display:block;height:100%}
 
@@ -506,22 +509,21 @@ footer{margin-top:26px;color:var(--mut);font-size:12px;border-top:1px solid var(
 <!-- ============ SLIDE 5: scalar → vector ============ -->
 <section class="slide" id="s5">
   <div class="kick">Slide 5</div>
-  <h2>The formula morphs: one weight → a vector of weights</h2>
-  <p class="prose">A neuron has four inputs and four weights: <b>y = x₀w₀ + x₁w₁ + x₂w₂ + x₃w₃ + b</b>.
-  Press <b>Morph ▸</b> and watch the multiply rule from slide 1 change shape —
-  <b>spoiler: it doesn't. Only the subscripts do.</b></p>
-  <div class="controls">
-    <button class="primary" id="s5-morph">Morph ▸</button>
-    <button id="s5-replay">↺ replay</button>
+  <h2>A full neuron: forward, backward, update, repeat</h2>
+  <p class="prose">Put the vector rules together into one neuron, <span class="tex-i" data-tex="y = w\cdot x + b"></span>,
+  with loss <span class="tex-i" data-tex="L = (y-t)^2"></span>. The top lane runs <b>forward</b> (left to right), the middle
+  lane runs <b>backward</b> (right to left), and the bottom lane applies one gradient-descent <b>update</b>. Then keep
+  training and watch the loss fall. Every arrow is a rule you already know.</p>
+  <div class="dbar"><div class="stepbar" id="s5-bar"></div><div class="scap" id="s5-cap"></div></div>
+  <div id="s5-stage"></div>
+  <div class="dpanels" style="align-items:center">
+    <div id="s5-loss"></div>
+    <div><div class="controls" id="s5-train"></div><div class="nstat" id="s5-tstat"></div></div>
   </div>
-  <div class="fbar" id="s5-formula"></div>
-  <div class="fcaption" id="s5-cap"></div>
-  <div id="l2"></div>
-  <div class="rulebox"><b>DOT PRODUCT RULE</b>
-  <div class="tex" data-tex="y = \sum_i x_i w_i + b \qquad \frac{\partial L}{\partial w_i} = g \cdot x_i \qquad \frac{\partial L}{\partial b} = g"></div>
-  wᵢ appears in exactly one product, so its gradient touches exactly one input: xᵢ.
-  The add gates distribute g to every product; each multiply gate scales it by its own xᵢ.</div>
-  <button class="nextlesson" data-go="5">Next: same rule, matrices ▸</button>
+  <div class="rulebox"><b>ONE NEURON</b>
+  <div class="tex" data-tex="y = \sum_i w_i x_i + b \qquad \frac{\partial L}{\partial w_i} = \underbrace{2(y-t)}_{g}\; x_i \qquad \frac{\partial L}{\partial b} = g \qquad w \leftarrow w - \eta\,\frac{\partial L}{\partial w}"></div>
+  each <span class="tex-i" data-tex="w_i"></span> appears in exactly one product, so its gradient touches exactly one input,
+  <span class="tex-i" data-tex="x_i"></span>. The sum copies g to every product; each multiply gate scales its copy by its own input.</div>
 </section>
 
 <!-- ============ SLIDE 6: vector → matrix ============ -->
@@ -676,18 +678,12 @@ footer{margin-top:26px;color:var(--mut);font-size:12px;border-top:1px solid var(
   <h2>LayerNorm: keep the numbers sane</h2>
   <p class="prose">Deep stacks drift — activations blow up or vanish. LayerNorm re-centers and
   re-scales each token's vector to mean 0, variance 1, then applies a learned gain γ and shift β.
-  The backward pass is a projection: it removes the parts of g that would change the mean or
-  variance, then scales by γ/σ.</p>
-  <div class="controls">
-    <button class="primary" id="s12-next">Next step ▸</button>
-    <button id="s12-replay">↺ Replay</button>
-    <span class="stepcount" id="s12-count"></span>
-  </div>
-  <div id="s12-stage" style="margin-top:10px"></div>
-  <div class="fcaption" id="s12-cap"></div>
+  The backward pass is a projection: it removes the parts of the gradient that would only shift or stretch the vector, then divides by σ.</p>
+  <div class="dbar"><div class="stepbar" id="s12-bar"></div><div class="scap" id="s12-cap"></div></div>
+  <div id="s12-stage"></div>
   <div class="rulebox"><b>LAYERNORM</b>
   <div class="tex" data-tex="\hat{h} = \frac{h - \mu}{\sigma} \qquad y = \gamma \hat{h} + \beta"></div>
-  <div class="tex" data-tex="\frac{\partial L}{\partial h} = \frac{\gamma}{\sigma\,d} \left( d\,g - \textstyle\sum g - \hat{h} \cdot \textstyle\sum (g \odot \hat{h}) \right) \qquad \frac{\partial L}{\partial \gamma} = g \odot \hat{h} \qquad \frac{\partial L}{\partial \beta} = g"></div>
+  <div class="tex" data-tex="d = \gamma \odot g \qquad \frac{\partial L}{\partial h} = \frac{1}{\sigma} \Big( d - \operatorname{mean}(d) - \hat{h} \cdot \operatorname{mean}(d \odot \hat{h}) \Big) \qquad \frac{\partial L}{\partial \gamma} = g \odot \hat{h} \qquad \frac{\partial L}{\partial \beta} = g"></div>
   the backward pass projects g onto the subspace that preserves mean and variance — that's why
   LayerNorm is stable to train through.</div>
   <button class="nextlesson" data-go="12">Next: the full block ▸</button>
@@ -1656,29 +1652,6 @@ function buildSlide4(){
   return {play:async()=>{G.clearPackets();await FWD.play();await BWD.play();}};
 }
 
-/* ================= SLIDE 5: scalar → vector morph ================= */
-function buildSlide5(){
-  const F=makeFormula(document.getElementById('s5-formula'));
-  const cap=document.getElementById('s5-cap');
-  const states=[
-    {toks:[{k:'l',t:kx('\\frac{\\partial L}{\\partial w}')},{k:'e',t:'='},{k:'g',t:'g'},{k:'m',t:kx('\\cdot')},{k:'x',t:'x'}],
-     cap:'slide 1’s multiply rule, for one weight.'},
-    {toks:[{k:'l',t:kx('\\frac{\\partial L}{\\partial w_i}')},{k:'e',t:'='},{k:'g',t:'g'},{k:'m',t:kx('\\cdot')},{k:'x',t:kx('x_i')}],
-     cap:'four weights now — but each one still listens to <b>exactly one input</b>. Only a subscript appeared.'},
-    {toks:[{k:'l',t:kx('\\frac{\\partial L}{\\partial \\mathbf{w}}'),cls:'big'},{k:'e',t:'='},{k:'g',t:'g',cls:'big'},{k:'m',t:kx('\\cdot'),cls:'big'},{k:'x',t:kx('\\mathbf{x}'),cls:'big'}],
-     cap:'all four at once: the gradient vector is the upstream g times the input vector. <b>The rule did not change.</b>'},
-  ];
-  let i=0;
-  F.render(states[0].toks); cap.innerHTML=states[0].cap;
-  document.getElementById('s5-morph').onclick=()=>{
-    i=(i+1)%states.length;
-    F.morphTo(states[i].toks,['l','x','g','m']);
-    cap.innerHTML=states[i].cap;
-  };
-  document.getElementById('s5-replay').onclick=()=>{i=0;F.morphTo(states[0].toks,['l','x']);cap.innerHTML=states[0].cap;};
-  return {play:()=>{}};
-}
-
 /* ================= SLIDE 6: vector → matrix morph ================= */
 function buildSlide6(){
   const F=makeFormula(document.getElementById('s6-formula'));
@@ -1756,164 +1729,6 @@ function buildSlide7(){
   document.getElementById('s7-replay').onclick=()=>{G.clearPackets();G.clearPulses();
     G.setVal('b','·');G.setGrad('b','');ST.reset();base();};
   return {play:()=>ST.play()};
-}
-
-/* ================= scripted lesson infra (vector widget, slide 5) ================= */
-function createScriptedLesson(root, build){
-  const api={st:null};
-  root.innerHTML=`
-    <div class="controls">
-      <button class="primary q-next">Next ▸</button>
-      <button class="q-play">▶ Play</button>
-      <button class="q-fast">▸▸ ×25</button>
-      <button class="q-reset">Reset</button>
-      <span class="status q-status"></span>
-    </div>
-    <div class="q-stage"></div>
-    <div class="chain q-chain"><span class="dim">The composed rule appears here once the backward pass has run.</span></div>
-    <div class="ledgerwrap">
-      <div class="ledger q-ledger"></div>
-      <canvas class="spark q-spark" width="220" height="56"></canvas>
-    </div>
-    <div class="sliders q-sliders"></div>`;
-  const q=s=>root.querySelector(s);
-  const ui={stage:q('.q-stage'),ledger:q('.q-ledger'),chain:q('.q-chain'),spark:q('.q-spark'),
-    status:q('.q-status'),next:q('.q-next'),play:q('.q-play'),fast:q('.q-fast'),reset:q('.q-reset'),
-    sliders:q('.q-sliders')};
-  function ledger(line,cls){
-    const d=el('div','l '+(cls||''),line); ui.ledger.appendChild(d);
-    ui.ledger.scrollTop=ui.ledger.scrollHeight;
-  }
-  function setStatus(){
-    const st=api.st;
-    ui.status.textContent=`epoch ${st.epoch} · step ${Math.min(st.idx,st.script.length)}/${st.script.length}`;
-  }
-  function stepOnce(){
-    const st=api.st;
-    if(st.idx>=st.script.length)return;
-    const s=st.script[st.idx++];
-    if(s.line)ledger(s.line,s.cls);
-    if(s.apply)s.apply();
-    setStatus();
-    if(st.idx>=st.script.length && st.afterScript){const cb=st.afterScript;st.afterScript=null;cb();}
-  }
-  function runEpoch(){const st=api.st;let n=st.script.length;while(n-->0)stepOnce();}
-  function newScript(){build(api,ui,ledger);setStatus();}
-  ui.next.onclick=()=>stepOnce();
-  ui.fast.onclick=()=>{for(let k=0;k<api.st.fastN;k++)runEpoch();};
-  ui.play.onclick=function(){
-    const st=api.st;
-    st.playing=!st.playing;
-    this.textContent=st.playing?'⏸ Pause':'▶ Play';
-    if(st.playing)st.timer=setInterval(()=>{stepOnce();},700);
-    else clearInterval(st.timer);
-  };
-  ui.reset.onclick=()=>{api.stopPlay();api.st.reset();ui.ledger.innerHTML='';ui.chain.innerHTML=
-    '<span class="dim">The composed rule appears here once the backward pass has run.</span>';
-    api.st.render();newScript();};
-  api.stopPlay=()=>{const st=api.st;if(st&&st.playing){st.playing=false;clearInterval(st.timer);ui.play.textContent='▶ Play';}};
-  api.stepOnce=stepOnce; api.newScript=newScript; api.ledger=ledger; api.ui=ui;
-  newScript();
-  return api;
-}
-
-/* ---------------- vector lesson (slide 5 widget) ---------------- */
-function buildVectorLesson(api,ui,ledger){
-  const N=4;
-  if(!api.st){
-    const R=rng(11); const rand=()=>R()*2-1;
-    const st={N,x:[],w0:[],w:[],b:0,t:1.5,eta:0.1,epoch:0,hist:[],script:[],idx:0,playing:false,timer:null,fastN:25};
-    st.x=Array.from({length:N},()=>rand()*0.6);
-    st.w0=Array.from({length:N},()=>rand()*0.3);
-    st.reset=()=>{st.w=st.w0.slice();st.b=0;st.epoch=0;st.hist=[];st.idx=0;};
-    st.w=st.w0.slice();
-    api.st=st;
-    const etalab=el('label','ctl');etalab.append('η ');
-    const ei=el('input');ei.type='range';ei.min=0.02;ei.max=0.3;ei.step=0.01;ei.value=st.eta;
-    const es=el('span',null,st.eta.toFixed(2));
-    ei.oninput=()=>{st.eta=+ei.value;es.textContent=st.eta.toFixed(2);};
-    etalab.append(ei,es);ui.sliders.appendChild(etalab);
-    var setC=(kind,i,v)=>{ui.stage.querySelector(`.cell[data-k="${kind}"][data-i="${i}"]`).textContent=v==null?'·':fmt(v);};
-    var hlC=pairs=>{ui.stage.querySelectorAll('.cell').forEach(c=>c.classList.remove('hl'));
-      pairs.forEach(([k,i])=>{const c=ui.stage.querySelector(`.cell[data-k="${k}"][data-i="${i}"]`);if(c)c.classList.add('hl');});};
-    var setB=(n,v)=>{ui.stage.querySelectorAll(`.nb[data-n="${n}"] .nbval`).forEach(c=>c.textContent=v==null?'·':fmt(v));};
-    var setBG=(n,g)=>{ui.stage.querySelectorAll(`.nb[data-n="${n}"] .nbgrad`).forEach(c=>c.textContent='∂L/∂'+n+' = '+fmt(g));};
-    var hlB=ns=>{ui.stage.querySelectorAll('.nb').forEach(c=>c.classList.remove('hl'));
-      ns.forEach(n=>ui.stage.querySelectorAll(`.nb[data-n="${n}"]`).forEach(c=>c.classList.add('hl')));};
-    var clearComputed=()=>{
-      for(let i=0;i<N;i++){setC('p',i,null);setC('dw',i,null);}
-      ['y','L'].forEach(n=>setB(n,null));
-      ui.stage.querySelectorAll('.nbgrad').forEach(c=>c.textContent='');
-      hlC([]);hlB([]);
-    };
-    var renderAll=()=>{
-      for(let i=0;i<N;i++){setC('x',i,st.x[i]);setC('w',i,st.w[i]);}
-      setB('t',st.t);setB('b',st.b);
-      clearComputed();
-      drawSparkInto(ui.spark,st.hist,'loss / epoch');
-    };
-    var gridRow=(label,n,kind,trainable)=>{
-      const r=el('div','l2row');
-      r.appendChild(el('span','rl',label));
-      const g=el('div','grid');g.style.gridTemplateColumns=`repeat(${n},var(--cw))`;
-      for(let i=0;i<n;i++){const c=el('div','cell'+(trainable?' trainable':kind==='dw'?' gradcell':''),'·');
-        c.dataset.k=kind;c.dataset.i=i;g.appendChild(c);}
-      r.appendChild(g);return r;
-    };
-    var vnb=(n,trainable)=>{
-      const d=el('div','nb'+(trainable===true?' trainable':''));
-      d.dataset.n=n;
-      d.appendChild(el('div','nbname',n+(trainable===true?' (trainable)':trainable===false?' (fixed)':'')));
-      d.appendChild(el('div','nbval','·'));
-      d.appendChild(el('div','nbgrad',''));
-      return d;
-    };
-    st.ui={setC,hlC,setB,setBG,hlB,clearComputed,renderAll};
-    st.render=renderAll;
-    const stg=ui.stage; stg.innerHTML='';
-    const rows=el('div','l2rows'); stg.appendChild(rows);
-    rows.appendChild(gridRow('x',N,'x'));
-    rows.appendChild(gridRow('w',N,'w',true));
-    rows.appendChild(gridRow('p = x·w',N,'p'));
-    rows.appendChild(gridRow('∂L/∂w',N,'dw'));
-    const boxes=el('div','gate'); boxes.style.marginTop='12px';
-    [['y',null],['b',true],['t',false],['L',null]].forEach(([n,tr])=>boxes.appendChild(vnb(n,tr)));
-    stg.appendChild(boxes);
-    renderAll();
-  }
-  const st=api.st;
-  const {x,w,b,t,eta}=st;
-  const p=x.map((xi,i)=>xi*w[i]);
-  const y=p.reduce((a,c)=>a+c,0)+b;
-  const L=(y-t)*(y-t);
-  const gy=2*(y-t), db=gy;
-  const dw=x.map(xi=>gy*xi);
-  const U=st.ui;
-  const script=[];
-  for(let i=0;i<N;i++)script.push({line:`forward  p${i} = x${i}·w${i} = ${fmt(x[i])}·${fmt(w[i])} = ${fmt(p[i])}`,
-    apply:()=>{U.setC('p',i,p[i]);U.hlC([['x',i],['w',i],['p',i]]);}});
-  script.push({line:`forward  y = Σp + b = ${p.map(fmt).join(' + ')} + ${fmt(b)} = ${fmt(y)}`,
-    apply:()=>{U.setB('y',y);U.hlC([...Array(N)].map((_,i)=>['p',i]));U.hlB(['b','y']);}});
-  script.push({line:`forward  L = (y − t)² = (${fmt(y)} − ${fmt(t)})² = ${fmt(L)}`,
-    apply:()=>{U.setB('L',L);U.hlB(['y','t','L']);}});
-  script.push({line:`backward ∂L/∂y = 2(y − t) = ${fmt(gy)}   (square rule — one upstream gradient for the whole row)`,
-    cls:'bwd',apply:()=>{U.setBG('y',gy);U.hlB(['y','L']);}});
-  for(let i=0;i<N;i++)script.push({line:`backward ∂L/∂w${i} = ∂L/∂y · x${i} = ${fmt(gy)}·${fmt(x[i])} = ${fmt(dw[i])}   (multiply rule: w${i} only ever sees its own x${i})`,
-    cls:'bwd',apply:()=>{U.setC('dw',i,dw[i]);U.hlC([['w',i],['x',i],['dw',i]]);}});
-  script.push({line:`backward ∂L/∂b = ∂L/∂y = ${fmt(db)}   (add rule: g copies straight through)`,
-    cls:'bwd',apply:()=>{U.setBG('b',db);U.hlB(['b','y']);}});
-  script.push({line:`update   w ← w − η·∂L/∂w   b ← b − η·∂L/∂b   → all ${N+1} parameters move at once`,cls:'upd',
-    apply:()=>{
-      for(let i=0;i<N;i++){st.w[i]=w[i]-eta*dw[i];U.setC('w',i,st.w[i]);}
-      st.b=b-eta*db;U.setB('b',st.b);
-      ui.chain.innerHTML=`the whole gradient in one line:  ∂L/∂wᵢ = 2(y−t)·xᵢ   <span class="dim">— N independent slide-1 multiplications sharing one distributed gradient</span>`;
-      U.hlC([...Array(N)].map((_,i)=>['w',i]));U.hlB(['b']);}});
-  st.script=script; st.idx=0;
-  st.afterScript=()=>{
-    st.epoch++;st.hist.push(L);
-    drawSparkInto(ui.spark,st.hist,'loss / epoch');
-    U.clearComputed();api.newScript();
-  };
 }
 
 /* ================= matrix sim factory (slides 6 & 7) ================= */
@@ -2044,7 +1859,7 @@ function createMatrixSim(root,opts){
     fwd.appendChild(P({id:'T',title:'T',sub:'target',rows:S.B,cols:S.M}));
     const lb=el('div','lossbox','L = ·'); lb.classList.add('m-lossbox'); fwd.appendChild(lb);
     bwd.appendChild(P({id:'G',title:'G = ∂L/∂Y',sub:`${S.B}×${S.M}`,rows:S.B,cols:S.M}));
-    bwd.appendChild(op('→'));
+    bwd.appendChild(op('⇒'));
     if(S.mode==='full'){
       bwd.appendChild(P({id:'dW',title:'∂L/∂W = Xᵀ·G',sub:`${S.N}×${S.M}`,rows:S.N,cols:S.M}));
     }else{
@@ -2053,9 +1868,9 @@ function createMatrixSim(root,opts){
       bwd.appendChild(P({id:'dA',title:'∂L/∂A = (XᵀG)·Bᵀ',sub:`${S.N}×${S.r}`,rows:S.N,cols:S.r,cls:'adapter'}));
       bwd.appendChild(P({id:'dB',title:'∂L/∂B = Aᵀ·(XᵀG)',sub:`${S.r}×${S.M}`,rows:S.r,cols:S.M,cls:'adapter'}));
     }
-    bwd.appendChild(op('·'));
+    bwd.appendChild(el('div','opgap'));
     bwd.appendChild(P({id:'db',title:'∂L/∂b = Σ G',sub:`1×${S.M}`,rows:1,cols:S.M}));
-    bwd.appendChild(op('·'));
+    bwd.appendChild(el('div','opgap'));
     bwd.appendChild(P({id:'dX',title:'∂L/∂X = G·Wᵀ',sub:'to prev layer',rows:S.B,cols:S.N,cls:'ghost'}));
     stage.appendChild(fwd); stage.appendChild(bwd);
   }
@@ -2567,57 +2382,6 @@ function buildSlide11(){
   });
   document.getElementById('s11-next').onclick=()=>ST.next();
   document.getElementById('s11-replay').onclick=()=>{ST.reset();base();};
-  return {play:()=>ST.play()};
-}
-
-/* ================= SLIDE 12: layernorm ================= */
-function buildSlide12(){
-  const stage=document.getElementById('s12-stage');
-  const cap=document.getElementById('s12-cap');
-  const cnt=document.getElementById('s12-count');
-  const h0=[2.1,-0.4,1.3,0.2];
-  const mu=h0.reduce((a,c)=>a+c,0)/h0.length;
-  const va=h0.reduce((a,c)=>a+(c-mu)**2,0)/h0.length;
-  const sg=Math.sqrt(va+1e-5);
-  const hh=h0.map(v=>+((v-mu)/sg).toFixed(2));
-  const gam=1.2, bet=0.3;
-  const y=hh.map(v=>+(gam*v+bet).toFixed(2));
-  const g=[0.4,-0.2,0.1,0.3];
-  const ST=makeStepper();
-  function vecRow(label,vals,hl){
-    const r=el('div','l2row');
-    r.appendChild(el('span','rl',label));
-    const gr=el('div','grid');gr.style.gridTemplateColumns=`repeat(${vals.length},var(--cw))`;
-    vals.forEach(v=>{const c=el('div','cell',fmt(v));if(hl)c.classList.add('hl');gr.appendChild(c);});
-    r.appendChild(gr);return r;
-  }
-  function base(){stage.innerHTML='';cap.innerHTML='';cnt.textContent=ST.count();}
-  base();
-  ST.add(async()=>{
-    stage.appendChild(vecRow('h',h0));
-    cap.innerHTML=`one token's vector. mean μ = <b>${fmt(mu)}</b>, variance σ² = <b>${fmt(va)}</b> — the numbers drift as the stack grows.`;
-    cnt.textContent=ST.count();
-  });
-  ST.add(async()=>{
-    stage.appendChild(el('div','op','→'));
-    stage.appendChild(vecRow('ĥ = (h−μ)/σ',hh,true));
-    cap.innerHTML='normalize: subtract the mean, divide by σ — now mean 0, variance 1, <b>per token</b>.';
-    cnt.textContent=ST.count();
-  });
-  ST.add(async()=>{
-    stage.appendChild(el('div','op','→'));
-    stage.appendChild(vecRow('y = γĥ+β',y));
-    cap.innerHTML=`learned gain γ = ${gam} and shift β = ${bet} restore the network's freedom to scale and shift.`;
-    cnt.textContent=ST.count();
-  });
-  ST.add(async()=>{
-    stage.appendChild(el('div','op','←'));
-    stage.appendChild(vecRow('g',g));
-    cap.innerHTML='backward: g is projected — remove the component that changes the mean and the one that changes the variance, scale by γ/σ. ∂L/∂γ = g⊙ĥ, ∂L/∂β = g.';
-    cnt.textContent=ST.count();
-  });
-  document.getElementById('s12-next').onclick=()=>ST.next();
-  document.getElementById('s12-replay').onclick=()=>{ST.reset();base();};
   return {play:()=>ST.play()};
 }
 
@@ -3406,18 +3170,12 @@ function buildReg6(){
       gr.appendChild(c);});
     r.appendChild(gr);return r;
   }
+  let prevShown=0;
   function render(){
-    stage.innerHTML='';const rows=el('div','l2rows');stage.appendChild(rows);
-    const mm=evalMode?h.map(()=>1):m,sc=evalMode?1:1/q,dead=mm.map(v=>!v);
-    rows.appendChild(row('unit',[...Array(N)].map((_,i)=>'h'+(i+1))));
-    if(shown>=1)rows.appendChild(row('h  (forward)',h,shown>=2?dead:null));
-    if(shown>=2)rows.appendChild(row(evalMode?'mask (off at eval)':'mask m',mm.map(v=>v?'1':'0'),dead));
-    if(shown>=3)rows.appendChild(row(evalMode?'h̃ = h':'h̃ = m·h / q',h.map((v,i)=>mm[i]*v*sc),dead));
-    if(!evalMode){
-      if(shown>=4)rows.appendChild(row('g  (from above)',g));
-      if(shown>=5)rows.appendChild(row('∂L/∂h = m·g / q',g.map((v,i)=>mm[i]*v*sc),dead,'gradcell'));
-      if(shown>=6)rows.appendChild(row('weights into it learn?',mm.map(v=>v?'✓':'✗'),dead));
-    }
+    document.getElementById('r6').classList.add('dk');
+    if(shown<prevShown)prevShown=0;
+    const mm=evalMode?h.map(()=>1):m,sc=evalMode?1:1/q;
+    dropoutFlow(stage,{N,h,g,mm,sc,shown,evalMode,q,prevShown});prevShown=shown;
     cnt.textContent=evalMode?'eval mode':(shown>=6?'done':`step ${shown}/6`);
   }
   const CAPS=[
@@ -4476,6 +4234,202 @@ function buildN5(){
   return makeDeck('n5',{n:5,render,animate,caption});
 }
 
+/* ================= shared lane helper for flow layouts ================= */
+function flowLane(host,cls,title,sub){const d=el('div','dlane');d.innerHTML=`<div class="dlh"><span class="dlt ${cls}">${title}</span><span class="dim">${sub}</span></div>`;
+  const sc=el('div','stage');const ln=el('div','lane');sc.appendChild(ln);d.appendChild(sc);host.appendChild(d);return ln;}
+
+/* ================= VECTORS 4: a full neuron, trained (s5) ================= */
+function buildS5(){
+  const st=document.getElementById('s5-stage'),N=4;
+  const x=[1.0,-0.5,2.0,0.5],t=1.5,W0=[0.2,0.4,-0.3,0.1],B0=0.1;
+  let cur={w:W0.slice(),b:B0},eta=0.02,epoch=0,hist=[];
+  const calc=()=>{const w=cur.w,b=cur.b,p=x.map((v,i)=>v*w[i]),s=p.reduce((a,c)=>a+c,0),y=s+b,e=y-t,L=e*e,g=2*e,gw=x.map(v=>g*v);
+    const w2=w.map((v,i)=>v-eta*gw[i]),b2=b-eta*g,y2=x.reduce((a,v,i)=>a+v*w2[i],0)+b2,L2=(y2-t)**2;return {w,b,p,s,y,e,L,g,gw,w2,b2,L2};};
+  const RL=['1','2','3','4'];let P={};
+  function build(){
+    st.innerHTML='';P={};
+    const f=flowLane(st,'fwd','forward','read left to right');
+    P.x=kmat('x',N,1,{rl:RL,sub:'input'});P.w=kmat('w',N,1,{sub:'trainable'});P.p=kmat('p = w \\odot x',N,1);
+    P.s=kmat('s = \\textstyle\\sum_i p_i',1,1);P.b=kmat('b',1,1,{sub:'trainable'});P.y=kmat('y = s + b',1,1);
+    P.t=kmat('t',1,1,{sub:'target'});P.e=kmat('e = y - t',1,1);P.L=kmat('L = e^2',1,1);
+    f.append(P.x,kop('\\odot'),P.w,kop('='),P.p,kop('\\xrightarrow{\\;\\Sigma\\;}'),P.s,kop('+'),P.b,kop('='),P.y,kop('-'),P.t,kop('='),P.e,kop('\\xrightarrow{(\\cdot)^2}'),P.L);
+    const g=flowLane(st,'bwd','backward','read right to left: each arrow is one rule');
+    P.gw=kmat('\\partial L/\\partial w',N,1,{rl:RL,sub:'= g_p ⊙ x'});P.gp=kmat('g_p = \\partial L/\\partial p',N,1,{sub:'4 copies of g'});
+    P.gb=kmat('\\partial L/\\partial b',1,1,{sub:'1 copy of g'});P.gy=kmat('g = \\partial L/\\partial y',1,1);P.ge=kmat('\\partial L/\\partial e = 2e',1,1);
+    g.append(P.gw,kop('\\xleftarrow{\\;\\times\\, x_i\\;}'),P.gp,P.gb,kop('\\xleftarrow{\\;\\text{copy}\\;}'),P.gy,kop('\\xleftarrow{\\;\\times 1\\;}'),P.ge);
+    const u=flowLane(st,'upd','update',`one gradient-descent step, learning rate η = ${eta}`);
+    P.uw=kmat('w',N,1,{rl:RL});P.ug=kmat('\\partial L/\\partial w',N,1);P.un=kmat('w_{\\text{new}}',N,1);
+    P.ub=kmat('b',1,1);P.ubg=kmat('\\partial L/\\partial b',1,1);P.ubn=kmat('b_{\\text{new}}',1,1);
+    P.uL=kmat('L \\;\\to\\; L_{\\text{new}}',1,2,{sub:'same input, new weights'});
+    u.append(P.uw,kop(`-\\;${eta}\\,\\cdot`),P.ug,kop('='),P.un,kop('\\qquad'),P.ub,kop(`-\\;${eta}\\,\\cdot`),P.ubg,kop('='),P.ubn,kop('\\qquad'),P.uL);
+    P.fb=el('div','fbox');st.appendChild(P.fb);
+  }
+  const col=(p,vals,cls,pop,k)=>{for(let i=0;i<vals.length;i++)if(k==null||k===i)setc(p.cells[i][0],fmt(vals[i]),cls,pop);};
+  const one=(p,v,cls,pop)=>setc(p.cells[0][0],fmt(v),cls,pop);
+  function fbox(c){P.fb.innerHTML=`<div class="fgrid"><span class="dim">scalar (slide 4)</span>${kx('\\frac{\\partial L}{\\partial w} = 2e\\cdot x')}
+    <span class="dim">vector</span>${kx(`\\frac{\\partial L}{\\partial w} = 2e\\, x = (${fmt(c.g)})\\,[${x.map(fmt).join(',\\,')}] = [${c.gw.map(fmt).join(',\\,')}]`)}
+    <span class="dim">bias</span>${kx(`\\frac{\\partial L}{\\partial b} = 2e = ${fmt(c.g)}`)}</div>`;}
+  function render(S){
+    build();const c=calc();
+    col(P.x,x,'fwdv');col(P.w,c.w,'fwdv');one(P.b,c.b,'fwdv');one(P.t,t,'fwdv');
+    if(S>=1)col(P.p,c.p,'fwdv');
+    if(S>=2){one(P.s,c.s,'fwdv');one(P.y,c.y,'fwdv');}
+    if(S>=3){one(P.e,c.e,'fwdv');one(P.L,c.L,'newv');}
+    if(S>=4){one(P.ge,c.g,'gv');one(P.gy,c.g,'gv');}
+    if(S>=5){col(P.gp,c.gw.map(()=>c.g),'gv');one(P.gb,c.g,'gv');}
+    if(S>=6)col(P.gw,c.gw,'gv');
+    if(S>=7){col(P.uw,c.w,'fwdv');col(P.ug,c.gw,'gv');col(P.un,c.w2,'newv');one(P.ub,c.b,'fwdv');one(P.ubg,c.g,'gv');one(P.ubn,c.b2,'newv');
+      setc(P.uL.cells[0][0],f3(c.L),'fwdv');setc(P.uL.cells[0][1],f3(c.L2),'newv');}
+    fbox(c);if(S>=8)P.fb.classList.add('on');
+  }
+  const hot=(cs,on)=>cs.forEach(q=>q.classList.toggle('hot',on));
+  async function animate(S,ctx,run){
+    const c=calc();
+    if(S===1){for(let i=0;i<N;i++){const cs=[P.x.cells[i][0],P.w.cells[i][0]];hot(cs,true);col(P.p,c.p,'newv',true,i);await ctx.wait(520,run);hot(cs,false);}}
+    if(S===2){const ps=P.p.cells.map(r=>r[0]);hot(ps,true);await ctx.wait(500,run);one(P.s,c.s,'newv',true);await ctx.wait(500,run);hot(ps,false);
+      const cs=[P.s.cells[0][0],P.b.cells[0][0]];hot(cs,true);await ctx.wait(450,run);one(P.y,c.y,'newv',true);await ctx.wait(500,run);hot(cs,false);}
+    if(S===3){let cs=[P.y.cells[0][0],P.t.cells[0][0]];hot(cs,true);await ctx.wait(450,run);one(P.e,c.e,'newv',true);await ctx.wait(450,run);hot(cs,false);
+      hot([P.e.cells[0][0]],true);await ctx.wait(400,run);one(P.L,c.L,'newv',true);await ctx.wait(500,run);hot([P.e.cells[0][0]],false);}
+    if(S===4){hot([P.e.cells[0][0]],true);one(P.ge,c.g,'gv',true);await ctx.wait(800,run);hot([P.e.cells[0][0]],false);one(P.gy,c.g,'gv',true);await ctx.wait(600,run);}
+    if(S===5){hot([P.gy.cells[0][0]],true);for(let i=0;i<N;i++){setc(P.gp.cells[i][0],fmt(c.g),'gv',true);await ctx.wait(260,run);}
+      one(P.gb,c.g,'gv',true);await ctx.wait(500,run);hot([P.gy.cells[0][0]],false);}
+    if(S===6){for(let i=0;i<N;i++){const cs=[P.gp.cells[i][0],P.x.cells[i][0]];hot(cs,true);col(P.gw,c.gw,'gv',true,i);await ctx.wait(560,run);hot(cs,false);}}
+    if(S===7){for(let i=0;i<N;i++){setc(P.uw.cells[i][0],fmt(c.w[i]),'fwdv',true);setc(P.ug.cells[i][0],fmt(c.gw[i]),'gv',true);}await ctx.wait(450,run);
+      for(let i=0;i<N;i++){const cs=[P.uw.cells[i][0],P.ug.cells[i][0]];hot(cs,true);col(P.un,c.w2,'newv',true,i);await ctx.wait(380,run);hot(cs,false);}
+      one(P.ub,c.b,'fwdv',true);one(P.ubg,c.g,'gv',true);await ctx.wait(350,run);one(P.ubn,c.b2,'newv',true);await ctx.wait(450,run);
+      setc(P.uL.cells[0][0],f3(c.L),'fwdv',true);await ctx.wait(350,run);setc(P.uL.cells[0][1],f3(c.L2),'newv',true);await ctx.wait(500,run);}
+    if(S===8){P.fb.classList.add('on');await ctx.wait(900,run);}
+  }
+  function caption(S){
+    const c=calc();
+    if(S===0)return `A neuron with 4 inputs, ${kx('y = w\\cdot x + b')}, target ${kx(`t = ${t}`)}. Top lane: forward. Middle lane: backward. Bottom lane: the update. ${epoch?`<b>Epoch ${epoch}</b>: the weights have already been trained ${epoch} time${epoch>1?'s':''}. `:''}Press <b>Next step ▸</b> (or space).`;
+    if(S===1)return `<b>Multiply, position by position:</b> ${kx('p_i = w_i x_i')}. Row 3: ${kx(`(${fmt(c.w[2])})(${fmt(x[2])}) = ${fmt(c.p[2])}`)}.`;
+    if(S===2)return `<b>Sum, then add the bias:</b> ${kx(`s = ${c.p.map(v=>'('+fmt(v)+')').join('+')} = ${fmt(c.s)}`)}, then ${kx(`y = ${fmt(c.s)} + ${fmt(c.b)} = ${fmt(c.y)}`)}.`;
+    if(S===3)return `<b>Error and loss:</b> ${kx(`e = ${fmt(c.y)} - ${t} = ${fmt(c.e)}`)}, ${kx(`L = e^2 = ${f3(c.L)}`)}. The forward pass is done.`;
+    if(S===4)return `<b>Backward starts at the loss.</b> Square rule: ${kx(`\\partial L/\\partial e = 2e = ${fmt(c.g)}`)}. The subtract gate passes it through unchanged (×1), so ${kx(`g = \\partial L/\\partial y = ${fmt(c.g)}`)}.`;
+    if(S===5)return `<b>The sum and the + gate copy g:</b> every ${kx('p_i')} receives the full ${kx(`g = ${fmt(c.g)}`)}, and so does the bias: ${kx(`\\partial L/\\partial b = ${fmt(c.g)}`)}. Nothing is split.`;
+    if(S===6)return `<b>Each multiply gate scales its copy by its partner input:</b> ${kx('\\partial L/\\partial w_i = g\\, x_i')}. Row 3: ${kx(`(${fmt(c.g)})(${fmt(x[2])}) = ${fmt(c.gw[2])}`)}. The largest input gets the largest gradient.`;
+    if(S===7)return `<b>Update:</b> ${kx('w \\leftarrow w - \\eta\\,\\partial L/\\partial w')} and ${kx('b \\leftarrow b - \\eta\\,\\partial L/\\partial b')} with ${kx(`\\eta = ${eta}`)}. Run the same input again and the loss drops from ${kx(f3(c.L))} to ${kx(f3(c.L2))}. Use <b>Next epoch ↻</b> below to keep training.`;
+    return `<b>The vector formula is the scalar formula,</b> with ${kx('x')} now a vector: ${kx('\\partial L/\\partial w = 2e\\, x')}. One upstream number, copied to every weight and scaled by that weight's own input.`;
+  }
+  const D=makeDeck('s5',{n:8,render,animate,caption});
+  // ---- training controls ----
+  const bar=document.getElementById('s5-train'),tst=document.getElementById('s5-tstat'),lossHost=document.getElementById('s5-loss');
+  const lp=cpanel('\\text{loss per epoch}',380,140);lossHost.appendChild(lp);
+  function drawLoss(){const c=TC(),cv=lp.cv,ctx=cctx(cv),W=cv.__w,H=cv.__h,rect={x:40,y:10,w:W-52,h:H-30};
+    ctx.strokeStyle=c.line;ctx.strokeRect(rect.x,rect.y,rect.w,rect.h);ctx.font='10.5px ui-monospace,monospace';ctx.fillStyle=c.mut;
+    const hs=hist.concat([calc().L]),mx=Math.max(...hs,0.1);ctx.fillText(mx.toFixed(2),4,rect.y+8);ctx.fillText('0',24,rect.y+rect.h);
+    ctx.fillText('epoch '+(hs.length-1),rect.x+rect.w-56,H-6);
+    if(hs.length>1){ctx.strokeStyle=c.acc;ctx.lineWidth=2;ctx.beginPath();hs.forEach((v,k)=>{const px=rect.x+k/(hs.length-1)*rect.w,py=rect.y+rect.h-v/mx*rect.h;k?ctx.lineTo(px,py):ctx.moveTo(px,py);});ctx.stroke();}
+    ctx.fillStyle=c.acc;const k=hs.length-1,px=rect.x+(hs.length>1?rect.w:0),py=rect.y+rect.h-hs[k]/mx*rect.h;ctx.beginPath();ctx.arc(px,py,3.5,0,7);ctx.fill();
+    lp.st.innerHTML=`epoch ${kx(String(epoch))} · loss ${kx(f3(calc().L))}`;}
+  function stepOnce(){const c=calc();hist.push(c.L);cur={w:c.w2,b:c.b2};epoch++;}
+  function after(){D.refresh();document.getElementById('s5-cap').innerHTML=caption(D.state().shown);drawLoss();}
+  const b1=el('button','primary','Next epoch ↻'),b2=el('button','','Train ×25 ▸▸'),b3=el('button','','Reset weights');
+  const lb=el('label','ctl');lb.innerHTML=`learning rate <span class="nt">η</span> <input type="range" min="0.005" max="0.15" step="0.005" value="${eta}"><span>${eta}</span>`;
+  const er=lb.querySelector('input'),ev=lb.querySelector('span:last-child');
+  b1.onclick=()=>{stepOnce();after();};b2.onclick=()=>{for(let k=0;k<25;k++)stepOnce();after();};
+  b3.onclick=()=>{cur={w:W0.slice(),b:B0};epoch=0;hist=[];after();};
+  er.oninput=()=>{eta=+er.value;ev.textContent=eta.toFixed(3);after();};
+  bar.append(b1,b2,b3,lb);tst.innerHTML='each epoch runs the same forward → backward → update on this one example. Try η = 0.15: the steps overshoot and the loss oscillates.';
+  drawLoss();
+  window.__themeRedraws.push(drawLoss);
+  return D;
+}
+
+/* ================= LayerNorm in detail (s12), as a flow ================= */
+function buildSlide12(){
+  const st=document.getElementById('s12-stage');
+  const h=[2.1,-0.4,1.3,0.2],gam=[1.2,0.8,1.0,1.5],bet=[0.3,0.0,-0.2,0.1],g=[0.4,-0.2,0.1,0.3],d=4,eps=1e-5;
+  const mu=h.reduce((a,c)=>a+c,0)/d,va=h.reduce((a,c)=>a+(c-mu)**2,0)/d,sg=Math.sqrt(va+eps);
+  const hc=h.map(v=>v-mu),hh=hc.map(v=>v/sg),y=hh.map((v,i)=>gam[i]*v+bet[i]);
+  const dgam=g.map((v,i)=>v*hh[i]),dd=g.map((v,i)=>v*gam[i]);
+  const m1=dd.reduce((a,c)=>a+c,0)/d,m2=dd.reduce((a,c,i)=>a+c*hh[i],0)/d;
+  const pr=dd.map((v,i)=>v-m1-hh[i]*m2),dh=pr.map(v=>v/sg);
+  const Lof=hv=>{const m=hv.reduce((a,c)=>a+c,0)/d,v=hv.reduce((a,c)=>a+(c-m)**2,0)/d,s=Math.sqrt(v+eps);return hv.reduce((a,c,i)=>a+g[i]*(gam[i]*(c-m)/s+bet[i]),0);};
+  const fd=h.map((_,i)=>{const a=h.slice(),b=h.slice();a[i]+=1e-5;b[i]-=1e-5;return (Lof(a)-Lof(b))/2e-5;});
+  const RL=lab('',d,1).map(s=>s.replace('_{','').replace('}',''));let P={};
+  function build(){
+    st.innerHTML='';P={};
+    const f=flowLane(st,'fwd','forward','one token\u2019s vector, read left to right');
+    P.h=kmat('h',d,1,{rl:RL});P.ms=kmat('\\text{stats}',2,1,{rl:['\\mu','\\sigma'],sub:'over its 4 features'});
+    P.hc=kmat('h - \\mu',d,1);P.hh=kmat('\\hat h = (h - \\mu)/\\sigma',d,1);P.ga=kmat('\\gamma',d,1,{sub:'learned'});P.be=kmat('\\beta',d,1,{sub:'learned'});P.y=kmat('y = \\gamma\\odot\\hat h + \\beta',d,1);
+    f.append(P.h,kop('\\to'),P.ms,kop('\\to'),P.hc,kop('\\xrightarrow{\\;\\div\\,\\sigma\\;}'),P.hh,kop('\\odot'),P.ga,kop('+'),P.be,kop('='),P.y);
+    const b=flowLane(st,'bwd','backward','read right to left');
+    P.dh=kmat('\\partial L/\\partial h',d,1,{rl:RL});P.pr=kmat('d - \\bar d - \\hat h\\, m',d,1,{sub:'projected'});
+    P.mm=kmat('\\text{averages}',2,1,{rl:['\\bar d','m'],sub:'m = mean(d⊙ĥ)'});
+    P.dd=kmat('d = \\partial L/\\partial \\hat h',d,1);P.g=kmat('g = \\partial L/\\partial y',d,1,{sub:'from the next layer'});
+    P.dg=kmat('\\partial L/\\partial\\gamma = g\\odot\\hat h',d,1);P.db=kmat('\\partial L/\\partial\\beta = g',d,1);
+    const gap=el('div','opgap');
+    b.append(P.dh,kop('\\xleftarrow{\\;\\div\\,\\sigma\\;}'),P.pr,kop('\\xleftarrow{\\;-\\;}'),P.mm,kop('\\xleftarrow{\\text{avg}}'),P.dd,kop('\\xleftarrow{\\;\\odot\\,\\gamma\\;}'),P.g,gap,P.dg,P.db);
+    P.fb=el('div','fbox');
+    P.fb.innerHTML=`<div class="fgrid"><span class="dim">no mean left</span>${kx(`\\textstyle\\sum_i \\partial L/\\partial h_i = ${dh.map(fmt).join('+')} = ${Math.abs(dh.reduce((a,c)=>a+c,0))<5e-3?'0':fmt(dh.reduce((a,c)=>a+c,0))}`)}
+      <span class="dim">no spread left</span>${kx(`\\textstyle\\sum_i \\partial L/\\partial h_i\\,\\hat h_i = ${Math.abs(dh.reduce((a,c,i)=>a+c*hh[i],0))<5e-3?'0':fmt(dh.reduce((a,c,i)=>a+c*hh[i],0))}`)}
+      <span class="dim">numerical check</span>${kx(`\\text{nudge each } h_i \\text{ by } 10^{-5}: \\; [${fd.map(v=>v.toFixed(3)).join(',\\,')}] \\;=\\; [${dh.map(v=>v.toFixed(3)).join(',\\,')}] \\;\\checkmark`)}</div>`;
+    st.appendChild(P.fb);
+  }
+  const col=(p,vals,cls,pop,k)=>{for(let i=0;i<vals.length;i++)if(k==null||k===i)setc(p.cells[i][0],fmt(vals[i]),cls,pop);};
+  function render(S){
+    build();col(P.h,h,'fwdv');col(P.ga,gam,'fwdv');col(P.be,bet,'fwdv');
+    if(S>=1){setc(P.ms.cells[0][0],fmt(mu),'newv');setc(P.ms.cells[1][0],fmt(sg),'newv');}
+    if(S>=2){col(P.hc,hc,'fwdv');col(P.hh,hh,'fwdv');}
+    if(S>=3)col(P.y,y,'fwdv');
+    if(S>=4){col(P.g,g,'gv');col(P.dg,dgam,'gv');col(P.db,g,'gv');}
+    if(S>=5)col(P.dd,dd,'gv');
+    if(S>=6){setc(P.mm.cells[0][0],fmt(m1),'newv');setc(P.mm.cells[1][0],fmt(m2),'newv');col(P.pr,pr,'gv');}
+    if(S>=7){col(P.dh,dh,'gv');P.fb.classList.add('on');}
+  }
+  const hot=(cs,on)=>cs.forEach(q=>q.classList.toggle('hot',on));
+  const cells=p=>p.cells.map(r=>r[0]);
+  async function animate(S,ctx,run){
+    if(S===1){hot(cells(P.h),true);await ctx.wait(700,run);setc(P.ms.cells[0][0],fmt(mu),'newv',true);await ctx.wait(600,run);setc(P.ms.cells[1][0],fmt(sg),'newv',true);await ctx.wait(600,run);hot(cells(P.h),false);}
+    if(S===2){for(let i=0;i<d;i++){const cs=[P.h.cells[i][0],P.ms.cells[0][0]];hot(cs,true);col(P.hc,hc,'newv',true,i);await ctx.wait(330,run);hot(cs,false);}
+      for(let i=0;i<d;i++){const cs=[P.hc.cells[i][0],P.ms.cells[1][0]];hot(cs,true);col(P.hh,hh,'newv',true,i);await ctx.wait(330,run);hot(cs,false);}}
+    if(S===3){for(let i=0;i<d;i++){const cs=[P.hh.cells[i][0],P.ga.cells[i][0],P.be.cells[i][0]];hot(cs,true);col(P.y,y,'newv',true,i);await ctx.wait(420,run);hot(cs,false);}}
+    if(S===4){for(let i=0;i<d;i++)setc(P.g.cells[i][0],fmt(g[i]),'gv',true);await ctx.wait(600,run);
+      for(let i=0;i<d;i++){const cs=[P.g.cells[i][0],P.hh.cells[i][0]];hot(cs,true);col(P.dg,dgam,'gv',true,i);col(P.db,g,'gv',true,i);await ctx.wait(380,run);hot(cs,false);}}
+    if(S===5){for(let i=0;i<d;i++){const cs=[P.g.cells[i][0],P.ga.cells[i][0]];hot(cs,true);col(P.dd,dd,'gv',true,i);await ctx.wait(420,run);hot(cs,false);}}
+    if(S===6){hot(cells(P.dd),true);await ctx.wait(500,run);setc(P.mm.cells[0][0],fmt(m1),'newv',true);await ctx.wait(500,run);
+      hot(cells(P.hh),true);setc(P.mm.cells[1][0],fmt(m2),'newv',true);await ctx.wait(600,run);hot(cells(P.dd),false);hot(cells(P.hh),false);
+      for(let i=0;i<d;i++){const cs=[P.dd.cells[i][0],P.hh.cells[i][0]];hot(cs,true);col(P.pr,pr,'gv',true,i);await ctx.wait(400,run);hot(cs,false);}}
+    if(S===7){for(let i=0;i<d;i++){hot([P.pr.cells[i][0]],true);col(P.dh,dh,'gv',true,i);await ctx.wait(380,run);hot([P.pr.cells[i][0]],false);}
+      P.fb.classList.add('on');await ctx.wait(700,run);}
+  }
+  function caption(S){
+    if(S===0)return `One token's vector ${kx('h')} with 4 features. LayerNorm normalizes it using <b>its own</b> numbers only. Press <b>Next step ▸</b>.`;
+    if(S===1)return `<b>Statistics of this vector:</b> ${kx(`\\mu = \\tfrac{${h.join('+')}}{4} = ${fmt(mu)}`)} and ${kx(`\\sigma = \\sqrt{\\tfrac14\\textstyle\\sum (h_i-\\mu)^2} = ${fmt(sg)}`)}.`;
+    if(S===2)return `<b>Centre, then rescale:</b> subtract ${kx('\\mu')} from every feature, divide by ${kx('\\sigma')}. Feature 1: ${kx(`(${h[0]} - ${fmt(mu)})/${fmt(sg)} = ${fmt(hh[0])}`)}. Now ${kx('\\hat h')} has mean 0 and spread 1.`;
+    if(S===3)return `<b>Learned scale and shift,</b> per feature: ${kx('y_i = \\gamma_i \\hat h_i + \\beta_i')}. Feature 1: ${kx(`(${gam[0]})(${fmt(hh[0])}) + ${bet[0]} = ${fmt(y[0])}`)}. The forward pass is done.`;
+    if(S===4)return `<b>Backward:</b> ${kx('g')} arrives from the next layer. ${kx('\\beta')} is a bias, so it gets ${kx('g')} unchanged (add rule); ${kx('\\gamma')} multiplies ${kx('\\hat h')}, so it gets ${kx('g\\odot\\hat h')} (multiply rule).`;
+    if(S===5)return `<b>Into ${kx('\\hat h')}:</b> multiply rule again, ${kx('d = \\gamma\\odot g')}. Feature 4: ${kx(`(${gam[3]})(${g[3]}) = ${fmt(dd[3])}`)}.`;
+    if(S===6)return `<b>The new part.</b> Every ${kx('\\hat h_i')} depends on all four ${kx('h_j')} through ${kx('\\mu')} and ${kx('\\sigma')}. Working that through the chain rule removes two things from ${kx('d')}: its average ${kx(`\\bar d = ${fmt(m1)}`)}, and its component along ${kx('\\hat h')}, ${kx(`m = \\text{mean}(d\\odot\\hat h) = ${fmt(m2)}`)}.`;
+    return `<b>Divide by ${kx('\\sigma')}</b> and you have ${kx('\\partial L/\\partial h')}. It sums to 0 and has no component along ${kx('\\hat h')}: nudges that would only shift or stretch ${kx('h')} are ignored, because LayerNorm would undo them anyway. A finite-difference check gives the same numbers.`;
+  }
+  return makeDeck('s12',{n:7,render,animate,caption});
+}
+
+/* ================= Dropout (r6): horizontal flow render ================= */
+function dropoutFlow(stage,o){
+  const {N,h,g,mm,sc,shown,evalMode,q,prevShown}=o;stage.innerHTML='';
+  const dead=mm.map(v=>!v),RL=[...Array(N)].map((_,i)=>`h_{${i+1}}`);
+  const pop=k=>shown===k&&prevShown<k;
+  const put=(p,vals,cls,k)=>vals.forEach((v,i)=>setc(p.cells[i][0],typeof v==='number'?fmt(v):v,cls+(dead[i]&&shown>=2?' dead':''),pop(k)));
+  const f=flowLane(stage,'fwd','forward',evalMode?'eval mode: no mask, no scaling':'read left to right');
+  const H=kmat('h',N,1,{rl:RL,sub:'activations'}),M=kmat(evalMode?'m = 1':'m',N,1,{sub:evalMode?'mask off':`keep each with prob. ${q.toFixed(2)}`}),T=kmat(evalMode?'\\tilde h = h':'\\tilde h = m\\odot h / q',N,1,{sub:'to the next layer'});
+  f.append(H,kop('\\odot'),M,kop(evalMode?'\\to':`\\xrightarrow{\\;\\times\\,1/q\\, =\\, ${(1/q).toFixed(2)}\\;}`),T);
+  if(shown>=1)put(H,h,'fwdv',1);
+  if(shown>=2)put(M,mm.map(v=>v?'1':'0'),'fwdv',2);
+  if(shown>=3)put(T,h.map((v,i)=>mm[i]*v*sc),'newv',3);
+  if(!evalMode){
+    const b=flowLane(stage,'bwd','backward','read right to left');
+    const LR=kmat('\\text{weights into } h_i \\text{ learn?}',N,1,{rl:RL}),DH=kmat('\\partial L/\\partial h = m\\odot g / q',N,1),G=kmat('g = \\partial L/\\partial\\tilde h',N,1,{sub:'from the next layer'});
+    b.append(LR,kop('\\Leftarrow'),DH,kop(`\\xleftarrow{\\;\\odot\\, m\\,/\\,q\\;}`),G);
+    if(shown>=4)G.cells.forEach((r,i)=>setc(r[0],fmt(g[i]),'gv',pop(4)));
+    if(shown>=5)put(DH,g.map((v,i)=>mm[i]*v*sc),'gv',5);
+    if(shown>=6)put(LR,mm.map(v=>v?'\u2713 yes':'\u2717 no'),'gv',6);
+  }
+}
+
 /* ================= boot ================= */
 const GROUPS=[
   {roman:'I',name:'Backprop on one number',short:'One number',ids:[['s1','the multiply rule'],['s2','add distributes'],['s3','subtract & square'],['s4','the chain']]},
@@ -4498,7 +4452,7 @@ function boot(){
   const s3=buildSlide3();
   const ssub=buildSlideSub();
   const s4=buildSlide4();
-  const s5=buildSlide5();
+  const s5=buildS5();
   const s6=buildSlide6();
   const s7=buildSlide7();
   const s8=buildSlide8();
@@ -4515,16 +4469,15 @@ function boot(){
   const r4=buildDecay('r4','l1');
   const r5=buildReg5();
   const r6=buildReg6();
-  const l2=createScriptedLesson(document.getElementById('l2'),buildVectorLesson);
   const sim3=createMatrixSim(document.getElementById('l3'),{allowLora:false});
   const sim4=createMatrixSim(document.getElementById('l4'),{allowLora:true});
-  window.__lessons={s2,s3,ssub,s4,s5,s6,s7,s8,s9,s10,s11,s12,s13,s14,s15,r1,r2,r3,r4,r5,r6,l2,sim3,sim4};
+  window.__lessons={s2,s3,ssub,s4,s5,s6,s7,s8,s9,s10,s11,s12,s13,s14,s15,r1,r2,r3,r4,r5,r6,sim3,sim4};
 
   // keyed by slide (section) id
   const PLAY={s1:s2.play,s2:s3.play,s3:ssub.play,s4:s4.play,s7:s7.play,s8:s8.play,s9:s9.play,s10:s10.play,
     s11:s11.play,s12:s12.play,s13:s13.play,s15:s15.play};
-  const STOP={s5:()=>l2.stopPlay(),s6:()=>sim3.stopPlay(),s7:()=>sim4.stopPlay()};
-  const SPACE={s14:()=>s14.next(),...Object.fromEntries(Object.entries(NEW).map(([k,d])=>[k,()=>d.next()])),s5:()=>l2.stepOnce(),s6:()=>sim3.step(),s7:()=>sim4.step(),
+  const STOP={s6:()=>sim3.stopPlay(),s7:()=>sim4.stopPlay()};
+  const SPACE={s14:()=>s14.next(),...Object.fromEntries(Object.entries(NEW).map(([k,d])=>[k,()=>d.next()])),s5:()=>s5.next(),s12:()=>s12.next(),s6:()=>sim3.step(),s7:()=>sim4.step(),
     r2:()=>r2.next(),r3:()=>r3.next(),r4:()=>r4.next(),r6:()=>r6.next()};
 
   const ORDER=[],META={};
