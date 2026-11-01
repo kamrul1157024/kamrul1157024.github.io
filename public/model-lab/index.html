@@ -2448,7 +2448,8 @@ function buildSlide14(){
     return {p,cells};
   }
   function op(tex){const o=el('div','op kvop');o.innerHTML=kx(tex);return o;}
-  function put(ce,txt,cls,pop){ce.textContent=txt;ce.className='cell'+(cls?' '+cls:'')+(pop?' kv-pop':'');}
+  function put(ce,txt,cls,pop){ce.textContent=txt;ce.className='cell'+(cls?' '+cls:'')+(pop?' kv-pop':'');
+    if(pop)ce.addEventListener('animationend',()=>ce.classList.remove('kv-pop'),{once:true});}
   const lab=(p,t)=>Array.from({length:t},(_,k)=>`${p}_{${k+1}}`);
   function laneHead(host,cls,title,sub){
     host.innerHTML='';
