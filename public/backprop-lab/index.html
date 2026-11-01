@@ -413,8 +413,8 @@ footer{margin-top:26px;color:var(--mut);font-size:12px;border-top:1px solid var(
   <h2>Embeddings: a lookup table of trainable vectors</h2>
   <p class="prose">A token (a word, a character) is just an integer id. The embedding table E holds
   <b>one trainable vector per id</b> — the network reads a row, uses it, and backprop updates
-  <b>only that row</b>. Watch a forward lookup, then the backward pass paint the gradient onto
-  exactly the rows that were used.</p>
+  <b>only that row</b>. Watch the token <b>cat</b> point to its row, then the update change only
+  cat's row while every other row greys out, untouched.</p>
   <div class="controls">
     <button class="primary" id="s9-next">Next step ▸</button>
     <button id="s9-replay">↺ Replay</button>
@@ -1665,39 +1665,26 @@ function buildSlide9(){
   const stage=document.getElementById('s9-stage');
   const cap=document.getElementById('s9-cap');
   const cnt=document.getElementById('s9-count');
-  const V=6, D=4;
+  const V=6, D=4, CAT=1;
   const R=rng(77);
   const E=Array.from({length:V},()=>Array.from({length:D},()=>+(R()*2-1).toFixed(2)));
   const toks=['the','cat','sat','on','a','.'];
-  const seq=[1,2,3]; // "the cat sat" -> use ids 1,2,3
-  const G=[Array.from({length:D},()=>+(R()*2-1).toFixed(2)),
-           Array.from({length:D},()=>+(R()*2-1).toFixed(2)),
-           Array.from({length:D},()=>+(R()*2-1).toFixed(2))];
-  function cell(v,hl){const c=el('div','cell'+(hl?' hl':''),fmt(v));return c;}
-  function grid(mat,rows,cols,hlrows){
-    const g=el('div','grid');g.style.gridTemplateColumns=`repeat(${cols},var(--cw))`;
-    for(let i=0;i<rows;i++)for(let j=0;j<cols;j++){
-      const c=cell(mat[i][j],hlrows&&hlrows.includes(i));
-      g.appendChild(c);
-    }
-    return g;
-  }
-  function panel(title,sub){
-    const p=el('div','panel');
-    p.appendChild(el('div','ptitle',title));
-    return p;
-  }
+  const g=Array.from({length:D},()=>+(R()*2-1).toFixed(2));   // gradient for cat's row
+  const eta=0.3;
   const ST=makeStepper();
   function base(){
     stage.innerHTML='';
-    // tokens
+    stage.style.alignItems='center';
+    // token "cat" with pointer
     const tp=el('div','panel');
-    tp.appendChild(el('div','ptitle','tokens'));
+    tp.appendChild(el('div','ptitle','token'));
     const tg=el('div','grid');tg.style.gridTemplateColumns='repeat(1,var(--cw))';
-    seq.forEach(id=>{const c=el('div','cell',toks[id]);c.style.width='var(--cw)';tg.appendChild(c);});
-    tp.appendChild(tg);tp.appendChild(el('div','psub','ids '+seq.join(',')));
+    const tc=el('div','cell',toks[CAT]);tc.id='s9-tok';tg.appendChild(tc);
+    tp.appendChild(tg);tp.appendChild(el('div','psub','id '+CAT));
     stage.appendChild(tp);
-    stage.appendChild(el('div','op','→'));
+    const arrow=el('div','op','→');arrow.id='s9-arrow';
+    arrow.style.fontSize='26px';arrow.style.color='var(--mut)';
+    stage.appendChild(arrow);
     // E table
     const ep=el('div','panel');
     ep.appendChild(el('div','ptitle','E (vocab × d)'));
@@ -1710,37 +1697,34 @@ function buildSlide9(){
     stage.appendChild(el('div','op','='));
     // H
     const hp=el('div','panel');
-    hp.appendChild(el('div','ptitle','H (seq × d)'));
+    hp.appendChild(el('div','ptitle','h (d)'));
     const hg=el('div','grid');hg.id='s9-H';hg.style.gridTemplateColumns=`repeat(${D},var(--cw))`;
-    for(let i=0;i<seq.length;i++)for(let j=0;j<D;j++)hg.appendChild(el('div','cell','·'));
-    hp.appendChild(hg);hp.appendChild(el('div','psub','looked-up rows'));
+    for(let j=0;j<D;j++)hg.appendChild(el('div','cell','·'));
+    hp.appendChild(hg);hp.appendChild(el('div','psub','looked-up row'));
     stage.appendChild(hp);
     cap.innerHTML='';cnt.textContent=ST.count();
   }
+  function catRowCells(){const out=[];stage.querySelectorAll('#s9-stage .cell').forEach(c=>{if(c.dataset&&+c.dataset.r===CAT)out.push(c);});return out;}
+  function otherCells(){const out=[];stage.querySelectorAll('#s9-stage .cell').forEach(c=>{if(c.dataset&&+c.dataset.r!==CAT&&c.dataset.r!==undefined)out.push(c);});return out;}
   base();
   ST.add(async()=>{
-    cap.innerHTML='forward: each token id reads its row of E — <b>h_t = E[id_t]</b>';
-    seq.forEach((id,i)=>{
-      const H=document.getElementById('s9-H');
-      for(let j=0;j<D;j++){
-        H.children[i*D+j].textContent=fmt(E[id][j]);
-        H.children[i*D+j].classList.add('hl');
-      }
-      stage.querySelectorAll('#s9-stage .cell').forEach(c=>{
-        if(c.dataset&&+c.dataset.r===id)c.classList.add('hl');
-      });
-    });
+    cap.innerHTML='forward: the token <b>cat</b> points to its row of E — <b>h = E[cat]</b>';
+    const tok=document.getElementById('s9-tok');tok.classList.add('hl');
+    const arrow=document.getElementById('s9-arrow');arrow.style.color='var(--acc)';
+    catRowCells().forEach(c=>c.classList.add('hl'));
+    const H=document.getElementById('s9-H');
+    for(let j=0;j<D;j++){H.children[j].textContent=fmt(E[CAT][j]);H.children[j].classList.add('hl');}
     cnt.textContent=ST.count();
   });
   ST.add(async()=>{
-    cap.innerHTML='backward: gradient rows arrive for the positions we used — each paints onto <b>only its own row</b> of E.';
+    cap.innerHTML='backward: a gradient g arrives for cat — it lands on <b>only cat\'s row</b>. Every other row gets zero.';
     const dE=el('div','panel');
     dE.appendChild(el('div','ptitle','∂L/∂E'));
     const dg=el('div','grid');dg.style.gridTemplateColumns=`repeat(${D},var(--cw))`;
     for(let i=0;i<V;i++)for(let j=0;j<D;j++){
-      const used=seq.includes(i);
-      const c=el('div','cell',used?fmt(G[seq.indexOf(i)][j]):'0');
-      if(used)c.classList.add('gradcell');
+      const used=i===CAT;
+      const c=el('div','cell',used?fmt(g[j]):'0');
+      if(used)c.classList.add('gradcell'); else c.style.opacity='0.35';
       dg.appendChild(c);
     }
     dE.appendChild(dg);dE.appendChild(el('div','psub','zero everywhere else'));
@@ -1749,7 +1733,13 @@ function buildSlide9(){
     cnt.textContent=ST.count();
   });
   ST.add(async()=>{
-    cap.innerHTML='update: E[id] ← E[id] − η·g — <b>sparse update</b>: rows not in this batch are untouched.';
+    cap.innerHTML='update: E[cat] ← E[cat] − η·g. <b>Only cat changes</b> — every other row is greyed out, untouched.';
+    // update cat's row in E and on screen; grey the rest
+    for(let j=0;j<D;j++)E[CAT][j]=+(E[CAT][j]-eta*g[j]).toFixed(2);
+    catRowCells().forEach((c,j)=>{c.textContent=fmt(E[CAT][j]);c.classList.add('hl');});
+    otherCells().forEach(c=>{c.style.opacity='0.35';c.classList.remove('hl');});
+    const H=document.getElementById('s9-H');
+    for(let j=0;j<D;j++)H.children[j].textContent=fmt(E[CAT][j]);
     cnt.textContent=ST.count();
   });
   document.getElementById('s9-next').onclick=()=>ST.next();
