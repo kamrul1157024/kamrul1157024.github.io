@@ -1,0 +1,453 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Backprop on a matrix — full fine-tuning vs LoRA</title>
+<style>
+:root{
+  --bg:#0d0d0f; --fg:#e8e6e3; --mut:#8f8f8f; --line:#2b2b30;
+  --acc:#ff5c39; --blue:#2f6fdb; --red:#e5484d;
+  --cw:54px; --ch:34px;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);
+  font:13px/1.45 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  padding:20px 22px 60px;}
+h1{font-size:14px;letter-spacing:.14em;text-transform:uppercase;margin:0;font-weight:700}
+.sub{color:var(--mut);font-size:12px;margin-top:4px}
+header{display:flex;flex-wrap:wrap;gap:14px;align-items:flex-end;justify-content:space-between;
+  border-bottom:1px solid var(--line);padding-bottom:14px}
+.controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+button, .seg button{
+  background:transparent;color:var(--fg);border:1px solid var(--line);
+  font:inherit;padding:6px 12px;cursor:pointer;text-transform:uppercase;
+  letter-spacing:.08em;font-size:11px;border-radius:0}
+button:hover{border-color:var(--fg)}
+button.primary{border-color:var(--acc);color:var(--acc)}
+.seg{display:flex}
+.seg button{border-right:none}
+.seg button:last-child{border-right:1px solid var(--line)}
+.seg button.on{background:var(--fg);color:#000}
+label.ctl{color:var(--mut);font-size:11px;text-transform:uppercase;letter-spacing:.08em;
+  display:flex;align-items:center;gap:6px}
+input[type=range]{width:90px;accent-color:var(--acc)}
+#status{color:var(--mut);font-size:11px;letter-spacing:.08em;text-transform:uppercase}
+#formulas{border:1px solid var(--line);padding:10px 14px;margin:16px 0 0;white-space:pre-wrap;
+  font-size:12px;color:var(--fg);background:#111114}
+#formulas .dim{color:var(--mut)}
+#stage{margin-top:18px;overflow-x:auto}
+.lane{display:flex;align-items:center;gap:10px;padding:14px 0;min-width:min-content}
+.lane + .lane{border-top:1px dashed var(--line)}
+.lanelabel{writing-mode:vertical-rl;transform:rotate(180deg);color:var(--mut);
+  font-size:10px;letter-spacing:.3em;text-transform:uppercase;align-self:center;user-select:none}
+.panel{border:1px solid var(--line);padding:8px;background:#101013}
+.panel.active{outline:2px solid var(--acc);outline-offset:2px}
+.panel.frozen{border-style:dashed;opacity:.85}
+.panel.ghost{border-style:dashed;color:var(--mut)}
+.panel.adapter{border-color:var(--acc)}
+.ptitle{font-size:11px;font-weight:700;letter-spacing:.06em;margin-bottom:6px;white-space:nowrap}
+.psub{font-size:10px;color:var(--mut);margin-top:6px;white-space:nowrap}
+.grid{display:grid;gap:2px}
+.cell{width:var(--cw);height:var(--ch);border:1px solid var(--line);
+  display:flex;align-items:center;justify-content:center;font-size:11px;
+  background:#141418;cursor:crosshair;transition:box-shadow .1s}
+.cell.hl{box-shadow:0 0 0 2px var(--acc) inset;z-index:2;position:relative}
+.op{font-size:16px;color:var(--mut);padding:0 2px;user-select:none}
+.paren{font-size:44px;color:var(--mut);font-weight:100;user-select:none;line-height:1}
+.lossbox{border:1px solid var(--line);padding:10px 14px;font-size:13px;white-space:nowrap;background:#101013}
+#explain{border:1px solid var(--line);margin-top:18px;padding:12px 14px;min-height:64px;
+  font-size:12px;background:#111114;white-space:pre-wrap;word-break:break-word}
+#explain .dim{color:var(--mut)}
+#loranote{border:1px dashed var(--acc);color:var(--fg);padding:10px 14px;margin-top:14px;
+  font-size:12px;display:none}
+footer{margin-top:22px;color:var(--mut);font-size:11px;border-top:1px solid var(--line);padding-top:12px}
+.side{display:flex;gap:18px;align-items:flex-start;margin-top:14px;flex-wrap:wrap}
+#spark{border:1px solid var(--line);background:#101013}
+.counts{font-size:11px;color:var(--mut);white-space:pre-line}
+.legend{display:flex;align-items:center;gap:8px;font-size:10px;color:var(--mut)}
+.lbar{width:120px;height:8px;border:1px solid var(--line);
+  background:linear-gradient(90deg,var(--red),#141418 50%,var(--blue))}
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>Backprop on a matrix</h1>
+    <div class="sub">one linear layer · Y = X·W + b · MSE loss · B=8 samples, N=4 in, M=3 out</div>
+  </div>
+  <div class="controls">
+    <div class="seg" id="modeseg">
+      <button data-mode="full" class="on">Full fine-tune</button>
+      <button data-mode="lora">LoRA</button>
+    </div>
+    <label class="ctl" id="rctl" style="display:none">rank r <input type="range" id="rslider" min="1" max="2" step="1" value="1"><span id="rval">1</span></label>
+    <label class="ctl">η <input type="range" id="lr" min="0.02" max="0.7" step="0.01" value="0.50"><span id="lrval">0.50</span></label>
+    <button class="primary" id="step">Step ▸</button>
+    <button id="play">▶ Play</button>
+    <button id="reset">Reset</button>
+    <span id="status"></span>
+  </div>
+</header>
+
+<div id="formulas"></div>
+<div id="loranote"></div>
+
+<div id="stage"></div>
+
+<div id="explain"><span class="dim">Press <b>Step ▸</b> (or space) to walk through forward → loss → backward → update. Hover any cell to see the exact arithmetic that produced it. Color: blue = positive, red = negative, intensity = magnitude.</span></div>
+
+<div class="side">
+  <canvas id="spark" width="260" height="64"></canvas>
+  <div class="counts" id="counts"></div>
+  <div class="legend"><span>−</span><div class="lbar"></div><span>+</span></div>
+</div>
+
+<footer>
+  Full fine-tuning updates every W[i,j] with ∂L/∂W = Xᵀ·G — the gradient of weight (i,j) is the dot product of column i of X with column j of G.
+  LoRA freezes W and learns A (N×r) and B (r×M) instead: the same full gradient XᵀG exists implicitly, but only its low-rank projections ∂L/∂A = (XᵀG)·Bᵀ and ∂L/∂B = Aᵀ·(XᵀG) are ever applied.
+</footer>
+
+<script>
+//==MATH-BEGIN==
+function zeros(r,c){return Array.from({length:r},()=>Array(c).fill(0));}
+function matmul(A,B){const r=A.length,k=B.length,c=B[0].length;const O=zeros(r,c);
+  for(let i=0;i<r;i++)for(let j=0;j<c;j++){let s=0;for(let t=0;t<k;t++)s+=A[i][t]*B[t][j];O[i][j]=s;}return O;}
+function transpose(A){const r=A.length,c=A[0].length;const O=zeros(c,r);
+  for(let i=0;i<r;i++)for(let j=0;j<c;j++)O[j][i]=A[i][j];return O;}
+function addBias(Y,b){return Y.map(row=>row.map((v,j)=>v+b[0][j]));}
+function mse(Y,T){let s=0,n=0;for(let i=0;i<Y.length;i++)for(let j=0;j<Y[0].length;j++){const d=Y[i][j]-T[i][j];s+=d*d;n++;}return s/n;}
+function gradMSE(Y,T){const n=Y.length*Y[0].length;return Y.map((row,i)=>row.map((v,j)=>2*(v-T[i][j])/n));}
+function effW(W,A,Bm){const AB=matmul(A,Bm);return W.map((row,i)=>row.map((v,j)=>v+AB[i][j]));}
+function forwardFull(X,W,b){return addBias(matmul(X,W),b);}
+function forwardLora(X,W,A,Bm,b){return addBias(matmul(X,effW(W,A,Bm)),b);}
+function gradsFull(X,G){return matmul(transpose(X),G);}              // dW = XᵀG
+function gradsLora(X,G,A,Bm){const XtG=matmul(transpose(X),G);
+  return {XtG:XtG, dA:matmul(XtG,transpose(Bm)), dB:matmul(transpose(A),XtG)};}
+function colSum(G){const m=G[0].length;const o=zeros(1,m);
+  for(const row of G)for(let j=0;j<m;j++)o[0][j]+=row[j];return o;}   // db
+//==MATH-END==
+
+// ---------- state ----------
+const S = {
+  B:8, N:4, M:3, r:1, lr:0.50, mode:'full', seed:7,
+  X:null,T:null,W:null,b:null,A:null,Bm:null,
+  W0:null,  // snapshot of the initial "pretrained" W — mode switches restore it
+  Y:null,G:null,L:null,dW:null,db:null,dX:null,XtG:null,dA:null,dB:null,
+  phaseIdx:-1, playing:false, timer:null,
+  run:{full:{epoch:0,hist:[]}, lora:{epoch:0,hist:[]}},
+  panels:{},
+};
+function rng(seed){let a=seed>>>0;return function(){a|=0;a=a+0x6D2B79F5|0;
+  let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+function initParams(){
+  const R=rng(S.seed); const rand=()=>R()*2-1;
+  S.X=zeros(S.B,S.N).map(r=>r.map(rand));
+  const Wstar=zeros(S.N,S.M).map(r=>r.map(rand));
+  S.T=matmul(S.X,Wstar);   // noise-free linear target: floor is L = 0 for any method
+  S.b=zeros(1,S.M);
+  // The "pretrained" W sits one low-rank update away from the target:
+  // Wstar = W + A0·B0 exactly. Reachable because the demo target is linear;
+  // with an arbitrary frozen pretrained W it isn't — the honest LoRA story.
+  const A0=zeros(S.N,1).map(r=>r.map(()=>(R()*2-1)*1.2));
+  const B0=zeros(1,S.M).map(r=>r.map(()=>(R()*2-1)*1.2));
+  const AB0=matmul(A0,B0);
+  S.W=Wstar.map((row,i)=>row.map((v,j)=>v-AB0[i][j]));
+  S.W0=S.W.map(r=>r.slice());   // keep the pristine copy for mode switches
+  initLora();
+}
+function initLora(){
+  const R=rng(S.seed+99);
+  S.A=zeros(S.N,S.r).map(r=>r.map(()=>(R()*2-1)*0.5));   // random
+  S.Bm=zeros(S.r,S.M);                                    // zero → ΔW=0 at start
+}
+function clearComputed(){S.Y=S.G=S.L=S.dW=S.db=S.dX=S.XtG=S.dA=S.dB=null;}
+
+// ---------- phases ----------
+const PHASES=['fwd','loss','bwd','upd'];
+const PHASE_PANELS={
+  fwd:['X','W','A','B','b','Y'],
+  loss:['Y','T','G'],
+  bwd:['G','dW','XtG','dA','dB','db','dX'],
+  upd:['W','A','B','b'],
+};
+function curW(){return S.mode==='full'?S.W:effW(S.W,S.A,S.Bm);}
+function doFwd(){S.Y=S.mode==='full'?forwardFull(S.X,S.W,S.b):forwardLora(S.X,S.W,S.A,S.Bm,S.b);}
+function doLoss(){S.L=mse(S.Y,S.T);S.G=gradMSE(S.Y,S.T);}
+function doBwd(){
+  S.db=colSum(S.G);
+  S.dX=matmul(S.G,transpose(curW()));
+  if(S.mode==='full'){S.dW=gradsFull(S.X,S.G);}
+  else{const g=gradsLora(S.X,S.G,S.A,S.Bm);S.XtG=g.XtG;S.dA=g.dA;S.dB=g.dB;}
+}
+function doUpd(){
+  const lr=S.lr;
+  if(S.mode==='full'){S.W=S.W.map((r,i)=>r.map((v,j)=>v-lr*S.dW[i][j]));}
+  else{
+    S.A=S.A.map((r,i)=>r.map((v,j)=>v-lr*S.dA[i][j]));
+    S.Bm=S.Bm.map((r,i)=>r.map((v,j)=>v-lr*S.dB[i][j]));
+  }
+  S.b=S.b.map((r,i)=>r.map((v,j)=>v-lr*S.db[i][j]));
+  const run=S.run[S.mode]; run.epoch++; run.hist.push(S.L);
+  clearComputed();
+}
+function step(){
+  S.phaseIdx=(S.phaseIdx+1)%PHASES.length;
+  const ph=PHASES[S.phaseIdx];
+  if(ph==='fwd')doFwd(); else if(ph==='loss')doLoss(); else if(ph==='bwd')doBwd(); else doUpd();
+  flash(ph); render();
+}
+function flash(ph){
+  (PHASE_PANELS[ph]||[]).forEach(id=>{const p=S.panels[id];if(!p)return;
+    p.el.classList.add('active');setTimeout(()=>p.el.classList.remove('active'),650);});
+}
+
+// ---------- stage ----------
+function el(tag,cls,txt){const e=document.createElement(tag);if(cls)e.className=cls;if(txt!=null)e.textContent=txt;return e;}
+function op(t){return el('div','op',t);}
+function paren(t){return el('div','paren',t);}
+function makePanel(def){
+  const e=el('div','panel '+(def.cls||''));
+  e.appendChild(el('div','ptitle',def.title));
+  const g=el('div','grid'); g.style.gridTemplateColumns=`repeat(${def.cols},var(--cw))`;
+  const cells=[];
+  for(let i=0;i<def.rows;i++){cells.push([]);
+    for(let j=0;j<def.cols;j++){
+      const c=el('div','cell','·'); c.dataset.p=def.id; c.dataset.i=i; c.dataset.j=j;
+      g.appendChild(c); cells[i].push(c);
+    }}
+  e.appendChild(g); e.appendChild(el('div','psub',def.sub||''));
+  return {...def,el:e,cells};
+}
+function buildStage(){
+  const st=document.getElementById('stage'); st.innerHTML=''; S.panels={};
+  const P=d=>{const p=makePanel(d);S.panels[d.id]=p;return p.el;};
+  const fwd=el('div','lane'), bwd=el('div','lane');
+  fwd.appendChild(el('div','lanelabel','forward'));
+  bwd.appendChild(el('div','lanelabel','backward'));
+  // forward lane
+  fwd.appendChild(P({id:'X',title:'X',sub:`inputs ${S.B}×${S.N}`,rows:S.B,cols:S.N}));
+  fwd.appendChild(op('·'));
+  if(S.mode==='lora')fwd.appendChild(paren('('));
+  fwd.appendChild(P(S.mode==='full'
+    ?{id:'W',title:'W',sub:`weights ${S.N}×${S.M}`,rows:S.N,cols:S.M}
+    :{id:'W',title:'W 🔒',sub:`frozen ${S.N}×${S.M}`,rows:S.N,cols:S.M,cls:'frozen'}));
+  if(S.mode==='lora'){
+    fwd.appendChild(op('+'));
+    fwd.appendChild(P({id:'A',title:'A',sub:`${S.N}×${S.r} trainable`,rows:S.N,cols:S.r,cls:'adapter'}));
+    fwd.appendChild(op('·'));
+    fwd.appendChild(P({id:'B',title:'B',sub:`${S.r}×${S.M} trainable`,rows:S.r,cols:S.M,cls:'adapter'}));
+    fwd.appendChild(paren(')'));
+  }
+  fwd.appendChild(op('+'));
+  fwd.appendChild(P({id:'b',title:'b',sub:`bias 1×${S.M}`,rows:1,cols:S.M}));
+  fwd.appendChild(op('='));
+  fwd.appendChild(P({id:'Y',title:'Y',sub:`out ${S.B}×${S.M}`,rows:S.B,cols:S.M}));
+  fwd.appendChild(op('vs'));
+  fwd.appendChild(P({id:'T',title:'T',sub:'target',rows:S.B,cols:S.M}));
+  const lb=el('div','lossbox','L = ·'); lb.id='lossbox'; fwd.appendChild(lb);
+  // backward lane
+  bwd.appendChild(P({id:'G',title:'G = ∂L/∂Y',sub:`${S.B}×${S.M}`,rows:S.B,cols:S.M}));
+  bwd.appendChild(op('→'));
+  if(S.mode==='full'){
+    bwd.appendChild(P({id:'dW',title:'∂L/∂W = Xᵀ·G',sub:`${S.N}×${S.M}`,rows:S.N,cols:S.M}));
+  }else{
+    bwd.appendChild(P({id:'XtG',title:'Xᵀ·G',sub:'implicit — never applied',rows:S.N,cols:S.M,cls:'ghost'}));
+    bwd.appendChild(op('→'));
+    bwd.appendChild(P({id:'dA',title:'∂L/∂A = (XᵀG)·Bᵀ',sub:`${S.N}×${S.r}`,rows:S.N,cols:S.r,cls:'adapter'}));
+    bwd.appendChild(P({id:'dB',title:'∂L/∂B = Aᵀ·(XᵀG)',sub:`${S.r}×${S.M}`,rows:S.r,cols:S.M,cls:'adapter'}));
+  }
+  bwd.appendChild(op('·'));
+  bwd.appendChild(P({id:'db',title:'∂L/∂b = Σ G',sub:`1×${S.M}`,rows:1,cols:S.M}));
+  bwd.appendChild(op('·'));
+  bwd.appendChild(P({id:'dX',title:'∂L/∂X = G·Wᵀ',sub:'to prev layer',rows:S.B,cols:S.N,cls:'ghost'}));
+  st.appendChild(fwd); st.appendChild(bwd);
+}
+
+// ---------- render ----------
+function fmt(v){const s=v.toFixed(2);return s==='-0.00'?'0.00':s;}
+function colFor(t){
+  const a=Math.min(1,Math.abs(t));
+  const base=[20,22,26], pos=[47,111,219], neg=[229,72,77];
+  const tgt=t>=0?pos:neg;
+  const m=base.map((b,i)=>Math.round(b+(tgt[i]-b)*a));
+  return `rgb(${m[0]},${m[1]},${m[2]})`;
+}
+function getData(id){
+  switch(id){
+    case 'X':return S.X; case 'T':return S.T; case 'W':return S.W;
+    case 'A':return S.A; case 'B':return S.Bm; case 'b':return S.b;
+    case 'Y':return S.Y; case 'G':return S.G; case 'dW':return S.dW;
+    case 'XtG':return S.XtG; case 'dA':return S.dA; case 'dB':return S.dB;
+    case 'db':return S.db; case 'dX':return S.dX;
+  } return null;
+}
+function render(){
+  let vmax=1e-6;
+  for(const id in S.panels){const d=getData(id);if(d)for(const r of d)for(const v of r)vmax=Math.max(vmax,Math.abs(v));}
+  for(const id in S.panels){
+    const p=S.panels[id], d=getData(id);
+    for(let i=0;i<p.rows;i++)for(let j=0;j<p.cols;j++){
+      const c=p.cells[i][j];
+      if(!d){c.textContent='·';c.style.background='';c.style.color='';continue;}
+      const v=d[i][j]; c.textContent=fmt(v);
+      c.style.background=colFor(v/vmax);
+      c.style.color=Math.abs(v)/vmax>0.5?'#fff':'';
+    }
+  }
+  document.getElementById('lossbox').innerHTML = S.L==null ? 'L = ·' : `L = <b>${S.L.toFixed(4)}</b>`;
+  const run=S.run[S.mode];
+  const ph=S.phaseIdx<0?'—':PHASES[S.phaseIdx];
+  document.getElementById('status').textContent=`epoch ${run.epoch} · phase ${ph}`;
+  drawSpark(); updateCounts();
+}
+function drawSpark(){
+  const cv=document.getElementById('spark'), ctx=cv.getContext('2d');
+  ctx.clearRect(0,0,cv.width,cv.height);
+  ctx.fillStyle='#8f8f8f'; ctx.font='10px ui-monospace,monospace';
+  ctx.fillText('loss / epoch ('+S.mode+')',6,11);
+  const h=S.run[S.mode].hist; if(h.length<2)return;
+  const max=Math.max(...h), min=Math.min(...h), pad=14;
+  ctx.strokeStyle='#ff5c39'; ctx.lineWidth=1.5; ctx.beginPath();
+  h.forEach((v,i)=>{
+    const x=6+i*(cv.width-12)/Math.max(1,h.length-1);
+    const y=cv.height-4-(v-min)/((max-min)||1e-9)*(cv.height-pad-6);
+    i?ctx.lineTo(x,y):ctx.moveTo(x,y);
+  });
+  ctx.stroke();
+}
+function updateCounts(){
+  const full=S.N*S.M+S.M, lora=S.N*S.r+S.r*S.M+S.M;
+  document.getElementById('counts').textContent =
+    `trainable params\n  full: ${full}  (W ${S.N*S.M} + b ${S.M})\n  lora: ${lora}  (A ${S.N*S.r} + B ${S.r*S.M} + b ${S.M}) — W's ${S.N*S.M} frozen`;
+}
+
+// ---------- hover explanations ----------
+function clearHl(){document.querySelectorAll('.cell.hl').forEach(c=>c.classList.remove('hl'));}
+function hl(id,cells){const p=S.panels[id];if(!p)return;
+  cells.forEach(([i,j])=>{if(p.cells[i]&&p.cells[i][j])p.cells[i][j].classList.add('hl');});}
+function row(id,i){const p=S.panels[id];return p?p.cells[i].map((_,j)=>[i,j]):[];}
+function col(id,j){const p=S.panels[id];return p?p.cells.map((_,i)=>[i,j]):[];}
+function all(id){const p=S.panels[id];if(!p)return[];const o=[];for(let i=0;i<p.rows;i++)for(let j=0;j<p.cols;j++)o.push([i,j]);return o;}
+function terms(pairs){return pairs.map(([a,b])=>`(${fmt(a)})(${fmt(b)})`).join(' + ');}
+
+function explain(pid,i,j){
+  const E=[];
+  const say=(html)=>E.push(html);
+  if(pid==='X')say(`X[${i},${j}] = ${fmt(S.X[i][j])} — input feature ${j} of sample ${i}. Fixed data.`);
+  else if(pid==='T')say(`T[${i},${j}] = ${fmt(S.T[i][j])} — target for output ${j} of sample ${i}.`);
+  else if(pid==='W'){
+    if(S.mode==='full')say(`W[${i},${j}] = ${fmt(S.W[i][j])} — trainable weight: input ${i} → output ${j}.`);
+    else{
+      say(`W[${i},${j}] = ${fmt(S.W[i][j])} — FROZEN. In LoRA this cell never updates; the effective weight is W + A·B.`);
+      const we=curW();say(`effective: (W+A·B)[${i},${j}] = ${fmt(we[i][j])}`);
+    }
+  }
+  else if(pid==='A')say(`A[${i},${j}] = ${fmt(S.A[i][j])} — LoRA down-projection (trainable).`);
+  else if(pid==='B')say(`B[${i},${j}] = ${fmt(S.Bm[i][j])} — LoRA up-projection (trainable).`);
+  else if(pid==='b')say(`b[${j}] = ${fmt(S.b[0][j])} — bias for output ${j} (trainable in both modes).`);
+  else if(pid==='Y'&&S.Y){
+    const we=curW();
+    const pairs=[];for(let t=0;t<S.N;t++)pairs.push([S.X[i][t],we[t][j]]);
+    say(`Y[${i},${j}] = row ${i} of X · col ${j} of ${S.mode==='full'?'W':'(W+A·B)'} + b[${j}]`);
+    say(terms(pairs)+` + (${fmt(S.b[0][j])}) = ${fmt(S.Y[i][j])}`);
+    hl('X',row('X',i)); hl('W',col('W',j));
+    if(S.mode==='lora'){hl('A',all('A'));hl('B',col('B',j));}
+    hl('b',[[0,j]]);
+  }
+  else if(pid==='G'&&S.G){
+    say(`G[${i},${j}] = ∂L/∂Y[${i},${j}] = 2·(Y−T)/(B·M) = 2·(${fmt(S.Y[i][j])} − ${fmt(S.T[i][j])})/${S.B*S.M} = ${fmt(S.G[i][j])}`);
+    hl('Y',[[i,j]]); hl('T',[[i,j]]);
+  }
+  else if((pid==='dW'&&S.dW)||(pid==='XtG'&&S.XtG)){
+    const Mx=pid==='dW'?S.dW:S.XtG;
+    const pairs=[];for(let b2=0;b2<S.B;b2++)pairs.push([S.X[b2][i],S.G[b2][j]]);
+    say(`${pid==='dW'?'∂L/∂W':'XᵀG'}[${i},${j}] = col ${i} of X · col ${j} of G`);
+    say(terms(pairs)+` = ${fmt(Mx[i][j])}`);
+    if(pid==='XtG')say(`In LoRA this full gradient is computed implicitly but NEVER applied to W — it is only projected into A and B.`);
+    hl('X',col('X',i)); hl('G',col('G',j));
+  }
+  else if(pid==='dA'&&S.dA){
+    const pairs=[];for(let m=0;m<S.M;m++)pairs.push([S.XtG[i][m],S.Bm[j][m]]);
+    say(`∂L/∂A[${i},${j}] = row ${i} of (XᵀG) · row ${j} of B`);
+    say(terms(pairs)+` = ${fmt(S.dA[i][j])}`);
+    hl('XtG',row('XtG',i)); hl('B',row('B',j));
+  }
+  else if(pid==='dB'&&S.dB){
+    const pairs=[];for(let i2=0;i2<S.N;i2++)pairs.push([S.A[i2][i],S.XtG[i2][j]]);
+    say(`∂L/∂B[${i},${j}] = col ${i} of A · col ${j} of (XᵀG)`);
+    say(terms(pairs)+` = ${fmt(S.dB[i][j])}`);
+    hl('A',col('A',i)); hl('XtG',col('XtG',j));
+  }
+  else if(pid==='db'&&S.db){
+    say(`∂L/∂b[${j}] = Σ_b G[b,${j}] = ${fmt(S.db[0][j])}`);
+    hl('G',col('G',j));
+  }
+  else if(pid==='dX'&&S.dX){
+    const we=curW();const pairs=[];for(let m=0;m<S.M;m++)pairs.push([S.G[i][m],we[j][m]]);
+    say(`∂L/∂X[${i},${j}] = row ${i} of G · row ${j} of ${S.mode==='full'?'W':'(W+A·B)'}`);
+    say(terms(pairs)+` = ${fmt(S.dX[i][j])}  — passed to the previous layer.`);
+    hl('G',row('G',i)); hl('W',row('W',j));
+  }
+  else say('—');
+  return E.join('\n');
+}
+
+// ---------- formulas / notes ----------
+function updateFormula(){
+  const f=document.getElementById('formulas'), n=document.getElementById('loranote');
+  if(S.mode==='full'){
+    f.innerHTML=`<span class="dim">forward</span>   Y = X·W + b          <span class="dim">loss</span>  L = mean((Y−T)²)     <span class="dim">G = ∂L/∂Y = 2(Y−T)/(B·M)</span>\n<span class="dim">backward</span>  ∂L/∂W = Xᵀ·G    ∂L/∂b = Σ_b G    ∂L/∂X = G·Wᵀ\n<span class="dim">update</span>    W ← W − η·∂L/∂W        every one of the ${S.N*S.M} weights moves`;
+    n.style.display='none';
+  }else{
+    f.innerHTML=`<span class="dim">forward</span>   Y = X·(W + A·B) + b      <span class="dim">W FROZEN — A (${S.N}×${S.r}) and B (${S.r}×${S.M}) carry the learning, rank r = ${S.r}</span>\n<span class="dim">backward</span>  ∂L/∂A = (XᵀG)·Bᵀ    ∂L/∂B = Aᵀ·(XᵀG)    <span class="dim">XᵀG exists only as an intermediate</span>\n<span class="dim">update</span>    A ← A − η·∂L/∂A    B ← B − η·∂L/∂B    W untouched    <span class="dim">effective ΔW = A·B</span>`;
+    n.style.display='block';
+    n.innerHTML=`LoRA in one line: the model still <i>computes</i> the full ${S.N}×${S.M} gradient XᵀG, but instead of applying it to W, it is projected through the rank-${S.r} bottleneck — only ${S.N*S.r+S.r*S.M} adapter weights (vs ${S.N*S.M}) ever change. Here the frozen W starts one low-rank update away from the target, so LoRA can reach L = 0; with an arbitrary frozen W it would plateau — that ceiling is the price of training ${S.N*S.r+S.r*S.M} params instead of ${S.N*S.M}.`;
+  }
+}
+
+// ---------- controls ----------
+function setMode(m){
+  if(S.mode===m)return;
+  S.mode=m; S.phaseIdx=-1; clearComputed();
+  // restore the same starting point so both modes train from the identical W
+  S.W=S.W0.map(r=>r.slice());
+  S.b=zeros(1,S.M);
+  initLora();
+  document.querySelectorAll('#modeseg button').forEach(b=>b.classList.toggle('on',b.dataset.mode===m));
+  document.getElementById('rctl').style.display = m==='lora'?'flex':'none';
+  buildStage(); updateFormula(); render();
+}
+function resetAll(){
+  initParams(); S.run={full:{epoch:0,hist:[]},lora:{epoch:0,hist:[]}};
+  S.phaseIdx=-1; clearComputed(); buildStage(); render();
+}
+document.getElementById('step').onclick=()=>step();
+document.getElementById('reset').onclick=()=>resetAll();
+document.getElementById('play').onclick=function(){
+  S.playing=!S.playing;
+  this.textContent=S.playing?'⏸ Pause':'▶ Play';
+  if(S.playing)S.timer=setInterval(step,950); else clearInterval(S.timer);
+};
+document.querySelectorAll('#modeseg button').forEach(b=>b.onclick=()=>setMode(b.dataset.mode));
+document.getElementById('lr').oninput=function(){S.lr=+this.value;document.getElementById('lrval').textContent=S.lr.toFixed(2);};
+document.getElementById('rslider').oninput=function(){
+  S.r=+this.value; document.getElementById('rval').textContent=S.r;
+  initLora(); S.run.lora={epoch:0,hist:[]}; S.phaseIdx=-1; clearComputed();
+  buildStage(); updateFormula(); render();
+};
+document.getElementById('stage').addEventListener('mouseover',e=>{
+  const c=e.target.closest('.cell'); if(!c)return;
+  clearHl();
+  document.getElementById('explain').innerHTML=explain(c.dataset.p,+c.dataset.i,+c.dataset.j);
+});
+document.getElementById('stage').addEventListener('mouseleave',clearHl);
+document.addEventListener('keydown',e=>{
+  if(e.code==='Space'&&e.target===document.body){e.preventDefault();step();}
+});
+
+// ---------- go ----------
+initParams(); buildStage(); updateFormula(); render();
+</script>
+</body>
+</html>
