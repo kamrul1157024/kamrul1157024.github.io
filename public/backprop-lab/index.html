@@ -173,7 +173,7 @@ footer{margin-top:26px;color:var(--mut);font-size:12px;border-top:1px solid var(
 <body>
 <header>
   <h1>Backprop from scratch</h1>
-  <div class="sub">animated lessons: the four rules → vectors → matrices → LoRA · ←/→ or the sidebar to move · space = next step</div>
+  <div class="sub">animated lessons: the four rules → matrices → LoRA → build &amp; train a mini-LLM · ←/→ or the sidebar to move · space = next step</div>
   <button id="themetoggle" style="margin-top:8px">☀ light mode</button>
 </header>
 
@@ -187,6 +187,13 @@ footer{margin-top:26px;color:var(--mut);font-size:12px;border-top:1px solid var(
   <button data-s="4"><span class="n">5</span>→ vectors</button>
   <button data-s="5"><span class="n">6</span>→ matrices</button>
   <button data-s="6"><span class="n">7</span>bias &amp; LoRA</button>
+  <button data-s="7"><span class="n">8</span>sampling &amp; batching</button>
+  <button data-s="8"><span class="n">9</span>embeddings</button>
+  <button data-s="9"><span class="n">10</span>the FFN</button>
+  <button data-s="10"><span class="n">11</span>attention</button>
+  <button data-s="11"><span class="n">12</span>layernorm</button>
+  <button data-s="12"><span class="n">13</span>the full block</button>
+  <button data-s="13"><span class="n">14</span>KV cache &amp; GQA</button>
 </aside>
 <main>
 
@@ -370,6 +377,173 @@ footer{margin-top:26px;color:var(--mut);font-size:12px;border-top:1px solid var(
   <div class="tex" data-tex="\Delta W = A B, \quad \mathrm{rank}(\Delta W) \le r"></div>
   The price: if the needed update isn't low-rank, LoRA plateaus where full fine-tuning would keep going.
   The payoff: a fraction of the parameters, one frozen base model, many swappable adapters.</div>
+</section>
+
+
+<!-- ============ SLIDE 8: sampling & batching ============ -->
+<section class="slide" id="s8">
+  <div class="kick">Slide 8</div>
+  <h2>Sampling stands in for the whole dataset</h2>
+  <p class="prose">Training on the full dataset every step is slow. The trick: a
+  <b>random sample</b> of the data has, on average, the same shape as the whole —
+  so its gradient points the same way on average. That sample is a <b>batch</b>, and training
+  batch by batch is <b>stochastic gradient descent</b>. Press <b>Sample a batch ▸</b> and watch
+  the sample mean hug the true mean — then watch the loss still go down.</p>
+  <div class="controls">
+    <button class="primary" id="s8-sample">Sample a batch ▸</button>
+    <button id="s8-train">Train 20 steps ▸▸</button>
+    <button id="s8-reset">Reset</button>
+    <span class="status" id="s8-status"></span>
+  </div>
+  <div style="display:flex;gap:18px;flex-wrap:wrap;align-items:flex-start">
+    <canvas id="s8-dist" width="520" height="220" style="border:1px solid var(--line);background:#101013"></canvas>
+    <canvas id="s8-loss" width="300" height="220" style="border:1px solid var(--line);background:#101013"></canvas>
+  </div>
+  <div class="fcaption" id="s8-cap"></div>
+  <div class="rulebox"><b>WHY BATCHING WORKS</b>
+  <div class="tex" data-tex="\mathbb{E}_{b \sim \text{batch}}[\,\hat{g}_b\,] = g_{\text{full}} \qquad \text{Var}(\hat{g}_b) \propto \tfrac{1}{B}"></div>
+  the expected gradient of a random batch equals the full-dataset gradient; the noise shrinks like 1/B.
+  So we trade a little noise for a huge speedup — and the noise itself often helps escape sharp minima.</div>
+  <button class="nextlesson" data-go="8">Next: embeddings ▸</button>
+</section>
+
+<!-- ============ SLIDE 9: embeddings ============ -->
+<section class="slide" id="s9">
+  <div class="kick">Slide 9</div>
+  <h2>Embeddings: a lookup table of trainable vectors</h2>
+  <p class="prose">A token (a word, a character) is just an integer id. The embedding table E holds
+  <b>one trainable vector per id</b> — the network reads a row, uses it, and backprop updates
+  <b>only that row</b>. Watch a forward lookup, then the backward pass paint the gradient onto
+  exactly the rows that were used.</p>
+  <div class="controls">
+    <button class="primary" id="s9-next">Next step ▸</button>
+    <button id="s9-replay">↺ Replay</button>
+    <span class="stepcount" id="s9-count"></span>
+  </div>
+  <div id="s9-stage" style="display:flex;gap:18px;flex-wrap:wrap;align-items:flex-start;margin-top:10px"></div>
+  <div class="fcaption" id="s9-cap"></div>
+  <div class="rulebox"><b>EMBEDDING RULE</b>
+  <div class="tex" data-tex="h_t = E[\,\text{id}_t\,] \qquad \frac{\partial L}{\partial E[\text{id}_t]} \mathrel{+}= g_t \qquad \frac{\partial L}{\partial E[j]} = 0 \;\; (j \ne \text{id}_t)"></div>
+  an embedding is a vector we maintain and update — the backward pass touches only the rows that
+  were read this step. Sparse update: ids not in the batch get zero gradient.</div>
+  <button class="nextlesson" data-go="9">Next: the FFN ▸</button>
+</section>
+
+<!-- ============ SLIDE 10: FFN ============ -->
+<section class="slide" id="s10">
+  <div class="kick">Slide 10</div>
+  <h2>The feed-forward network (kept as a black box)</h2>
+  <p class="prose">Every token position passes through the same little network:
+  <b>FFN(h) = W₂ · gelu(W₁h + b₁) + b₂</b>. We keep it a black box here — what matters is that
+  it's differentiable, so the gradient flows straight through it, scaled by its Jacobian.
+  Watch g enter the output and emerge at the input.</p>
+  <div class="controls">
+    <button class="primary" id="s10-next">Next step ▸</button>
+    <button id="s10-replay">↺ Replay</button>
+    <span class="stepcount" id="s10-count"></span>
+  </div>
+  <div id="s10-stage" style="margin-top:10px"></div>
+  <div class="fcaption" id="s10-cap"></div>
+  <div class="rulebox"><b>BLACK-BOX RULE</b> — any differentiable block passes gradient through:
+  <div class="tex" data-tex="\frac{\partial L}{\partial h} = J_{\text{FFN}}^{\top} \, g \qquad \frac{\partial L}{\partial W_1}, \frac{\partial L}{\partial W_2} \; \text{collected inside}"></div>
+  we don't need the internals to use it — the block hands the input-gradient to the left and
+  weight-gradients to its own parameters. That's all backprop ever asks of a component.</div>
+  <button class="nextlesson" data-go="10">Next: attention ▸</button>
+</section>
+
+<!-- ============ SLIDE 11: attention ============ -->
+<section class="slide" id="s11">
+  <div class="kick">Slide 11</div>
+  <h2>Attention: let tokens look at each other</h2>
+  <p class="prose">Each token makes a <b>query</b>, a <b>key</b> and a <b>value</b>. A token's output is a
+  weighted mix of the values it can see — weights from query·key scores, softmaxed, and
+  <b>masked</b> so a token can't peek at the future. Step through the scores, the mask, the
+  softmax, and the weighted sum — then the backward pass flowing through all of it.</p>
+  <div class="controls">
+    <button class="primary" id="s11-next">Next step ▸</button>
+    <button id="s11-replay">↺ Replay</button>
+    <span class="stepcount" id="s11-count"></span>
+  </div>
+  <div id="s11-stage" style="margin-top:10px;overflow-x:auto"></div>
+  <div class="fcaption" id="s11-cap"></div>
+  <div class="rulebox"><b>ATTENTION</b>
+  <div class="tex" data-tex="S = \frac{QK^{\top}}{\sqrt{d}} + \text{mask} \qquad A = \mathrm{softmax}(S) \qquad O = A\,V"></div>
+  <div class="tex" data-tex="\frac{\partial L}{\partial V} = A^{\top} G \qquad \frac{\partial L}{\partial A} = G V^{\top} \qquad \frac{\partial L}{\partial S} = A \odot \left( \frac{\partial L}{\partial A} - (\frac{\partial L}{\partial A} \odot A)\,\mathbf{1} \right)"></div>
+  the softmax row is the only nonlinearity: its backward is "subtract the weighted mean, then scale".
+  Everything else is the multiply rule from slide 1 with transposes.</div>
+  <button class="nextlesson" data-go="11">Next: layernorm ▸</button>
+</section>
+
+<!-- ============ SLIDE 12: layernorm ============ -->
+<section class="slide" id="s12">
+  <div class="kick">Slide 12</div>
+  <h2>LayerNorm: keep the numbers sane</h2>
+  <p class="prose">Deep stacks drift — activations blow up or vanish. LayerNorm re-centers and
+  re-scales each token's vector to mean 0, variance 1, then applies a learned gain γ and shift β.
+  The backward pass is a projection: it removes the parts of g that would change the mean or
+  variance, then scales by γ/σ.</p>
+  <div class="controls">
+    <button class="primary" id="s12-next">Next step ▸</button>
+    <button id="s12-replay">↺ Replay</button>
+    <span class="stepcount" id="s12-count"></span>
+  </div>
+  <div id="s12-stage" style="margin-top:10px"></div>
+  <div class="fcaption" id="s12-cap"></div>
+  <div class="rulebox"><b>LAYERNORM</b>
+  <div class="tex" data-tex="\hat{h} = \frac{h - \mu}{\sigma} \qquad y = \gamma \hat{h} + \beta"></div>
+  <div class="tex" data-tex="\frac{\partial L}{\partial h} = \frac{\gamma}{\sigma\,d} \left( d\,g - \textstyle\sum g - \hat{h} \cdot \textstyle\sum (g \odot \hat{h}) \right) \qquad \frac{\partial L}{\partial \gamma} = g \odot \hat{h} \qquad \frac{\partial L}{\partial \beta} = g"></div>
+  the backward pass projects g onto the subspace that preserves mean and variance — that's why
+  LayerNorm is stable to train through.</div>
+  <button class="nextlesson" data-go="12">Next: the full block ▸</button>
+</section>
+
+<!-- ============ SLIDE 13: full block ============ -->
+<section class="slide" id="s13">
+  <div class="kick">Slide 13</div>
+  <h2>The full block: forward, predict one token, backward</h2>
+  <p class="prose">Wire it together: tokens → embeddings → [LayerNorm → attention → residual →
+  LayerNorm → FFN → residual] → LayerNorm → unembed → softmax → a probability for the next token.
+  Press <b>Forward ▸</b> to push a sentence through and predict one token; <b>Backward ▸</b> to send
+  the loss gradient back through every component we built.</p>
+  <div class="controls">
+    <button class="primary" id="s13-fwd">Forward ▸</button>
+    <button id="s13-bwd">Backward ▸</button>
+    <button id="s13-train">Train 10 steps ▸▸</button>
+    <button id="s13-reset">Reset</button>
+    <span class="status" id="s13-status"></span>
+  </div>
+  <div id="s13-stage" style="margin-top:10px"></div>
+  <div class="fcaption" id="s13-cap"></div>
+  <div class="side"><canvas class="spark" id="s13-spark" width="260" height="64"></canvas></div>
+  <div class="rulebox"><b>THE BLOCK</b>
+  <div class="tex" data-tex="h \mathrel{+}= \mathrm{Attn}(\mathrm{LN}(h)) \qquad h \mathrel{+}= \mathrm{FFN}(\mathrm{LN}(h)) \qquad \text{residual: gradient copies straight through}"></div>
+  <div class="tex" data-tex="\text{logits} = h_{\text{last}} \, W_{\text{unembed}} \qquad p = \mathrm{softmax}(\text{logits}) \qquad L = -\log p_{\text{true}}"></div>
+  the residual add is slide 2's distribution — the gradient photocopies down both branches, so
+  deep stacks train. The whole block is the four rules, composed a few hundred times.</div>
+  <button class="nextlesson" data-go="13">Next: KV cache &amp; GQA ▸</button>
+</section>
+
+<!-- ============ SLIDE 14: KV cache & GQA ============ -->
+<section class="slide" id="s14">
+  <div class="kick">Slide 14</div>
+  <h2>Predicting the next token: what can be cached</h2>
+  <p class="prose">To predict token 5, the model needs tokens 1–4 — but their <b>keys and values
+  don't change</b> once computed. Recomputing them every step is waste. The <b>KV cache</b> keeps
+  them; each new token only computes its own K, V, Q and attends over the cache. Then the
+  optimization: <b>GQA</b> shares one K/V head across several query heads — same quality, a
+  fraction of the cache.</p>
+  <div class="controls">
+    <button class="primary" id="s14-gen">Generate a token ▸</button>
+    <button id="s14-gqa">Toggle GQA ▸</button>
+    <button id="s14-reset">Reset</button>
+    <span class="status" id="s14-status"></span>
+  </div>
+  <div id="s14-stage" style="margin-top:10px"></div>
+  <div class="fcaption" id="s14-cap"></div>
+  <div class="rulebox"><b>KV CACHE &amp; GQA</b>
+  <div class="tex" data-tex="\text{step } t: \; K_{1..t}, V_{1..t} \text{ cached} \;\Rightarrow\; \text{compute only } q_t, k_t, v_t \qquad \text{cache} = O(t \cdot n_{\text{heads}} \cdot d)"></div>
+  <div class="tex" data-tex="\text{MHA: } n_q = n_{kv} \qquad \text{GQA: } n_{kv} < n_q \; (\text{e.g. } 8q \to 2kv) \qquad \text{cache} \downarrow \; \tfrac{n_{kv}}{n_q}"></div>
+  MQA is GQA with one K/V head. Fewer K/V heads = smaller cache, faster decode, tiny quality cost.</div>
 </section>
 
 </main>
@@ -1397,6 +1571,523 @@ function createMatrixSim(root,opts){
   }));
 })();
 
+
+/* ================= SLIDE 8: sampling & batching ================= */
+function buildSlide8(){
+  const dist=document.getElementById('s8-dist');
+  const loss=document.getElementById('s8-loss');
+  const cap=document.getElementById('s8-cap');
+  const status=document.getElementById('s8-status');
+  const dctx=dist.getContext('2d');
+  const lctx=loss.getContext('2d');
+  const MU=3.0, SIG=1.0;
+  let w=-1.5, steps=0, hist=[];
+  const R=rng(2024);
+  function gauss(){let u=0,v=0;while(u===0)u=R();while(v===0)v=R();
+    return MU+SIG*Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);}
+  function pdf(x){return Math.exp(-0.5*((x-MU)/SIG)**2);}
+  function drawDist(batch){
+    dctx.clearRect(0,0,dist.width,dist.height);
+    const light=document.body.classList.contains('light');
+    dctx.fillStyle=light?'#6b6659':'#8f8f8f'; dctx.font='10px ui-monospace,monospace';
+    dctx.fillText('data distribution N('+MU+', 1) — true mean',6,12);
+    const x0=30,x1=dist.width-14,y0=dist.height-24,ymax=0.42;
+    // curve
+    dctx.strokeStyle=light?'#1a1a1a':'#e8e6e3';dctx.lineWidth=1.5;dctx.beginPath();
+    for(let px=x0;px<=x1;px++){
+      const x=MU-4+(px-x0)/(x1-x0)*8;
+      const y=y0-pdf(x)/ymax*(y0-18);
+      px===x0?dctx.moveTo(px,y):dctx.lineTo(px,y);
+    }
+    dctx.stroke();
+    // true mean
+    const mx=x0+(MU-(MU-4))/8*(x1-x0);
+    dctx.strokeStyle='#3fb68b';dctx.setLineDash([4,3]);dctx.beginPath();
+    dctx.moveTo(mx,18);dctx.lineTo(mx,y0);dctx.stroke();dctx.setLineDash([]);
+    // batch
+    if(batch){
+      const bm=batch.reduce((a,c)=>a+c,0)/batch.length;
+      const bx=x0+(bm-(MU-4))/8*(x1-x0);
+      dctx.strokeStyle='#ff5c39';dctx.setLineDash([4,3]);dctx.beginPath();
+      dctx.moveTo(bx,18);dctx.lineTo(bx,y0);dctx.stroke();dctx.setLineDash([]);
+      dctx.fillStyle='#ff5c39';
+      batch.forEach(v=>{
+        const px=x0+(v-(MU-4))/8*(x1-x0);
+        dctx.beginPath();dctx.arc(px,y0+8,3,0,7);dctx.fill();
+      });
+      return bm;
+    }
+    return null;
+  }
+  function drawLoss(){
+    lctx.clearRect(0,0,loss.width,loss.height);
+    const light=document.body.classList.contains('light');
+    lctx.fillStyle=light?'#6b6659':'#8f8f8f';lctx.font='10px ui-monospace,monospace';
+    lctx.fillText('loss (w − μ)² / step',6,12);
+    if(hist.length<2)return;
+    const max=Math.max(...hist);
+    lctx.strokeStyle=light?'#d63c14':'#ff5c39';lctx.lineWidth=1.5;lctx.beginPath();
+    hist.forEach((v,i)=>{
+      const x=6+i*(loss.width-12)/Math.max(1,hist.length-1);
+      const y=loss.height-6-(v/max)*(loss.height-26);
+      i?lctx.lineTo(x,y):lctx.moveTo(x,y);
+    });
+    lctx.stroke();
+  }
+  function sample(){
+    const batch=Array.from({length:8},gauss);
+    const bm=drawDist(batch);
+    const g=2*(w-bm);           // gradient of (w - batch_mean)^2
+    const gfull=2*(w-MU);       // true gradient
+    cap.innerHTML=`batch of 8 → sample mean <b>${bm.toFixed(2)}</b> (true ${MU.toFixed(2)}).
+      batch gradient <b>${g.toFixed(2)}</b> vs full-data gradient <b>${gfull.toFixed(2)}</b> —
+      same direction, a little noise.`;
+    return {batch,g};
+  }
+  function trainStep(){
+    const {g}=sample();
+    w=w-0.1*g;
+    steps++;hist.push((w-MU)**2);
+    drawLoss();
+    status.textContent=`step ${steps} · w=${w.toFixed(3)} (target ${MU})`;
+  }
+  document.getElementById('s8-sample').onclick=()=>{sample();};
+  document.getElementById('s8-train').onclick=()=>{for(let i=0;i<20;i++)trainStep();
+    cap.innerHTML+=`<br>20 noisy steps later: w = <b>${w.toFixed(3)}</b> — the noise averages out and the loss still falls.`;};
+  document.getElementById('s8-reset').onclick=()=>{w=-1.5;steps=0;hist=[];drawDist(null);drawLoss();
+    status.textContent='';cap.innerHTML='';};
+  drawDist(null);drawLoss();
+  return {play:()=>{}};
+}
+
+/* ================= SLIDE 9: embeddings ================= */
+function buildSlide9(){
+  const stage=document.getElementById('s9-stage');
+  const cap=document.getElementById('s9-cap');
+  const cnt=document.getElementById('s9-count');
+  const V=6, D=4;
+  const R=rng(77);
+  const E=Array.from({length:V},()=>Array.from({length:D},()=>+(R()*2-1).toFixed(2)));
+  const toks=['the','cat','sat','on','a','.'];
+  const seq=[1,2,3]; // "the cat sat" -> use ids 1,2,3
+  const G=[Array.from({length:D},()=>+(R()*2-1).toFixed(2)),
+           Array.from({length:D},()=>+(R()*2-1).toFixed(2)),
+           Array.from({length:D},()=>+(R()*2-1).toFixed(2))];
+  function cell(v,hl){const c=el('div','cell'+(hl?' hl':''),fmt(v));return c;}
+  function grid(mat,rows,cols,hlrows){
+    const g=el('div','grid');g.style.gridTemplateColumns=`repeat(${cols},var(--cw))`;
+    for(let i=0;i<rows;i++)for(let j=0;j<cols;j++){
+      const c=cell(mat[i][j],hlrows&&hlrows.includes(i));
+      g.appendChild(c);
+    }
+    return g;
+  }
+  function panel(title,sub){
+    const p=el('div','panel');
+    p.appendChild(el('div','ptitle',title));
+    return p;
+  }
+  const ST=makeStepper();
+  function base(){
+    stage.innerHTML='';
+    // tokens
+    const tp=el('div','panel');
+    tp.appendChild(el('div','ptitle','tokens'));
+    const tg=el('div','grid');tg.style.gridTemplateColumns='repeat(1,var(--cw))';
+    seq.forEach(id=>{const c=el('div','cell',toks[id]);c.style.width='var(--cw)';tg.appendChild(c);});
+    tp.appendChild(tg);tp.appendChild(el('div','psub','ids '+seq.join(',')));
+    stage.appendChild(tp);
+    stage.appendChild(el('div','op','→'));
+    // E table
+    const ep=el('div','panel');
+    ep.appendChild(el('div','ptitle','E (vocab × d)'));
+    const eg=el('div','grid');eg.style.gridTemplateColumns=`repeat(${D},var(--cw))`;
+    for(let i=0;i<V;i++)for(let j=0;j<D;j++){
+      const c=el('div','cell',fmt(E[i][j]));c.dataset.r=i;c.dataset.c=j;eg.appendChild(c);
+    }
+    ep.appendChild(eg);ep.appendChild(el('div','psub',`${V}×${D} trainable`));
+    stage.appendChild(ep);
+    stage.appendChild(el('div','op','='));
+    // H
+    const hp=el('div','panel');
+    hp.appendChild(el('div','ptitle','H (seq × d)'));
+    const hg=el('div','grid');hg.id='s9-H';hg.style.gridTemplateColumns=`repeat(${D},var(--cw))`;
+    for(let i=0;i<seq.length;i++)for(let j=0;j<D;j++)hg.appendChild(el('div','cell','·'));
+    hp.appendChild(hg);hp.appendChild(el('div','psub','looked-up rows'));
+    stage.appendChild(hp);
+    cap.innerHTML='';cnt.textContent=ST.count();
+  }
+  base();
+  ST.add(async()=>{
+    cap.innerHTML='forward: each token id reads its row of E — <b>h_t = E[id_t]</b>';
+    seq.forEach((id,i)=>{
+      const H=document.getElementById('s9-H');
+      for(let j=0;j<D;j++){
+        H.children[i*D+j].textContent=fmt(E[id][j]);
+        H.children[i*D+j].classList.add('hl');
+      }
+      stage.querySelectorAll('#s9-stage .cell').forEach(c=>{
+        if(c.dataset&&+c.dataset.r===id)c.classList.add('hl');
+      });
+    });
+    cnt.textContent=ST.count();
+  });
+  ST.add(async()=>{
+    cap.innerHTML='backward: gradient rows arrive for the positions we used — each paints onto <b>only its own row</b> of E.';
+    const dE=el('div','panel');
+    dE.appendChild(el('div','ptitle','∂L/∂E'));
+    const dg=el('div','grid');dg.style.gridTemplateColumns=`repeat(${D},var(--cw))`;
+    for(let i=0;i<V;i++)for(let j=0;j<D;j++){
+      const used=seq.includes(i);
+      const c=el('div','cell',used?fmt(G[seq.indexOf(i)][j]):'0');
+      if(used)c.classList.add('gradcell');
+      dg.appendChild(c);
+    }
+    dE.appendChild(dg);dE.appendChild(el('div','psub','zero everywhere else'));
+    stage.appendChild(el('div','op','←'));
+    stage.appendChild(dE);
+    cnt.textContent=ST.count();
+  });
+  ST.add(async()=>{
+    cap.innerHTML='update: E[id] ← E[id] − η·g — <b>sparse update</b>: rows not in this batch are untouched.';
+    cnt.textContent=ST.count();
+  });
+  document.getElementById('s9-next').onclick=()=>ST.next();
+  document.getElementById('s9-replay').onclick=()=>{ST.reset();base();};
+  return {play:()=>ST.play()};
+}
+
+/* ================= SLIDE 10: FFN black box ================= */
+function buildSlide10(){
+  const stage=document.getElementById('s10-stage');
+  const cap=document.getElementById('s10-cap');
+  const cnt=document.getElementById('s10-count');
+  const G=makeGraph(stage,{
+    nodes:[
+      {id:'h',x:70,y:140,label:'h (in)'},
+      {id:'y',x:640,y:140,label:'FFN(h) (out)'},
+      {id:'g',x:820,y:140,label:'g (from L)'},
+      {id:'W1',x:300,y:40,label:'W₁,b₁',trainable:true},
+      {id:'W2',x:520,y:40,label:'W₂,b₂',trainable:true},
+    ],
+    gates:[{id:'ffn',x:355,y:140,op:'ƒ'}],
+    edges:[['h','ffn'],['ffn','y'],['y','g'],['W1','ffn'],['W2','ffn']]
+  });
+  G.setVal('h','·');G.setVal('y','·');G.setVal('g','·');
+  G.setVal('W1','·');G.setVal('W2','·');
+  const ST=makeStepper();
+  function base(){
+    G.clearPackets();G.clearPulses();
+    ['h','y','g','W1','W2'].forEach(n=>{G.setVal(n,'·');G.setGrad(n,'');});
+    cap.innerHTML='';cnt.textContent=ST.count();
+  }
+  base();
+  ST.add(async()=>{
+    G.pulse('ffn');
+    await G.packet('h','ffn',{label:'h',cls:'fwd'});
+    await G.packet('ffn','y',{label:'FFN(h)',cls:'fwd'});
+    G.setVal('h','vec');G.setVal('y','vec');
+    cap.innerHTML='forward: each token vector passes through the same FFN — expand, nonlinearity, project back.';
+    cnt.textContent=ST.count();
+  });
+  ST.add(async()=>{
+    await G.packet('g','y',{label:'g'});
+    await G.packet('y','ffn',{label:'g'});
+    G.setVal('g','vec');
+    cap.innerHTML='backward: g arrives at the output of the black box.';
+    cnt.textContent=ST.count();
+  });
+  ST.add(async()=>{
+    const p1=G.packet('ffn','h',{label:'Jᵀ g'});
+    const p2=G.packet('ffn','W1',{label:'∂L/∂W₁'});
+    const p3=G.packet('ffn','W2',{label:'∂L/∂W₂'});
+    G.setGrad('h','∂L/∂h = Jᵀg');
+    G.setGrad('W1','∂L/∂W₁');G.setGrad('W2','∂L/∂W₂');
+    await Promise.all([p1,p2,p3]);
+    cap.innerHTML='the box hands <b>Jᵀg</b> to the input and weight-gradients to its own parameters — that is all backprop needs from any component.';
+    G.clearPulses();cnt.textContent=ST.count();
+  });
+  document.getElementById('s10-next').onclick=()=>ST.next();
+  document.getElementById('s10-replay').onclick=()=>{ST.reset();base();};
+  return {play:()=>ST.play()};
+}
+
+/* ================= SLIDE 11: attention ================= */
+function buildSlide11(){
+  const stage=document.getElementById('s11-stage');
+  stage.style.display='flex';stage.style.flexWrap='wrap';stage.style.alignItems='center';stage.style.gap='8px';
+  const cap=document.getElementById('s11-cap');
+  const cnt=document.getElementById('s11-count');
+  const T=4, D=3;
+  const R=rng(5);
+  const Q=Array.from({length:T},()=>Array.from({length:D},()=>+(R()*2-1).toFixed(1)));
+  const K=Array.from({length:T},()=>Array.from({length:D},()=>+(R()*2-1).toFixed(1)));
+  const V=Array.from({length:T},()=>Array.from({length:D},()=>+(R()*2-1).toFixed(1)));
+  const S=Q.map((q,i)=>K.map((k,j)=>+(q.reduce((s,x,d)=>s+x*k[d],0)/Math.sqrt(D)).toFixed(2)));
+  const mask=(i,j)=>j>i?'—':S[i][j];
+  const A=S.map((row,i)=>{
+    const vis=row.slice(0,i+1);
+    const mx=Math.max(...vis);
+    const ex=vis.map(v=>Math.exp(v-mx));
+    const sm=ex.reduce((a,c)=>a+c,0);
+    return row.map((_,j)=>j<=i?+(ex[j]/sm).toFixed(2):0);
+  });
+  const O=A.map(a=>{const o=[0,0,0];
+    for(let j=0;j<T;j++)for(let d=0;d<D;d++)o[d]+=a[j]*V[j][d];
+    return o.map(v=>+v.toFixed(2));});
+  function matPanel(title,mat,maskFn,hlCells){
+    const p=el('div','panel');
+    p.appendChild(el('div','ptitle',title));
+    const g=el('div','grid');g.style.gridTemplateColumns=`repeat(${mat[0].length},var(--cw))`;
+    mat.forEach((row,i)=>row.forEach((v,j)=>{
+      const txt=maskFn?maskFn(i,j):v;
+      const c=el('div','cell',txt==='—'?'·':fmt(+txt));
+      if(hlCells&&hlCells.some(([a,b])=>a===i&&b===j))c.classList.add('hl');
+      g.appendChild(c);
+    }));
+    p.appendChild(g);return p;
+  }
+  function opRow(t){const d=el('div','op',t);d.style.textAlign='center';d.style.padding='2px 0';return d;}
+  const ST=makeStepper();
+  function base(){stage.innerHTML='';cap.innerHTML='';cnt.textContent=ST.count();}
+  base();
+  ST.add(async()=>{
+    stage.appendChild(matPanel('Q',Q));
+    stage.appendChild(el('div','op','·'));
+    stage.appendChild(matPanel('Kᵀ',transpose(K)));
+    stage.appendChild(el('div','op','='));
+    stage.appendChild(matPanel('S = QKᵀ/√d',S));
+    cap.innerHTML='scores: every query dots every key — <b>S = QKᵀ/√d</b>. Row i = how much token i likes each token j.';
+    cnt.textContent=ST.count();
+  });
+  ST.add(async()=>{
+    stage.appendChild(el('div','op','→'));
+    stage.appendChild(matPanel('mask (causal)',S,mask));
+    cap.innerHTML='causal mask: token i may not see j > i — future positions are blocked (—).';
+    cnt.textContent=ST.count();
+  });
+  ST.add(async()=>{
+    stage.appendChild(el('div','op','→'));
+    stage.appendChild(matPanel('A = softmax(S)',A));
+    cap.innerHTML='softmax per row: visible scores become weights that sum to 1. Row 0 puts everything on itself; later rows spread out.';
+    cnt.textContent=ST.count();
+  });
+  ST.add(async()=>{
+    stage.appendChild(el('div','op','·'));
+    stage.appendChild(matPanel('V',V));
+    stage.appendChild(el('div','op','='));
+    stage.appendChild(matPanel('O = A·V',O));
+    cap.innerHTML='output: each token is a weighted mix of the values it attended to — <b>O = A·V</b>.';
+    cnt.textContent=ST.count();
+  });
+  ST.add(async()=>{
+    cap.innerHTML='backward: the same three multiplies in reverse — ∂L/∂V = AᵀG, ∂L/∂A = GVᵀ, and through the softmax with the subtract-the-mean rule. All from slide 1.';
+    cnt.textContent=ST.count();
+  });
+  document.getElementById('s11-next').onclick=()=>ST.next();
+  document.getElementById('s11-replay').onclick=()=>{ST.reset();base();};
+  return {play:()=>ST.play()};
+}
+
+/* ================= SLIDE 12: layernorm ================= */
+function buildSlide12(){
+  const stage=document.getElementById('s12-stage');
+  const cap=document.getElementById('s12-cap');
+  const cnt=document.getElementById('s12-count');
+  const h0=[2.1,-0.4,1.3,0.2];
+  const mu=h0.reduce((a,c)=>a+c,0)/h0.length;
+  const va=h0.reduce((a,c)=>a+(c-mu)**2,0)/h0.length;
+  const sg=Math.sqrt(va+1e-5);
+  const hh=h0.map(v=>+((v-mu)/sg).toFixed(2));
+  const gam=1.2, bet=0.3;
+  const y=hh.map(v=>+(gam*v+bet).toFixed(2));
+  const g=[0.4,-0.2,0.1,0.3];
+  const ST=makeStepper();
+  function vecRow(label,vals,hl){
+    const r=el('div','l2row');
+    r.appendChild(el('span','rl',label));
+    const gr=el('div','grid');gr.style.gridTemplateColumns=`repeat(${vals.length},var(--cw))`;
+    vals.forEach(v=>{const c=el('div','cell',fmt(v));if(hl)c.classList.add('hl');gr.appendChild(c);});
+    r.appendChild(gr);return r;
+  }
+  function base(){stage.innerHTML='';cap.innerHTML='';cnt.textContent=ST.count();}
+  base();
+  ST.add(async()=>{
+    stage.appendChild(vecRow('h',h0));
+    cap.innerHTML=`one token's vector. mean μ = <b>${fmt(mu)}</b>, variance σ² = <b>${fmt(va)}</b> — the numbers drift as the stack grows.`;
+    cnt.textContent=ST.count();
+  });
+  ST.add(async()=>{
+    stage.appendChild(el('div','op','→'));
+    stage.appendChild(vecRow('ĥ = (h−μ)/σ',hh,true));
+    cap.innerHTML='normalize: subtract the mean, divide by σ — now mean 0, variance 1, <b>per token</b>.';
+    cnt.textContent=ST.count();
+  });
+  ST.add(async()=>{
+    stage.appendChild(el('div','op','→'));
+    stage.appendChild(vecRow('y = γĥ+β',y));
+    cap.innerHTML=`learned gain γ = ${gam} and shift β = ${bet} restore the network's freedom to scale and shift.`;
+    cnt.textContent=ST.count();
+  });
+  ST.add(async()=>{
+    stage.appendChild(el('div','op','←'));
+    stage.appendChild(vecRow('g',g));
+    cap.innerHTML='backward: g is projected — remove the component that changes the mean and the one that changes the variance, scale by γ/σ. ∂L/∂γ = g⊙ĥ, ∂L/∂β = g.';
+    cnt.textContent=ST.count();
+  });
+  document.getElementById('s12-next').onclick=()=>ST.next();
+  document.getElementById('s12-replay').onclick=()=>{ST.reset();base();};
+  return {play:()=>ST.play()};
+}
+
+/* ================= SLIDE 13: full block ================= */
+function buildSlide13(){
+  const stage=document.getElementById('s13-stage');
+  const cap=document.getElementById('s13-cap');
+  const status=document.getElementById('s13-status');
+  const spark=document.getElementById('s13-spark');
+  const R=rng(99);
+  const vocab=['the','cat','sat','on','a','mat','.'];
+  const seq=[0,1,2]; // "the cat sat"
+  let steps=0, hist=[];
+  // pipeline nodes
+  const G=makeGraph(stage,{
+    nodes:[
+      {id:'tok',x:60,y:150,label:'tokens'},
+      {id:'emb',x:190,y:150,label:'E',trainable:true},
+      {id:'ln1',x:300,y:150,label:'LN'},
+      {id:'att',x:410,y:150,label:'Attn'},
+      {id:'r1',x:500,y:150,label:'+'},
+      {id:'ln2',x:590,y:150,label:'LN'},
+      {id:'ffn',x:700,y:150,label:'FFN'},
+      {id:'r2',x:790,y:150,label:'+'},
+      {id:'ln3',x:880,y:150,label:'LN'},
+      {id:'un',x:990,y:150,label:'unembed',trainable:true},
+      {id:'sm',x:1100,y:150,label:'softmax'},
+      {id:'L',x:1210,y:150,label:'L'},
+    ],
+    gates:[],
+    edges:[['tok','emb'],['emb','ln1'],['ln1','att'],['att','r1'],['r1','ln2'],
+      ['ln2','ffn'],['ffn','r2'],['r2','ln3'],['ln3','un'],['un','sm'],['sm','L']]
+  });
+  G.wrap.style.width='1240px';
+  const nodes=['tok','emb','ln1','att','r1','ln2','ffn','r2','ln3','un','sm','L'];
+  nodes.forEach(n=>G.setVal(n,'·'));
+  let fwdDone=false, bwdDone=false;
+  function loss(){return +(2.0*Math.exp(-0.25*steps)+0.05).toFixed(3);}
+  async function fwd(){
+    G.clearPackets();G.clearPulses();
+    for(let i=0;i<nodes.length-1;i++){
+      G.pulse(nodes[i]);G.pulse(nodes[i+1]);
+      await G.packet(nodes[i],nodes[i+1],{label:'',cls:'fwd',dur:260});
+      G.setVal(nodes[i],'✓');
+      G.clearPulses();
+    }
+    G.setVal('L',fmt(loss()));
+    const pred=vocab[Math.floor(R()*vocab.length)];
+    cap.innerHTML=`forward pass complete — the model puts probability on the next token; say it predicts
+      "<b>${pred}</b>" and the true next token is "<b>on</b>". Loss L = <b>${fmt(loss())}</b>.`;
+    fwdDone=true;
+    status.textContent='forward done — now run backward';
+  }
+  async function bwd(){
+    for(let i=nodes.length-1;i>0;i--){
+      G.pulse(nodes[i]);G.pulse(nodes[i-1]);
+      await G.packet(nodes[i],nodes[i-1],{label:'g',dur:220});
+      G.setGrad(nodes[i-1],'∂');
+      G.clearPulses();
+    }
+    cap.innerHTML='backward: g flows through softmax, unembed, LN, FFN, the residual adds (photocopying), attention, LN, and into the embedding rows — every component applying its own rule.';
+    bwdDone=true;
+    status.textContent='backward done — apply update';
+  }
+  function train(){
+    if(!fwdDone||!bwdDone){cap.innerHTML='run Forward ▸ then Backward ▸ first.';return;}
+    for(let i=0;i<10;i++){steps++;hist.push(loss());}
+    drawSparkInto(spark,hist,'loss / step');
+    G.setVal('L',fmt(loss()));
+    status.textContent=`trained ${steps} steps — loss falling`;
+    cap.innerHTML='10 optimizer steps: every parameter (E, attention weights, FFN, γ/β, unembed) nudged by its own gradient. The loss falls.';
+  }
+  document.getElementById('s13-fwd').onclick=fwd;
+  document.getElementById('s13-bwd').onclick=bwd;
+  document.getElementById('s13-train').onclick=train;
+  document.getElementById('s13-reset').onclick=()=>{
+    steps=0;hist=[];fwdDone=bwdDone=false;
+    G.clearPackets();G.clearPulses();
+    nodes.forEach(n=>{G.setVal(n,'·');G.setGrad(n,'');});
+    drawSparkInto(spark,[],'loss / step');
+    status.textContent='';cap.innerHTML='';};
+  drawSparkInto(spark,[],'loss / step');
+  return {play:async()=>{await fwd();await bwd();}};
+}
+
+/* ================= SLIDE 14: KV cache & GQA ================= */
+function buildSlide14(){
+  const stage=document.getElementById('s14-stage');
+  const cap=document.getElementById('s14-cap');
+  const status=document.getElementById('s14-status');
+  let t=0, gqa=false;
+  const NQ=8;
+  function nkv(){return gqa?2:NQ;}
+  function render(){
+    stage.innerHTML='';
+    // cache panel
+    const cp=el('div','panel');
+    cp.appendChild(el('div','ptitle','KV cache'));
+    const cg=el('div','grid');cg.style.gridTemplateColumns=`repeat(${Math.max(t,1)},var(--cw))`;
+    for(let i=0;i<t;i++){
+      const c=el('div','cell','K,V');c.style.background='rgba(47,111,219,.25)';cg.appendChild(c);
+    }
+    if(t===0)cg.appendChild(el('div','cell','·'));
+    cp.appendChild(cg);
+    cp.appendChild(el('div','psub',`${t} positions cached · ${nkv()} kv heads`));
+    stage.appendChild(cp);
+    // new token
+    stage.appendChild(el('div','op','+'));
+    const np=el('div','panel adapter'.includes('x')?'panel':'panel');
+    np.appendChild(el('div','ptitle','new token'));
+    const ng=el('div','grid');ng.style.gridTemplateColumns='repeat(1,var(--cw))';
+    const nc=el('div','cell','q,k,v');nc.style.background='rgba(255,92,57,.3)';ng.appendChild(nc);
+    np.appendChild(ng);
+    np.appendChild(el('div','psub','compute once'));
+    stage.appendChild(np);
+    // heads
+    const hp=el('div','panel');
+    hp.appendChild(el('div','ptitle',gqa?'GQA: 8 q → 2 kv':'MHA: 8 q → 8 kv'));
+    const hg=el('div','grid');hg.style.gridTemplateColumns=`repeat(${NQ},var(--cw))`;
+    for(let i=0;i<NQ;i++){
+      const kv=gqa?Math.floor(i/4):i;
+      const c=el('div','cell','q'+(i+1));
+      c.title='→ kv head '+(kv+1);
+      c.style.background=gqa?`rgba(255,92,57,${0.12+0.06*kv})`:'rgba(47,111,219,.2)';
+      hg.appendChild(c);
+    }
+    hp.appendChild(hg);
+    hp.appendChild(el('div','psub',gqa?'4 query heads share each kv head':'one kv head per query head'));
+    stage.appendChild(hp);
+    const cacheKB=((t*nkv()*64*2*4)/1024).toFixed(1);
+    const fullKB=((t*NQ*64*2*4)/1024).toFixed(1);
+    status.textContent=`t=${t} · cache ${cacheKB} KB${gqa?` (vs ${fullKB} KB MHA — ${(100*(1-nkv()/NQ)).toFixed(0)}% smaller)`:' KB'}`;
+  }
+  function gen(){
+    t++;
+    cap.innerHTML=t===1
+      ?'token 1: compute q,k,v — store k,v in the cache. No history yet.'
+      :`token ${t}: compute only this token's q,k,v. Append k,v to the cache; attend over all ${t} cached positions. The ${t-1} previous K/V were <b>not</b> recomputed.`;
+    render();
+  }
+  document.getElementById('s14-gen').onclick=gen;
+  document.getElementById('s14-gqa').onclick=()=>{gqa=!gqa;
+    cap.innerHTML=gqa
+      ?'GQA: 8 query heads now share 2 K/V heads — the cache shrinks 4×, decode speeds up, quality barely moves.'
+      :'back to full multi-head attention: one K/V head per query head.';
+    render();};
+  document.getElementById('s14-reset').onclick=()=>{t=0;gqa=false;cap.innerHTML='';render();};
+  render();
+  return {play:()=>{}};
+}
+
 /* ================= boot ================= */
 function boot(){
   document.querySelectorAll('.tex[data-tex]').forEach(e=>{
@@ -1409,17 +2100,24 @@ function boot(){
   const s5=buildSlide5();
   const s6=buildSlide6();
   const s7=buildSlide7();
+  const s8=buildSlide8();
+  const s9=buildSlide9();
+  const s10=buildSlide10();
+  const s11=buildSlide11();
+  const s12=buildSlide12();
+  const s13=buildSlide13();
+  const s14=buildSlide14();
   const l2=createScriptedLesson(document.getElementById('l2'),buildVectorLesson);
   const sim3=createMatrixSim(document.getElementById('l3'),{allowLora:false});
   const sim4=createMatrixSim(document.getElementById('l4'),{allowLora:true});
-  window.__lessons={s2,s3,ssub,s4,s5,s6,s7,l2,sim3,sim4};
+  window.__lessons={s2,s3,ssub,s4,s5,s6,s7,s8,s9,s10,s11,s12,s13,s14,l2,sim3,sim4};
 
-  const players=[s2.play,s3.play,ssub.play,s4.play,()=>{},()=>{},s7.play];
-  const stoppers=[()=>{},()=>{},()=>{},()=>{},()=>l2.stopPlay(),()=>sim3.stopPlay(),()=>sim4.stopPlay()];
+  const players=[s2.play,s3.play,ssub.play,s4.play,()=>{},()=>{},s7.play,s8.play,s9.play,s10.play,s11.play,s12.play,s13.play,s14.play];
+  const stoppers=[()=>{},()=>{},()=>{},()=>{},()=>l2.stopPlay(),()=>sim3.stopPlay(),()=>sim4.stopPlay(),()=>{},()=>{},()=>{},()=>{},()=>{},()=>{},()=>{}];
   let cur=0;
-  const played=new Array(7).fill(false);
+  const played=new Array(14).fill(false);
   function show(i){
-    cur=Math.max(0,Math.min(6,i));
+    cur=Math.max(0,Math.min(13,i));
     document.querySelectorAll('.slide').forEach((s,k)=>s.classList.toggle('active',k===cur));
     document.querySelectorAll('#sidebar button').forEach((b,k)=>b.classList.toggle('on',k===cur));
     stoppers.forEach(f=>f());
@@ -1434,13 +2132,13 @@ function boot(){
     if(e.code==='ArrowRight')show(cur+1);
     else if(e.code==='ArrowLeft')show(cur-1);
     else if(e.code==='Space'){e.preventDefault();
-      if(cur<=3)players[cur]&&players[cur]();
+      if(cur!==4&&cur!==5&&cur!==6)players[cur]&&players[cur]();
       else if(cur===4)l2.stepOnce();
       else if(cur===5)sim3.step();
       else sim4.step();}
   });
   const h=parseInt((location.hash||'').slice(1),10);
-  if(h>=1&&h<=7)show(h-1);
+  if(h>=1&&h<=14)show(h-1);
 }
 document.addEventListener('DOMContentLoaded',boot);
 </script>
