@@ -4061,7 +4061,7 @@ function buildN3(){
       if(t<STEPS)setTimeout(chunk,0);else{run.done=true;if(P.c){drawCurves();const cp=document.getElementById('n3-cap');if(cp&&D)cp.innerHTML=caption(D.state().i);}res();}})();});
     return run.p;}
   function build(){st.innerHTML='';P={};P.h=[];P.b=[];
-    P.chain=cpanel('\\text{the network: } 30 \\text{ layers, each } u = h_{\\text{prev}} W + b \\to \\tanh \\text{ — formula and distributions per variable}',940,340);st.appendChild(P.chain);
+    P.chain=cpanel('\\text{the network: } 30 \\text{ layers, each } u = h_{\\text{prev}} W + b \\to \\tanh \\text{ — formula and distributions per variable}',1150,480);st.appendChild(P.chain);
     const lg=el('div','nstat');lg.style.margin='4px 0 0 2px';lg.innerHTML='each layer: the formula, the distribution of its input h, its pre-activation u, its output h, and the gradient \u2202L/\u2202u \u00b7 dot on the ruler: typical size \u00b7 grey dots: the other layers';st.appendChild(lg);
     P.g=cpanel('\\big\\|\\partial L/\\partial W_\\ell\\big\\| \\text{ at initialization, layer 1} \\to 30 \\text{ (log scale)}',940,170);st.appendChild(P.g);
     P.c=cpanel(`\\text{training loss, ${STEPS} SGD steps, same schedule for all: } \\eta_t = ${LR}\\cdot\\tfrac12\\big(1+\\cos\\tfrac{\\pi t}{${STEPS}}\\big)`,940,250);st.appendChild(P.c);}
@@ -4069,7 +4069,7 @@ function buildN3(){
   function drawChain(k,grow,shown){const c=TC(),S=statsFor(k),cv=P.chain.cv,ctx=cctx(cv),W=cv.__w,H2=cv.__h;
     const rms=S.us.map(a=>Math.sqrt(a.reduce((s,v)=>s+v*v,0)/a.length));
     const LAYERS=[0,9,19,29],NW=LAYERS.length;
-    const pad=18,gap=(W-2*pad-NW*200)/(NW-1),xw=200;
+    const pad=18,gap=(W-2*pad-NW*262)/(NW-1),xw=262;
     const top=44,bh=H2-top-24;
     ctx.font='10.5px ui-monospace,monospace';
     const rmsU=l=>Math.sqrt(S.us[l].reduce((s,v)=>s+v*v,0)/S.us[l].length);
