@@ -379,6 +379,23 @@ body.light .cnode{background:#fffdf8}
 .splitbar{display:flex;height:14px;max-width:520px;border:1px solid var(--line);margin-top:6px}
 .splitbar i{display:block;height:100%}
 
+/* ---- full block (s13) ---- */
+#s13 .cell.masked{background:repeating-linear-gradient(45deg,transparent 0 5px,var(--line) 5px 6px);color:var(--mut)}
+#s13 .cell.tgt{box-shadow:0 0 0 2px var(--ok) inset}
+#s13 .cell.brow{border-top:2px dashed var(--acc)}
+#s13 .narrow .cell{font-size:10px}
+#s13 .fbox .katex-display{margin:2px 0}
+.bpipe{display:flex;align-items:stretch;overflow-x:auto;margin:14px 0 4px;padding-bottom:4px}
+.bbox{border:1px solid var(--line);min-width:66px;padding:5px 5px 3px;text-align:center;font-size:11px;background:#101013;flex:0 0 auto;transition:box-shadow .3s,background .3s}
+body.light .bbox{background:#fffdf8}
+.bbox.tr{border-color:var(--acc)}
+.bbox.cur{box-shadow:0 0 0 2px var(--acc) inset;background:rgba(255,92,57,.12)}
+body.light .bbox.cur{background:rgba(214,60,20,.1)}
+.bbox .bn{font-size:12px;min-height:22px}
+.bbox .bs{color:var(--mut);font-size:10px;white-space:nowrap}
+.bbox .bg{color:var(--acc);font-size:10px;min-height:14px;white-space:nowrap}
+.barr{align-self:center;color:var(--mut);padding:0 2px;font-size:12px}
+
 footer{margin-top:26px;color:var(--mut);font-size:12px;border-top:1px solid var(--line);padding-top:12px}
 </style>
 </head>
@@ -717,30 +734,30 @@ footer{margin-top:26px;color:var(--mut);font-size:12px;border-top:1px solid var(
   <button class="nextlesson" data-go="15">Next: regularization ▸</button>
 </section>
 
-<!-- ============ SLIDE 13: full block ============ -->
+<!-- ============ SLIDE 13: full block, real numbers ============ -->
 <section class="slide" id="s13">
   <div class="kick">Slide 13</div>
-  <h2>The full block: forward, predict one token, backward</h2>
-  <p class="prose">Wire it together: tokens → embeddings → [LayerNorm → attention → residual →
-  LayerNorm → FFN → residual] → LayerNorm → unembed → softmax → a probability for the next token.
-  Press <b>Forward ▸</b> to push a sentence through and predict one token; <b>Backward ▸</b> to send
-  the loss gradient back through every component we built.</p>
-  <div class="controls">
-    <button class="primary" id="s13-fwd">Forward ▸</button>
-    <button id="s13-bwd">Backward ▸</button>
-    <button id="s13-train">Train 10 steps ▸▸</button>
-    <button id="s13-reset">Reset</button>
-    <span class="status" id="s13-status"></span>
+  <h2>The full block: every matrix, every number, forward and backward</h2>
+  <p class="prose">One real transformer block, small enough to show every number: 4 features per token,
+  an 8-wide FFN and a 6-word vocabulary. It has <b>212 trainable numbers</b> in 16 tensors. It reads
+  “the cat sat” and predicts the next word at each position (cat, sat, on). Step through all 11
+  forward stages, 13 backward stages and the update. Each stage shows its formula, the actual matrices,
+  and one entry worked out by hand. Then train it and watch the loss fall. Nothing is faked: every
+  gradient here matches a finite-difference check.</p>
+  <div class="dbar"><div class="stepbar" id="s13-bar"></div><div class="scap" id="s13-cap"></div></div>
+  <div id="s13-pipe"></div>
+  <div id="s13-stage"></div>
+  <div class="dpanels" style="align-items:flex-start;margin-top:16px">
+    <div id="s13-loss"></div>
+    <div><div class="controls" id="s13-train"></div><div id="s13-pred"></div>
+      <div class="nstat" style="margin-top:6px">each update runs forward → backward → update on the sentence; the step deck above always shows the current weights</div></div>
   </div>
-  <div id="s13-stage" style="margin-top:10px"></div>
-  <div class="fcaption" id="s13-cap"></div>
-  <div class="side"><canvas class="spark" id="s13-spark" width="260" height="64"></canvas></div>
   <div class="rulebox"><b>THE BLOCK</b>
-  <div class="tex" data-tex="h \mathrel{+}= \mathrm{Attn}(\mathrm{LN}(h)) \qquad h \mathrel{+}= \mathrm{FFN}(\mathrm{LN}(h)) \qquad \text{residual: gradient copies straight through}"></div>
-  <div class="tex" data-tex="\text{logits} = h_{\text{last}} \, W_{\text{unembed}} \qquad p = \mathrm{softmax}(\text{logits}) \qquad L = -\log p_{\text{true}}"></div>
-  the residual add is slide 2's distribution — the gradient photocopies down both branches, so
-  deep stacks train. The whole block is the four rules, composed a few hundred times.</div>
-  <button class="nextlesson" data-go="13">Next: KV cache &amp; GQA ▸</button>
+  <div class="tex" data-tex="X = E[\text{tokens}] \quad A_1 = \mathrm{LN}_1(X) \quad H_1 = X + \mathrm{softmax}\!\Big(\frac{(A_1W_Q)(A_1W_K)^{\top}}{\sqrt d} + M\Big)(A_1W_V)\,W_O"></div>
+  <div class="tex" data-tex="H_2 = H_1 + \mathrm{GELU}\big(\mathrm{LN}_2(H_1)W_1 + b_1\big)W_2 + b_2 \qquad P = \mathrm{softmax}\big(\mathrm{LN}_f(H_2)\,U\big) \qquad L = -\tfrac1T\textstyle\sum_t \log P_{t,\,y_t}"></div>
+  Backward uses only the rules from the first groups: the multiply rule for every matrix product
+  (inputᵀ × upstream, upstream × weightsᵀ), the add rule at the residuals (copy forward, sum backward),
+  elementwise slopes for GELU, and the LayerNorm and softmax projections.</div>
 </section>
 
 
@@ -2385,86 +2402,326 @@ function buildSlide11(){
   return {play:()=>ST.play()};
 }
 
-/* ================= SLIDE 13: full block ================= */
+/* ---------- tiny transformer block: real forward / backward / SGD ---------- */
+const BLK_VOCAB=['the','cat','sat','on','mat','.'],BLK_T=3,BLK_D=4,BLK_F=8,BLK_V=6,BLK_EPS=1e-5;
+const BLK_TOK=[0,1,2],BLK_TGT=[1,2,3];
+const bMz=(r,c)=>Array.from({length:r},()=>new Array(c).fill(0));
+const bMm=(A,B)=>{const r=A.length,k=B.length,c=B[0].length,O=bMz(r,c);for(let i=0;i<r;i++)for(let p=0;p<k;p++){const a=A[i][p];if(!a)continue;for(let j=0;j<c;j++)O[i][j]+=a*B[p][j];}return O;};
+const bT=A=>A[0].map((_,j)=>A.map(r=>r[j]));
+const bAddRow=(A,b)=>A.map(r=>r.map((v,j)=>v+b[j]));
+const bMadd=(A,B)=>A.map((r,i)=>r.map((v,j)=>v+B[i][j]));
+const bColSum=A=>A[0].map((_,j)=>A.reduce((s,r)=>s+r[j],0));
+const bGelu=z=>0.5*z*(1+Math.tanh(0.7978845608*(z+0.044715*z*z*z)));
+const bGeluD=z=>{const k=0.7978845608,u=k*(z+0.044715*z*z*z),t=Math.tanh(u);return 0.5*(1+t)+0.5*z*(1-t*t)*k*(1+3*0.044715*z*z);};
+function blkInit(seed){const R=rng(seed),G=gaussFrom(R),D=BLK_D,F=BLK_F,V=BLK_V;
+  const M=(r,c,s)=>Array.from({length:r},()=>Array.from({length:c},()=>G()*s));
+  return {E:M(V,D,1),g1:new Array(D).fill(1),b1n:new Array(D).fill(0),Wq:M(D,D,1/Math.sqrt(D)),Wk:M(D,D,1/Math.sqrt(D)),Wv:M(D,D,1/Math.sqrt(D)),Wo:M(D,D,1/Math.sqrt(D)),
+    g2:new Array(D).fill(1),b2n:new Array(D).fill(0),W1:M(D,F,1/Math.sqrt(D)),b1:new Array(F).fill(0),W2:M(F,D,1/Math.sqrt(F)),b2:new Array(D).fill(0),
+    gf:new Array(D).fill(1),bfn:new Array(D).fill(0),U:M(D,V,0.5/Math.sqrt(D))};}
+const BLK_PARAMS=[['E','E','embeddings'],['g1','\\gamma_1','LN 1 scale'],['b1n','\\beta_1','LN 1 shift'],['Wq','W_Q','query'],['Wk','W_K','key'],['Wv','W_V','value'],['Wo','W_O','attention out'],
+  ['g2','\\gamma_2','LN 2 scale'],['b2n','\\beta_2','LN 2 shift'],['W1','W_1','FFN up'],['b1','b_1','FFN up bias'],['W2','W_2','FFN down'],['b2','b_2','FFN down bias'],['gf','\\gamma_f','final LN scale'],['bfn','\\beta_f','final LN shift'],['U','U','unembed']];
+function lnF(X,g,b){const out={xh:[],mu:[],sd:[],y:[]};X.forEach(r=>{const d=r.length,m=r.reduce((a,c)=>a+c,0)/d,v=r.reduce((a,c)=>a+(c-m)**2,0)/d,s=Math.sqrt(v+BLK_EPS);
+  const xh=r.map(x=>(x-m)/s);out.mu.push(m);out.sd.push(s);out.xh.push(xh);out.y.push(xh.map((x,j)=>g[j]*x+b[j]));});return out;}
+function lnB(dY,c,g){const dg=new Array(g.length).fill(0),db=new Array(g.length).fill(0);
+  const dX=dY.map((r,i)=>{const d=r.length,xh=c.xh[i],dxh=r.map((v,j)=>{dg[j]+=v*xh[j];db[j]+=v;return v*g[j];});
+    const m1=dxh.reduce((a,v)=>a+v,0)/d,m2=dxh.reduce((a,v,j)=>a+v*xh[j],0)/d;return dxh.map((v,j)=>(v-m1-xh[j]*m2)/c.sd[i]);});return {dX,dg,db};}
+function blkForward(P){const T=BLK_T,D=BLK_D,sc=1/Math.sqrt(D),C={};
+  C.X=BLK_TOK.map(t=>P.E[t].slice());
+  C.ln1=lnF(C.X,P.g1,P.b1n);C.A1=C.ln1.y;
+  C.Q=bMm(C.A1,P.Wq);C.K=bMm(C.A1,P.Wk);C.Vv=bMm(C.A1,P.Wv);
+  C.S=bMm(C.Q,bT(C.K)).map(r=>r.map(v=>v*sc));
+  C.Pa=C.S.map((r,i)=>{const vis=r.slice(0,i+1),m=Math.max(...vis),e=r.map((v,j)=>j<=i?Math.exp(v-m):0),z=e.reduce((a,c)=>a+c,0);return e.map(v=>v/z);});
+  C.O=bMm(C.Pa,C.Vv);C.Oa=bMm(C.O,P.Wo);C.H1=bMadd(C.X,C.Oa);
+  C.ln2=lnF(C.H1,P.g2,P.b2n);C.A2=C.ln2.y;
+  C.Z=bAddRow(bMm(C.A2,P.W1),P.b1);C.Gl=C.Z.map(r=>r.map(bGelu));
+  C.Fo=bAddRow(bMm(C.Gl,P.W2),P.b2);C.H2=bMadd(C.H1,C.Fo);
+  C.lnf=lnF(C.H2,P.gf,P.bfn);C.A3=C.lnf.y;
+  C.Lg=bMm(C.A3,P.U);
+  C.Pr=C.Lg.map(r=>{const m=Math.max(...r),e=r.map(v=>Math.exp(v-m)),z=e.reduce((a,c)=>a+c,0);return e.map(v=>v/z);});
+  C.nll=BLK_TGT.map((y,t)=>-Math.log(C.Pr[t][y]));C.L=C.nll.reduce((a,c)=>a+c,0)/T;return C;}
+function blkBackward(P,C){const T=BLK_T,D=BLK_D,sc=1/Math.sqrt(D),G={};
+  G.dLg=C.Pr.map((r,t)=>r.map((p,v)=>(p-(v===BLK_TGT[t]?1:0))/T));
+  G.U=bMm(bT(C.A3),G.dLg);G.dA3=bMm(G.dLg,bT(P.U));
+  let r=lnB(G.dA3,C.lnf,P.gf);G.gf=r.dg;G.bfn=r.db;G.dH2=r.dX;
+  G.dFo=G.dH2;G.W2=bMm(bT(C.Gl),G.dFo);G.b2=bColSum(G.dFo);G.dGl=bMm(G.dFo,bT(P.W2));
+  G.dZ=G.dGl.map((row,i)=>row.map((v,j)=>v*bGeluD(C.Z[i][j])));
+  G.W1=bMm(bT(C.A2),G.dZ);G.b1=bColSum(G.dZ);G.dA2=bMm(G.dZ,bT(P.W1));
+  r=lnB(G.dA2,C.ln2,P.g2);G.g2=r.dg;G.b2n=r.db;G.dH1ln=r.dX;
+  G.dH1=bMadd(G.dH2,G.dH1ln);
+  G.dOa=G.dH1;G.Wo=bMm(bT(C.O),G.dOa);G.dO=bMm(G.dOa,bT(P.Wo));
+  G.dPa=bMm(G.dO,bT(C.Vv));G.dV=bMm(bT(C.Pa),G.dO);
+  G.dS=C.Pa.map((row,i)=>{const s=row.reduce((a,p,j)=>a+p*G.dPa[i][j],0);return row.map((p,j)=>j<=i?p*(G.dPa[i][j]-s):0);});
+  G.dQ=bMm(G.dS,C.K).map(rw=>rw.map(v=>v*sc));G.dK=bMm(bT(G.dS),C.Q).map(rw=>rw.map(v=>v*sc));
+  G.Wq=bMm(bT(C.A1),G.dQ);G.Wk=bMm(bT(C.A1),G.dK);G.Wv=bMm(bT(C.A1),G.dV);
+  G.dA1=bMadd(bMadd(bMm(G.dQ,bT(P.Wq)),bMm(G.dK,bT(P.Wk))),bMm(G.dV,bT(P.Wv)));
+  r=lnB(G.dA1,C.ln1,P.g1);G.g1=r.dg;G.b1n=r.db;G.dXln=r.dX;
+  G.dX=bMadd(G.dH1,G.dXln);
+  G.E=bMz(BLK_V,D);BLK_TOK.forEach((t,i)=>G.dX[i].forEach((v,j)=>G.E[t][j]+=v));
+  return G;}
+function blkStep(P,G,lr){const N={};BLK_PARAMS.forEach(([k])=>{const p=P[k],g=G[k];N[k]=Array.isArray(p[0])?p.map((r,i)=>r.map((v,j)=>v-lr*g[i][j])):p.map((v,j)=>v-lr*g[j]);});return N;}
+const blkNorm=a=>Math.sqrt((Array.isArray(a[0])?a.flat():a).reduce((s,v)=>s+v*v,0));
+const blkCount=a=>Array.isArray(a[0])?a.length*a[0].length:a.length;
+
+/* ================= SLIDE: the full block, real numbers ================= */
 function buildSlide13(){
-  const stage=document.getElementById('s13-stage');
-  const cap=document.getElementById('s13-cap');
-  const status=document.getElementById('s13-status');
-  const spark=document.getElementById('s13-spark');
-  const R=rng(99);
-  const vocab=['the','cat','sat','on','a','mat','.'];
-  const seq=[0,1,2]; // "the cat sat"
-  let steps=0, hist=[];
-  // pipeline nodes
-  const G=makeGraph(stage,{
-    nodes:[
-      {id:'tok',x:60,y:150,label:'tokens'},
-      {id:'emb',x:190,y:150,label:'E',trainable:true},
-      {id:'ln1',x:300,y:150,label:'LN'},
-      {id:'att',x:410,y:150,label:'Attn'},
-      {id:'r1',x:500,y:150,label:'+'},
-      {id:'ln2',x:590,y:150,label:'LN'},
-      {id:'ffn',x:700,y:150,label:'FFN'},
-      {id:'r2',x:790,y:150,label:'+'},
-      {id:'ln3',x:880,y:150,label:'LN'},
-      {id:'un',x:990,y:150,label:'unembed',trainable:true},
-      {id:'sm',x:1100,y:150,label:'softmax'},
-      {id:'L',x:1210,y:150,label:'L'},
-    ],
-    gates:[],
-    edges:[['tok','emb'],['emb','ln1'],['ln1','att'],['att','r1'],['r1','ln2'],
-      ['ln2','ffn'],['ffn','r2'],['r2','ln3'],['ln3','un'],['un','sm'],['sm','L']]
-  });
-  G.wrap.style.width='1240px';
-  const nodes=['tok','emb','ln1','att','r1','ln2','ffn','r2','ln3','un','sm','L'];
-  nodes.forEach(n=>G.setVal(n,'·'));
-  let fwdDone=false, bwdDone=false;
-  function loss(){return +(2.0*Math.exp(-0.25*steps)+0.05).toFixed(3);}
-  async function fwd(){
-    G.clearPackets();G.clearPulses();
-    for(let i=0;i<nodes.length-1;i++){
-      G.pulse(nodes[i]);G.pulse(nodes[i+1]);
-      await G.packet(nodes[i],nodes[i+1],{label:'',cls:'fwd',dur:260});
-      G.setVal(nodes[i],'✓');
-      G.clearPulses();
-    }
-    G.setVal('L',fmt(loss()));
-    const pred=vocab[Math.floor(R()*vocab.length)];
-    cap.innerHTML=`forward pass complete — the model puts probability on the next token; say it predicts
-      "<b>${pred}</b>" and the true next token is "<b>on</b>". Loss L = <b>${fmt(loss())}</b>.`;
-    fwdDone=true;
-    status.textContent='forward done — now run backward';
-  }
-  async function bwd(){
-    for(let i=nodes.length-1;i>0;i--){
-      G.pulse(nodes[i]);G.pulse(nodes[i-1]);
-      await G.packet(nodes[i],nodes[i-1],{label:'g',dur:220});
-      G.setGrad(nodes[i-1],'∂');
-      G.clearPulses();
-    }
-    cap.innerHTML='backward: g flows through softmax, unembed, LN, FFN, the residual adds (photocopying), attention, LN, and into the embedding rows — every component applying its own rule.';
-    bwdDone=true;
-    status.textContent='backward done — apply update';
-  }
-  function train(){
-    if(!fwdDone||!bwdDone){cap.innerHTML='run Forward ▸ then Backward ▸ first.';return;}
-    for(let i=0;i<10;i++){steps++;hist.push(loss());}
-    drawSparkInto(spark,hist,'loss / step');
-    G.setVal('L',fmt(loss()));
-    status.textContent=`trained ${steps} steps — loss falling`;
-    cap.innerHTML='10 optimizer steps: every parameter (E, attention weights, FFN, γ/β, unembed) nudged by its own gradient. The loss falls.';
-  }
-  document.getElementById('s13-fwd').onclick=fwd;
-  document.getElementById('s13-bwd').onclick=bwd;
-  document.getElementById('s13-train').onclick=train;
-  document.getElementById('s13-reset').onclick=()=>{
-    steps=0;hist=[];fwdDone=bwdDone=false;
-    G.clearPackets();G.clearPulses();
-    nodes.forEach(n=>{G.setVal(n,'·');G.setGrad(n,'');});
-    drawSparkInto(spark,[],'loss / step');
-    status.textContent='';cap.innerHTML='';};
-  drawSparkInto(spark,[],'loss / step');
-  return {play:async()=>{await fwd();await bwd();}};
+  const st=document.getElementById('s13-stage'),pipe=document.getElementById('s13-pipe');
+  const SEED=11;let P=blkInit(SEED),lr=0.1,hist=[],updates=0;
+  let C,G;const recompute=()=>{C=blkForward(P);G=blkBackward(P,C);};recompute();
+  const TOKL=BLK_TOK.map(t=>`\\text{${BLK_VOCAB[t]}}`),VL=BLK_VOCAB.map(w=>`\\text{${w}}`);
+  const dl=n=>Array.from({length:n},(_,k)=>String(k+1));
+  const fg=v=>{const a=Math.abs(v);return a<1e-12?'0':a>=0.01?fmt(v):v.toExponential(0);};
+  const tg=v=>{const a=Math.abs(v);if(a<1e-12)return '0';if(a>=0.01)return fmt(v);const e=Math.floor(Math.log10(a)),m=v/Math.pow(10,e);return `${m.toFixed(1)}\\times 10^{${e}}`;};
+  const col=(M,j)=>M.map(r=>r[j]);
+  const dotT=(a,b,fa,fb)=>a.map((x,k)=>`(${(fa||fmt)(x)})(${(fb||fmt)(b[k])})`).join('+');
+  const CW='42px',CW8='36px';
+  // ---------- matrix panel ----------
+  function MP(title,A,o){o=o||{};const M=Array.isArray(A[0])?A:[A];
+    const p=kmat(title,M.length,M[0].length,{rl:o.rl,cl:o.cl,cw:o.cw||(M[0].length>6?CW8:CW),sub:o.sub});
+    if(M[0].length>6)p.classList.add('narrow');
+    Object.assign(p,{__M:M,__cls:o.cls||'fwdv',__f:o.f||fmt,__mask:o.mask,__dim:o.dim,__brow:o.brow,__tgt:o.tgt});
+    if(!o.blank)fillP(p);return p;}
+  function fillP(p,row,pop){p.__M.forEach((r,i)=>{if(row!=null&&i!==row)return;r.forEach((v,j)=>{const c=p.cells[i][j];
+    if(p.__mask&&p.__mask(i,j)){setc(c,'\u2212\u221e','masked',pop);return;}
+    let cls=p.__cls;if(p.__dim&&p.__dim(i,j))cls+=' dim';if(p.__brow!=null&&i===p.__brow)cls+=' brow';if(p.__tgt&&p.__tgt(i,j))cls+=' tgt';
+    setc(c,p.__f(v),cls,pop);});});}
+  const T_=M=>bT(M);
+  const L=(cls,title,sub)=>flowLane(st,cls,title,sub);
+  const withBias=(W,b)=>W.concat([b]);
+  const causal=(i,j)=>j>i;
+  // LayerNorm lane (forward)
+  function lnLane(l,Xin,c,g,b,Aout,nm,blank){
+    const X=MP(nm.x,Xin,{rl:TOKL,cl:dl(4)});
+    const ms=MP('\\mu,\\ \\sigma',c.mu.map((m,i)=>[m,c.sd[i]]),{cl:['\\mu','\\sigma'],cls:'newv',blank});
+    const xh=MP('\\hat x = (x-\\mu)/\\sigma',c.xh,{cl:dl(4),cls:'newv',blank});
+    const gb=MP(nm.gb,[g,b],{rl:[nm.g,nm.b],cl:dl(4),sub:'trainable'});
+    const A=MP(nm.a,Aout,{rl:TOKL,cl:dl(4),cls:'newv',blank});
+    l.append(X,kop('\\xrightarrow{\\text{per row}}'),ms,kop('\\to'),xh,kop(`\\odot ${nm.g} + ${nm.b}`),gb,kop('='),A);
+    return {outs:[ms,xh,A],hot:[...X.cells[1],...ms.cells[1],...xh.cells[1],...A.cells[1]]};}
+  // LayerNorm lanes (backward)
+  function lnBack(dA,c,g,dg,db,dX,nm,blank){
+    const l1=L('bwd',`${nm.name}: its own parameters`,'\u03b3 gets \u2211\u209c g\u2299x\u0302, \u03b2 gets \u2211\u209c g');
+    const a=MP(`\\partial L/\\partial ${nm.a}`,dA,{rl:TOKL,cl:dl(4),cls:'gv',f:fg});const xh=MP('\\hat x',c.xh,{cl:dl(4)});
+    const p=MP(`\\partial L/\\partial ${nm.g},\\ \\partial L/\\partial ${nm.b}`,[dg,db],{rl:[nm.g,nm.b],cl:dl(4),cls:'gv',f:fg,blank});
+    l1.append(a,kop('\\;\\text{with}\\;'),xh,kop('\\xrightarrow{\\;\\sum_t\\;}'),p);
+    const l2=L('bwd',`${nm.name}: into its input`,'multiply by \u03b3, remove the row average and the part along x\u0302, divide by \u03c3');
+    const dxh=dA.map(r=>r.map((v,j)=>v*g[j]));
+    const a2=MP(`\\partial L/\\partial ${nm.a}`,dA,{rl:TOKL,cl:dl(4),cls:'gv',f:fg});
+    const d1=MP('\\partial L/\\partial \\hat x',dxh,{cl:dl(4),cls:'gv',f:fg,blank});
+    const o=MP(`\\partial L/\\partial ${nm.x}`,dX,{rl:TOKL,cl:dl(4),cls:'gv',f:fg,blank});
+    l2.append(a2,kop(`\\odot ${nm.g}`),d1,kop('\\xrightarrow{\\;-\\,\\text{mean}\\;-\\;\\hat x\\cdot\\text{mean}(\\cdot\\odot\\hat x),\\ \\div\\sigma\\;}'),o);
+    return {outs:[p,d1,o],hot:[...a2.cells[1],...d1.cells[1],...o.cells[1]]};}
+  const dWlane=(title,Xin,dOut,dW,nm,blank,o)=>{o=o||{};const l=L('bwd',title,o.sub||'multiply rule: input\u1d40 \u00d7 upstream gradient');
+    const a=MP(`${nm.x}^{\\top}`,T_(Xin),{cl:TOKL,rl:o.rl});const g=MP(`\\partial L/\\partial ${nm.y}`,dOut,{rl:TOKL,cl:o.cl,cls:'gv',f:fg});
+    const w=MP(`\\partial L/\\partial ${nm.w}`,dW,{cls:'gv',f:fg,blank,brow:o.brow,rl:o.wrl,cl:o.cl});
+    l.append(a,kop('\\cdot'),g,kop('='),w);return {l,a,g,w};};
+  const dXlane=(title,dOut,W,dX,nm,blank,o)=>{o=o||{};const l=L('bwd',title,'pass the gradient to the input: upstream \u00d7 W\u1d40');
+    const g=MP(`\\partial L/\\partial ${nm.y}`,dOut,{rl:TOKL,cl:o.cl,cls:'gv',f:fg});const w=MP(`${nm.w}^{\\top}`,T_(W),{cl:o.wcl});
+    const x=MP(`\\partial L/\\partial ${nm.x}`,dX,{rl:TOKL,cl:o.xcl,cls:'gv',f:fg,blank});
+    l.append(g,kop('\\cdot'),w,kop('='),x);return {l,g,w,x};};
+  // ---------- stages ----------
+  const S=[
+  {ph:'f',box:[0,1],tex:'X_t = E[\\,\\text{token}_t\\,]',
+   lanes(b){const l=L('fwd','embedding lookup','each token copies its own row of the trainable table E');
+     const tk=MP('\\text{token id}',BLK_TOK.map(t=>[t]),{rl:TOKL,f:v=>String(v)});
+     const E=MP('E\\;(6{\\times}4)',P.E,{rl:VL,cl:dl(4),dim:i=>!BLK_TOK.includes(i),sub:'trainable'});
+     const X=MP('X\\;(3{\\times}4)',C.X,{rl:TOKL,cl:dl(4),cls:'newv',blank:b});
+     l.append(tk,kop('\\xrightarrow{\\text{look up row}}'),E,kop('\\to'),X);return {outs:[X],hot:[...E.cells[1],...X.cells[1]]};},
+   cap:()=>`<b>Embedding lookup.</b> The sentence is \u201cthe cat sat\u201d and each word has an id. Each id picks one row of the trainable table ${kx('E')}: \u201ccat\u201d is id 1, so ${kx(`X_{\\text{cat}} = E_1 = [${C.X[1].map(fmt).join(',\\,')}]`)}. Rows on, mat and \u201c.\u201d are not used by this sentence.`},
+  {ph:'f',box:[2],tex:'\\hat x = \\frac{x-\\mu}{\\sigma},\\quad A_1 = \\gamma_1\\odot\\hat x + \\beta_1 \\quad(\\text{per row})',
+   lanes(b){return lnLane(L('fwd','LayerNorm 1','normalize each token\u2019s 4 numbers, then scale and shift'),C.X,C.ln1,P.g1,P.b1n,C.A1,{x:'X',a:'A_1',g:'\\gamma_1',b:'\\beta_1',gb:'\\gamma_1,\\ \\beta_1'},b);},
+   cap:()=>{const c=C.ln1;return `<b>LayerNorm 1</b>, one row at a time. \u201ccat\u201d: ${kx(`\\mu = ${fmt(c.mu[1])},\\ \\sigma = ${fmt(c.sd[1])}`)}, so ${kx(`\\hat x_1 = (${fmt(C.X[1][0])} - ${fmt(c.mu[1])})/${fmt(c.sd[1])} = ${fmt(c.xh[1][0])}`)} and ${kx(`a_1 = (${fmt(P.g1[0])})(${fmt(c.xh[1][0])}) + ${fmt(P.b1n[0])} = ${fmt(C.A1[1][0])}`)}.${updates?'':' At the start \u03b3 = 1 and \u03b2 = 0, so A\u2081 = x\u0302; training will move them.'}`;}},
+  {ph:'f',box:[3],tex:'Q = A_1 W_Q,\\qquad K = A_1 W_K,\\qquad V = A_1 W_V',
+   lanes(b){const out=[],hot=[];[['Q','W_Q',P.Wq,C.Q],['K','W_K',P.Wk,C.K],['V','W_V',P.Wv,C.Vv]].forEach(([n,w,W,R],k)=>{
+       const l=L('fwd',`${n} = A\u2081 \u00b7 ${w.replace('W_','W')}`,k?'':'three matrix multiplies, same input');
+       const a=MP('A_1',C.A1,{rl:TOKL,cl:dl(4)}),m=MP(`${w}\\;(4{\\times}4)`,W,{rl:dl(4),cl:dl(4),sub:'trainable'}),o=MP(n,R,{rl:TOKL,cl:dl(4),cls:'newv',blank:b});
+       l.append(a,kop('\\cdot'),m,kop('='),o);out.push(o);if(!k)hot.push(...a.cells[1],...col(m.cells,0),o.cells[1][0]);});return {outs:out,hot};},
+   cap:()=>`<b>Queries, keys and values</b> are three matrix multiplies of the same input. One entry, by hand: ${kx(`Q_{\\text{cat},1} = ${dotT(C.A1[1],col(P.Wq,0))} = ${fmt(C.Q[1][0])}`)}.`},
+  {ph:'f',box:[4],tex:'S = \\frac{QK^{\\top}}{\\sqrt{4}},\\quad S_{ij} = -\\infty \\text{ for } j>i,\\quad A = \\mathrm{softmax}_{\\text{row}}(S)',
+   lanes(b){const l=L('fwd','attention scores','every query dotted with every key, future hidden, softmax per row');
+     const q=MP('Q',C.Q,{rl:TOKL,cl:dl(4)}),k=MP('K^{\\top}',T_(C.K),{rl:dl(4),cl:TOKL}),s=MP('S',C.S,{rl:TOKL,cl:TOKL,cls:'newv',mask:causal,blank:b});
+     const a=MP('A = \\mathrm{softmax}(S)',C.Pa,{rl:TOKL,cl:TOKL,cls:'newv',dim:causal,blank:b,sub:'each row sums to 1'});
+     l.append(q,kop('\\cdot'),k,kop('\\times\\tfrac12 ='),s,kop('\\xrightarrow{\\text{softmax}}'),a);return {outs:[s,a],hot:[...q.cells[2],...col(k.cells,1),s.cells[2][1]]};},
+   cap:()=>`<b>Scores:</b> ${kx(`S_{\\text{sat},\\text{cat}} = q_{\\text{sat}}\\cdot k_{\\text{cat}}/\\sqrt 4 = (${dotT(C.Q[2],C.K[1])})/2 = ${fmt(C.S[2][1])}`)}. Future positions are masked to \u2212\u221e, then softmax turns each row into weights: \u201csat\u201d attends ${kx(C.Pa[2].map(fmt).join(',\\;'))} to the, cat, sat. \u201cthe\u201d can only see itself, so its row is [1, 0, 0].`},
+  {ph:'f',box:[5],tex:'O = A\\,V,\\qquad O\\,W_O',
+   lanes(b){const l=L('fwd','mix the values, then project','each row of O is a weighted average of the rows of V');
+     const a=MP('A',C.Pa,{rl:TOKL,cl:TOKL,dim:causal}),v=MP('V',C.Vv,{rl:TOKL,cl:dl(4)}),o=MP('O',C.O,{cl:dl(4),cls:'newv',blank:b});
+     const w=MP('W_O\\;(4{\\times}4)',P.Wo,{rl:dl(4),cl:dl(4),sub:'trainable'}),oa=MP('O\\,W_O',C.Oa,{rl:TOKL,cl:dl(4),cls:'newv',blank:b});
+     l.append(a,kop('\\cdot'),v,kop('='),o,kop('\\cdot'),w,kop('='),oa);return {outs:[o,oa],hot:[...a.cells[2],...col(v.cells,0),o.cells[2][0]]};},
+   cap:()=>`<b>Mix the values:</b> ${kx(`O_{\\text{sat},1} = ${dotT(C.Pa[2],col(C.Vv,0))} = ${fmt(C.O[2][0])}`)}: ${C.Pa[2].map((v,j)=>`${Math.round(100*v)}% of ${BLK_VOCAB[j]}\u2019s value`).join(', ')} (the weights from the last step). ${kx('W_O')} then maps the mix back into the 4-number stream.`},
+  {ph:'f',box:[6],tex:'H_1 = X + O\\,W_O',
+   lanes(b){const l=L('fwd','residual add','the original embedding passes straight through; attention adds a correction');
+     const x=MP('X',C.X,{rl:TOKL,cl:dl(4)}),oa=MP('O\\,W_O',C.Oa,{cl:dl(4)}),h=MP('H_1',C.H1,{rl:TOKL,cl:dl(4),cls:'newv',blank:b});
+     l.append(x,kop('+'),oa,kop('='),h);return {outs:[h],hot:[x.cells[1][0],oa.cells[1][0],h.cells[1][0]]};},
+   cap:()=>`<b>Residual add</b>, entry by entry: \u201ccat\u201d, feature 1: ${kx(`${fmt(C.X[1][0])} + ${fmt(C.Oa[1][0])} = ${fmt(C.H1[1][0])}`)}. Backward, this + gate will copy the gradient to both inputs (slide 23).`},
+  {ph:'f',box:[7],tex:'A_2 = \\gamma_2\\odot\\frac{H_1-\\mu}{\\sigma} + \\beta_2',
+   lanes(b){return lnLane(L('fwd','LayerNorm 2','same recipe, its own \u03b3\u2082 and \u03b2\u2082'),C.H1,C.ln2,P.g2,P.b2n,C.A2,{x:'H_1',a:'A_2',g:'\\gamma_2',b:'\\beta_2',gb:'\\gamma_2,\\ \\beta_2'},b);},
+   cap:()=>{const c=C.ln2;return `<b>LayerNorm 2.</b> \u201ccat\u201d: ${kx(`\\mu = ${fmt(c.mu[1])},\\ \\sigma = ${fmt(c.sd[1])}`)}, ${kx(`\\hat x_1 = (${fmt(C.H1[1][0])} - ${fmt(c.mu[1])})/${fmt(c.sd[1])} = ${fmt(c.xh[1][0])}`)}. Every row comes out with mean 0 and spread 1 before the FFN sees it.`;}},
+  {ph:'f',box:[8],tex:'Z = A_2 W_1 + b_1,\\qquad G = \\mathrm{GELU}(Z)',
+   lanes(b){const l=L('fwd','FFN up: 4 \u2192 8','the dashed row is the bias b\u2081, added to every row');
+     const a=MP('A_2',C.A2,{rl:TOKL,cl:dl(4)}),w=MP('W_1\\;(4{\\times}8),\\ b_1',withBias(P.W1,P.b1),{rl:[...dl(4),'b_1'],cl:dl(8),brow:4,sub:'trainable'});
+     const z=MP('Z',C.Z,{rl:TOKL,cl:dl(8),cls:'newv',blank:b});l.append(a,kop('\\cdot W_1 + b_1'),w,kop('='),z);
+     const l2=L('fwd','GELU, elementwise','');const z2=MP('Z',C.Z,{rl:TOKL,cl:dl(8)}),g=MP('G = \\mathrm{GELU}(Z)',C.Gl,{rl:TOKL,cl:dl(8),cls:'newv',blank:b});
+     l2.append(z2,kop('\\xrightarrow{\\mathrm{GELU}}'),g);return {outs:[z,g],hot:[...a.cells[1],...col(w.cells,0),z.cells[1][0]]};},
+   cap:()=>`<b>FFN up + GELU:</b> widen to 8 features. ${kx(`Z_{\\text{cat},1} = ${dotT(C.A2[1],col(P.W1,0))} + ${fmt(P.b1[0])} = ${fmt(C.Z[1][0])}`)}, then ${kx(`\\mathrm{GELU}(${fmt(C.Z[1][0])}) = ${fmt(C.Gl[1][0])}`)}. GELU keeps positives and squashes negatives toward 0.`},
+  {ph:'f',box:[9,10],tex:'F = G\\,W_2 + b_2,\\qquad H_2 = H_1 + F',
+   lanes(b){const l=L('fwd','FFN down: 8 \u2192 4','dashed row = bias b\u2082');
+     const g=MP('G',C.Gl,{rl:TOKL,cl:dl(8)}),w=MP('W_2\\;(8{\\times}4),\\ b_2',withBias(P.W2,P.b2),{rl:[...dl(8),'b_2'],cl:dl(4),brow:8,sub:'trainable'});
+     const f=MP('F',C.Fo,{rl:TOKL,cl:dl(4),cls:'newv',blank:b});l.append(g,kop('\\cdot W_2 + b_2'),w,kop('='),f);
+     const l2=L('fwd','residual add','');const h1=MP('H_1',C.H1,{rl:TOKL,cl:dl(4)}),f2=MP('F',C.Fo,{cl:dl(4)}),h2=MP('H_2',C.H2,{rl:TOKL,cl:dl(4),cls:'newv',blank:b});
+     l2.append(h1,kop('+'),f2,kop('='),h2);return {outs:[f,h2],hot:[...g.cells[1],...col(w.cells,0),f.cells[1][0]]};},
+   cap:()=>`<b>FFN down, then residual:</b> ${kx(`F_{\\text{cat},1} = \\textstyle\\sum_{k=1}^{8} G_{\\text{cat},k}\\,W_{2,k1} + b_{2,1} = ${fmt(C.Fo[1][0])}`)}, and ${kx(`H_2 = H_1 + F`)}: ${kx(`${fmt(C.H1[1][0])} + ${fmt(C.Fo[1][0])} = ${fmt(C.H2[1][0])}`)}.`},
+  {ph:'f',box:[11],tex:'A_3 = \\gamma_f\\odot\\frac{H_2-\\mu}{\\sigma} + \\beta_f',
+   lanes(b){return lnLane(L('fwd','final LayerNorm','normalize once more before predicting'),C.H2,C.lnf,P.gf,P.bfn,C.A3,{x:'H_2',a:'A_3',g:'\\gamma_f',b:'\\beta_f',gb:'\\gamma_f,\\ \\beta_f'},b);},
+   cap:()=>`<b>Final LayerNorm</b>, same recipe with its own ${kx('\\gamma_f, \\beta_f')}. Its output ${kx('A_3')} is the block\u2019s final 4-number summary of each position.`},
+  {ph:'f',box:[12,13],tex:'\\text{logits} = A_3 U,\\quad P = \\mathrm{softmax}_{\\text{row}},\\quad L = -\\tfrac13\\textstyle\\sum_t \\log P_{t,\\,\\text{target}_t}',
+   lanes(b){const tgt=(i,j)=>j===BLK_TGT[i];const l=L('fwd','scores for every word','U maps each position\u2019s 4 numbers to 6 scores, one per vocabulary word');
+     const a=MP('A_3',C.A3,{rl:TOKL,cl:dl(4)}),u=MP('U\\;(4{\\times}6)',P.U,{rl:dl(4),cl:VL,sub:'trainable'}),lg=MP('\\text{logits}',C.Lg,{rl:TOKL,cl:VL,cls:'newv',blank:b});
+     l.append(a,kop('\\cdot'),u,kop('='),lg);
+     const l2=L('fwd','softmax, then the loss','green outline = the true next word');const lg2=MP('\\text{logits}',C.Lg,{rl:TOKL,cl:VL});
+     const p=MP('P = \\mathrm{softmax}',C.Pr,{cl:VL,cls:'newv',tgt:tgt,blank:b});
+     const pt=MP('P_{\\text{target}}',C.Pr.map((r,t)=>[r[BLK_TGT[t]]]),{cl:['\\text{'+'tgt'+'}'],cls:'newv',blank:b,sub:'cat, sat, on'});
+     const nl=MP('-\\log P',C.nll.map(v=>[v]),{cls:'newv',blank:b}),Lp=MP('L',[[C.L]],{cls:'newv',f:f3,blank:b});
+     l2.append(lg2,kop('\\xrightarrow{\\text{softmax}}'),p,kop('\\xrightarrow{\\text{pick}}'),pt,kop('\\xrightarrow{-\\log}'),nl,kop('\\xrightarrow{\\text{mean}}'),Lp);
+     return {outs:[lg,p,pt,nl,Lp],hot:[...a.cells[2],...col(u.cells,3),lg.cells[2][3]]};},
+   cap:()=>{const top=C.Pr.map(r=>BLK_VOCAB[r.indexOf(Math.max(...r))]);return `<b>Logits, softmax, loss.</b> ${kx('U')} turns each position\u2019s 4 numbers into 6 scores, one per word; softmax makes them probabilities. Targets: the\u2192cat, cat\u2192sat, sat\u2192on. Top guesses right now: ${top.join(', ')}. ${kx(`L = \\tfrac13(${C.nll.map(fmt).join('+')}) = ${f3(C.L)}`)}${updates?'':`, close to ${kx('\\ln 6 = 1.79')}, the loss of guessing uniformly: the random weights know nothing yet`}.`;}},
+  // ---------- backward ----------
+  {ph:'b',box:[13,12],tex:'\\frac{\\partial L}{\\partial\\,\\text{logits}} = \\frac{P - Y}{T}',
+   lanes(b){const tg=(i,j)=>j===BLK_TGT[i];const l=L('bwd','softmax + cross-entropy','prediction minus the one-hot target, divided by T = 3 positions');
+     const p=MP('P',C.Pr,{rl:TOKL,cl:VL,tgt:tg}),y=MP('Y\\;(\\text{one-hot})',C.Pr.map((r,t)=>r.map((_,v)=>v===BLK_TGT[t]?1:0)),{cl:VL,f:v=>String(v),tgt:tg});
+     const g=MP('\\partial L/\\partial\\,\\text{logits}',G.dLg,{rl:TOKL,cl:VL,cls:'gv',f:fg,tgt:tg,blank:b});
+     l.append(p,kop('-'),y,kop('\\div 3 ='),g);return {outs:[g],hot:[p.cells[2][3],y.cells[2][3],g.cells[2][3]]};},
+   cap:()=>`<b>Backward starts at the loss.</b> For softmax followed by \u2212log, the gradient of the logits is just ${kx('(P - Y)/3')}. Row \u201csat\u201d, target \u201con\u201d: ${kx(`(${fmt(C.Pr[2][3])} - 1)/3 = ${tg(G.dLg[2][3])}`)}, negative, so gradient descent will push that score <b>up</b>; every other word gets ${kx('p/3 > 0')} and is pushed down.`},
+  {ph:'b',box:[12],tex:'\\frac{\\partial L}{\\partial U} = A_3^{\\top}\\frac{\\partial L}{\\partial\\,\\text{logits}},\\qquad \\frac{\\partial L}{\\partial A_3} = \\frac{\\partial L}{\\partial\\,\\text{logits}}\\,U^{\\top}',
+   lanes(b){const r1=dWlane('gradient of U',C.A3,G.dLg,G.U,{x:'A_3',y:'\\,\\text{logits}',w:'U'},b,{rl:dl(4),cl:VL,wrl:dl(4)});
+     const r2=dXlane('gradient into A\u2083',G.dLg,P.U,G.dA3,{y:'\\,\\text{logits}',w:'U',x:'A_3'},b,{cl:VL,wcl:dl(4),xcl:dl(4)});
+     return {outs:[r1.w,r2.x],hot:[...r1.a.cells[0],...col(r1.g.cells,3),r1.w.cells[0][3]]};},
+   cap:()=>`<b>Through the unembedding</b>, the matrix multiply rule from slide 10: input\u1d40 \u00d7 upstream for the weights, upstream \u00d7 weights\u1d40 for the input. One entry: ${kx(`\\partial L/\\partial U_{1,\\text{on}} = ${dotT(col(C.A3,0),col(G.dLg,3),fmt,tg)} = ${tg(G.U[0][3])}`)}.`},
+  {ph:'b',box:[11],tex:'\\frac{\\partial L}{\\partial\\gamma_f} = \\sum_t g\\odot\\hat x,\\quad \\frac{\\partial L}{\\partial\\beta_f} = \\sum_t g,\\quad \\frac{\\partial L}{\\partial H_2} = \\frac{1}{\\sigma}\\big(d - \\bar d - \\hat x\\,\\overline{d\\odot\\hat x}\\big),\\ d = \\gamma_f\\odot g',
+   lanes(b){return lnBack(G.dA3,C.lnf,P.gf,G.gf,G.bfn,G.dH2,{name:'final LayerNorm',a:'A_3',x:'H_2',g:'\\gamma_f',b:'\\beta_f'},b);},
+   cap:()=>{const s=G.dH2[1].reduce((a,c)=>a+c,0);return `<b>Back through the final LayerNorm</b> (slide 29). \u03b3 and \u03b2 get their gradients summed over the 3 positions; the input gets the projected gradient. Each row of ${kx('\\partial L/\\partial H_2')} sums to zero (row \u201ccat\u201d: ${kx(Math.abs(s)<1e-9?'\\approx 0':tg(s))}): LayerNorm ignores any change that only shifts a whole row.`;}},
+  {ph:'b',box:[10,9],tex:'\\frac{\\partial L}{\\partial F} = \\frac{\\partial L}{\\partial H_2}\\ (\\text{copy}),\\quad \\frac{\\partial L}{\\partial W_2} = G^{\\top}\\frac{\\partial L}{\\partial F},\\quad \\frac{\\partial L}{\\partial b_2} = \\sum_t \\frac{\\partial L}{\\partial F},\\quad \\frac{\\partial L}{\\partial G} = \\frac{\\partial L}{\\partial F}W_2^{\\top}',
+   lanes(b){const l=L('bwd','residual 2 copies the gradient','one copy into the FFN, one straight down the skip path to H\u2081');
+     const d=MP('\\partial L/\\partial H_2',G.dH2,{rl:TOKL,cl:dl(4),cls:'gv',f:fg}),f=MP('\\partial L/\\partial F',G.dFo,{cl:dl(4),cls:'gv',f:fg,blank:b}),s=MP('\\text{skip copy to } H_1',G.dH2,{cl:dl(4),cls:'gv',f:fg,blank:b});
+     l.append(d,kop('\\xrightarrow{\\text{copy}}'),f,kop('\\text{and}'),s);
+     const r1=dWlane('gradient of W\u2082 and b\u2082 (dashed row: b\u2082 = column sums)',C.Gl,G.dFo,withBias(G.W2,G.b2),{x:'G',y:'F',w:'W_2,\\ b_2'},b,{rl:dl(8),cl:dl(4),wrl:[...dl(8),'b_2'],brow:8});
+     const r2=dXlane('gradient into G',G.dFo,P.W2,G.dGl,{y:'F',w:'W_2',x:'G'},b,{cl:dl(4),wcl:dl(8),xcl:dl(8)});
+     return {outs:[f,s,r1.w,r2.x],hot:[...d.cells[1],...f.cells[1],...s.cells[1]]};},
+   cap:()=>`<b>Residual 2 is a + gate</b>, so it copies ${kx('\\partial L/\\partial H_2')} unchanged into both branches (slide 2). Then FFN-down: ${kx('\\partial L/\\partial W_2 = G^{\\top}\\,\\partial L/\\partial F')}, the bias gets the column sums ${kx('\\sum_t \\partial L/\\partial F')} (it was added to every row), and ${kx('\\partial L/\\partial G = \\partial L/\\partial F\\,W_2^{\\top}')}.`},
+  {ph:'b',box:[8],tex:'\\frac{\\partial L}{\\partial Z} = \\frac{\\partial L}{\\partial G}\\odot\\mathrm{GELU}\'(Z),\\quad \\frac{\\partial L}{\\partial W_1} = A_2^{\\top}\\frac{\\partial L}{\\partial Z},\\quad \\frac{\\partial L}{\\partial b_1} = \\sum_t\\frac{\\partial L}{\\partial Z},\\quad \\frac{\\partial L}{\\partial A_2} = \\frac{\\partial L}{\\partial Z}W_1^{\\top}',
+   lanes(b){const l=L('bwd','through GELU, elementwise','each unit multiplies by its own slope');
+     const dg=MP('\\partial L/\\partial G',G.dGl,{rl:TOKL,cl:dl(8),cls:'gv',f:fg}),sl=MP("\\mathrm{GELU}'(Z)",C.Z.map(r=>r.map(bGeluD)),{cl:dl(8)}),dz=MP('\\partial L/\\partial Z',G.dZ,{rl:TOKL,cl:dl(8),cls:'gv',f:fg,blank:b});
+     l.append(dg,kop('\\odot'),sl,kop('='),dz);
+     const r1=dWlane('gradient of W\u2081 and b\u2081 (dashed row: b\u2081)',C.A2,G.dZ,withBias(G.W1,G.b1),{x:'A_2',y:'Z',w:'W_1,\\ b_1'},b,{rl:dl(4),cl:dl(8),wrl:[...dl(4),'b_1'],brow:4});
+     const r2=dXlane('gradient into A\u2082',G.dZ,P.W1,G.dA2,{y:'Z',w:'W_1',x:'A_2'},b,{cl:dl(8),wcl:dl(4),xcl:dl(4)});
+     return {outs:[dz,r1.w,r2.x],hot:[dg.cells[1][0],sl.cells[1][0],dz.cells[1][0]]};},
+   cap:()=>`<b>Through GELU and FFN-up.</b> GELU is elementwise, so each unit multiplies by its own slope: \u201ccat\u201d, unit 1: ${kx(`${tg(G.dGl[1][0])}\\times ${fmt(bGeluD(C.Z[1][0]))} = ${tg(G.dZ[1][0])}`)}. Units with a very negative ${kx('Z')} have slope \u2248 0 and pass almost nothing back. Then the same multiply rule for ${kx('W_1')}, ${kx('b_1')} and the input.`},
+  {ph:'b',box:[7,6],tex:'\\frac{\\partial L}{\\partial H_1} = \\underbrace{\\frac{\\partial L}{\\partial H_2}}_{\\text{skip}} + \\underbrace{\\mathrm{LN}_2^{\\text{back}}\\Big(\\frac{\\partial L}{\\partial A_2}\\Big)}_{\\text{through the FFN}}',
+   lanes(b){const r=lnBack(G.dA2,C.ln2,P.g2,G.g2,G.b2n,G.dH1ln,{name:'LayerNorm 2',a:'A_2',x:'H_1',g:'\\gamma_2',b:'\\beta_2'},b);
+     const l=L('bwd','merge the two paths','the skip copy and the FFN path add up (add rule in reverse)');
+     const s=MP('\\text{skip: }\\partial L/\\partial H_2',G.dH2,{rl:TOKL,cl:dl(4),cls:'gv',f:fg}),f=MP('\\text{via FFN}',G.dH1ln,{cl:dl(4),cls:'gv',f:fg}),h=MP('\\partial L/\\partial H_1',G.dH1,{rl:TOKL,cl:dl(4),cls:'gv',f:fg,blank:b});
+     l.append(s,kop('+'),f,kop('='),h);return {outs:[...r.outs,h],hot:[s.cells[1][0],f.cells[1][0],h.cells[1][0]]};},
+   cap:()=>`<b>LayerNorm 2, then merge.</b> The gradient that went through the FFN comes back out of LN 2 and is <b>added</b> to the copy that took the skip path: \u201ccat\u201d, feature 1: ${kx(`${tg(G.dH2[1][0])} + ${tg(G.dH1ln[1][0])} = ${tg(G.dH1[1][0])}`)}. The skip copy arrives untouched, which is why deep stacks still get a gradient (slide 23).`},
+  {ph:'b',box:[6,5],tex:'\\frac{\\partial L}{\\partial (O W_O)} = \\frac{\\partial L}{\\partial H_1}\\ (\\text{copy}),\\quad \\frac{\\partial L}{\\partial W_O} = O^{\\top}\\frac{\\partial L}{\\partial H_1},\\quad \\frac{\\partial L}{\\partial O} = \\frac{\\partial L}{\\partial H_1}W_O^{\\top}',
+   lanes(b){const r1=dWlane('gradient of W_O (residual 1 copied \u2202L/\u2202H\u2081 here and down to X)',C.O,G.dOa,G.Wo,{x:'O',y:'H_1',w:'W_O'},b,{rl:dl(4),cl:dl(4),wrl:dl(4)});
+     const r2=dXlane('gradient into O',G.dOa,P.Wo,G.dO,{y:'H_1',w:'W_O',x:'O'},b,{cl:dl(4),wcl:dl(4),xcl:dl(4)});
+     return {outs:[r1.w,r2.x],hot:[...r1.a.cells[0],...col(r1.g.cells,0),r1.w.cells[0][0]]};},
+   cap:()=>`<b>Residual 1 copies again</b>: one copy of ${kx('\\partial L/\\partial H_1')} goes into attention, one down the skip path to ${kx('X')}. Attention\u2019s output weights: ${kx(`\\partial L/\\partial W_{O,11} = ${dotT(col(C.O,0),col(G.dOa,0),fmt,tg)} = ${tg(G.Wo[0][0])}`)}.`},
+  {ph:'b',box:[5,4],tex:'\\frac{\\partial L}{\\partial A} = \\frac{\\partial L}{\\partial O}V^{\\top},\\quad \\frac{\\partial L}{\\partial V} = A^{\\top}\\frac{\\partial L}{\\partial O},\\quad \\frac{\\partial L}{\\partial S} = A\\odot\\Big(\\frac{\\partial L}{\\partial A} - \\mathrm{rowsum}\\big(A\\odot\\frac{\\partial L}{\\partial A}\\big)\\Big)',
+   lanes(b){const l1=L('bwd','O = A\u00b7V, gradient into the weights A','');const go=MP('\\partial L/\\partial O',G.dO,{rl:TOKL,cl:dl(4),cls:'gv',f:fg}),vt=MP('V^{\\top}',T_(C.Vv),{rl:dl(4),cl:TOKL}),da=MP('\\partial L/\\partial A',G.dPa,{rl:TOKL,cl:TOKL,cls:'gv',f:fg,blank:b});
+     l1.append(go,kop('\\cdot'),vt,kop('='),da);
+     const l2=L('bwd','gradient into V','');const at=MP('A^{\\top}',T_(C.Pa),{rl:TOKL,cl:TOKL}),go2=MP('\\partial L/\\partial O',G.dO,{cl:dl(4),cls:'gv',f:fg}),dv=MP('\\partial L/\\partial V',G.dV,{rl:TOKL,cl:dl(4),cls:'gv',f:fg,blank:b});
+     l2.append(at,kop('\\cdot'),go2,kop('='),dv);
+     const l3=L('bwd','softmax backward, row by row','masked entries were a constant \u2212\u221e, so they get exactly 0');const a=MP('A',C.Pa,{rl:TOKL,cl:TOKL,dim:causal}),da2=MP('\\partial L/\\partial A',G.dPa,{cl:TOKL,cls:'gv',f:fg}),ds=MP('\\partial L/\\partial S',G.dS,{rl:TOKL,cl:TOKL,cls:'gv',f:fg,dim:causal,blank:b});
+     l3.append(a,kop('\\text{and}'),da2,kop('\\to'),ds);return {outs:[da,dv,ds],hot:[...a.cells[2],...da2.cells[2],...ds.cells[2]]};},
+   cap:()=>{const s=G.dS[2].reduce((x,c)=>x+c,0);return `<b>Back through the attention mix.</b> ${kx('O = AV')} is a matrix multiply, so the usual rule gives ${kx('\\partial L/\\partial A')} and ${kx('\\partial L/\\partial V')}. Softmax backward subtracts each row\u2019s weighted average, so every row of ${kx('\\partial L/\\partial S')} sums to 0 (row \u201csat\u201d: ${kx(Math.abs(s)<1e-9?'\\approx 0':tg(s))}). Row \u201cthe\u201d is all zeros: with one visible token its weight is always 1, whatever its score.`;}},
+  {ph:'b',box:[4,3],tex:'\\frac{\\partial L}{\\partial Q} = \\frac{\\partial L}{\\partial S}\\,\\frac{K}{\\sqrt 4},\\qquad \\frac{\\partial L}{\\partial K} = \\Big(\\frac{\\partial L}{\\partial S}\\Big)^{\\top}\\frac{Q}{\\sqrt 4}',
+   lanes(b){const l1=L('bwd','gradient into Q','');const ds=MP('\\partial L/\\partial S',G.dS,{rl:TOKL,cl:TOKL,cls:'gv',f:fg,dim:causal}),k=MP('K',C.K,{rl:TOKL,cl:dl(4)}),dq=MP('\\partial L/\\partial Q',G.dQ,{rl:TOKL,cl:dl(4),cls:'gv',f:fg,blank:b});
+     l1.append(ds,kop('\\cdot'),k,kop('\\times\\tfrac12 ='),dq);
+     const l2=L('bwd','gradient into K','');const dst=MP('(\\partial L/\\partial S)^{\\top}',T_(G.dS),{rl:TOKL,cl:TOKL,cls:'gv',f:fg}),q=MP('Q',C.Q,{rl:TOKL,cl:dl(4)}),dk=MP('\\partial L/\\partial K',G.dK,{rl:TOKL,cl:dl(4),cls:'gv',f:fg,blank:b});
+     l2.append(dst,kop('\\cdot'),q,kop('\\times\\tfrac12 ='),dk);return {outs:[dq,dk],hot:[...ds.cells[2],...col(k.cells,0),dq.cells[2][0]]};},
+   cap:()=>`<b>Scores to queries and keys:</b> ${kx('S = QK^{\\top}/2')} is one more matrix multiply. ${kx(`\\partial L/\\partial Q_{\\text{sat},1} = (${dotT(G.dS[2],col(C.K,0),tg,fmt)})/2 = ${tg(G.dQ[2][0])}`)}. The first row of ${kx('\\partial L/\\partial Q')} is 0 for the reason above.`},
+  {ph:'b',box:[3],tex:'\\frac{\\partial L}{\\partial W_Q} = A_1^{\\top}\\frac{\\partial L}{\\partial Q},\\quad \\frac{\\partial L}{\\partial W_K} = A_1^{\\top}\\frac{\\partial L}{\\partial K},\\quad \\frac{\\partial L}{\\partial W_V} = A_1^{\\top}\\frac{\\partial L}{\\partial V}',
+   lanes(b){const out=[];let hot=[];[['Q','W_Q',G.dQ,G.Wq],['K','W_K',G.dK,G.Wk],['V','W_V',G.dV,G.Wv]].forEach(([n,w,dY,dW],k)=>{
+       const r=dWlane(`gradient of ${w.replace('_','')}`,C.A1,dY,dW,{x:'A_1',y:n,w:w},b,{rl:dl(4),cl:dl(4),wrl:dl(4)});out.push(r.w);
+       if(!k)hot=[...r.a.cells[0],...col(r.g.cells,0),r.w.cells[0][0]];});return {outs:out,hot};},
+   cap:()=>`<b>Weight gradients for W_Q, W_K, W_V.</b> All three multiplied the same ${kx('A_1')}, so each gradient is ${kx('A_1^{\\top}')} times its own upstream gradient: ${kx(`\\partial L/\\partial W_{Q,11} = ${dotT(col(C.A1,0),col(G.dQ,0),fmt,tg)} = ${tg(G.Wq[0][0])}`)}.`},
+  {ph:'b',box:[3,2],tex:'\\frac{\\partial L}{\\partial A_1} = \\frac{\\partial L}{\\partial Q}W_Q^{\\top} + \\frac{\\partial L}{\\partial K}W_K^{\\top} + \\frac{\\partial L}{\\partial V}W_V^{\\top}',
+   lanes(b){const l=L('bwd','A\u2081 fed three branches, so its gradient is a sum of three','add rule in reverse: one copy per use, summed');
+     const t1=bMm(G.dQ,T_(P.Wq)),t2=bMm(G.dK,T_(P.Wk)),t3=bMm(G.dV,T_(P.Wv));
+     const a=MP('\\partial L/\\partial Q\\, W_Q^{\\top}',t1,{rl:TOKL,cl:dl(4),cls:'gv',f:fg}),bb=MP('\\partial L/\\partial K\\, W_K^{\\top}',t2,{cl:dl(4),cls:'gv',f:fg}),c=MP('\\partial L/\\partial V\\, W_V^{\\top}',t3,{cl:dl(4),cls:'gv',f:fg});
+     const s=MP('\\partial L/\\partial A_1',G.dA1,{rl:TOKL,cl:dl(4),cls:'gv',f:fg,blank:b});l.append(a,kop('+'),bb,kop('+'),c,kop('='),s);
+     return {outs:[s],hot:[a.cells[2][0],bb.cells[2][0],c.cells[2][0],s.cells[2][0]],t:[t1,t2,t3]};},
+   cap:()=>{const t1=bMm(G.dQ,T_(P.Wq)),t2=bMm(G.dK,T_(P.Wk)),t3=bMm(G.dV,T_(P.Wv));return `<b>A\u2081 was used three times</b> (to make Q, K and V), so it receives three gradient copies that <b>add</b>: \u201csat\u201d, feature 1: ${kx(`${tg(t1[2][0])} + ${tg(t2[2][0])} + ${tg(t3[2][0])} = ${tg(G.dA1[2][0])}`)}.`;}},
+  {ph:'b',box:[2,6],tex:'\\frac{\\partial L}{\\partial X} = \\underbrace{\\frac{\\partial L}{\\partial H_1}}_{\\text{skip}} + \\underbrace{\\mathrm{LN}_1^{\\text{back}}\\Big(\\frac{\\partial L}{\\partial A_1}\\Big)}_{\\text{through attention}}',
+   lanes(b){const r=lnBack(G.dA1,C.ln1,P.g1,G.g1,G.b1n,G.dXln,{name:'LayerNorm 1',a:'A_1',x:'X',g:'\\gamma_1',b:'\\beta_1'},b);
+     const l=L('bwd','merge with the skip path from residual 1','');const s=MP('\\text{skip: }\\partial L/\\partial H_1',G.dH1,{rl:TOKL,cl:dl(4),cls:'gv',f:fg}),f=MP('\\text{via attention}',G.dXln,{cl:dl(4),cls:'gv',f:fg}),x=MP('\\partial L/\\partial X',G.dX,{rl:TOKL,cl:dl(4),cls:'gv',f:fg,blank:b});
+     l.append(s,kop('+'),f,kop('='),x);return {outs:[...r.outs,x],hot:[s.cells[1][0],f.cells[1][0],x.cells[1][0]]};},
+   cap:()=>`<b>LayerNorm 1, then merge with the skip path:</b> \u201ccat\u201d, feature 1: ${kx(`${tg(G.dH1[1][0])} + ${tg(G.dXln[1][0])} = ${tg(G.dX[1][0])}`)}. ${kx('\\partial L/\\partial X')} is the gradient for the three embedding rows the sentence looked up.`},
+  {ph:'b',box:[1],tex:'\\frac{\\partial L}{\\partial E_{\\text{token}_t}} \\mathrel{+}= \\frac{\\partial L}{\\partial X_t}',
+   lanes(b){const l=L('bwd','into the embedding table','each row of \u2202L/\u2202X goes back to the row of E it came from');
+     const x=MP('\\partial L/\\partial X',G.dX,{rl:TOKL,cl:dl(4),cls:'gv',f:fg}),e=MP('\\partial L/\\partial E\\;(6{\\times}4)',G.E,{rl:VL,cl:dl(4),cls:'gv',f:fg,dim:i=>!BLK_TOK.includes(i),blank:b});
+     l.append(x,kop('\\xrightarrow{\\text{back to its row}}'),e);return {outs:[e],hot:[...x.cells[1],...e.cells[1]]};},
+   cap:()=>`<b>Into the embedding table.</b> The lookup copied rows of ${kx('E')}, so backward simply adds each row of ${kx('\\partial L/\\partial X')} to the row it came from. Rows on, mat and \u201c.\u201d get <b>exactly 0</b>: words not in the batch are not updated (slide 30).`},
+  // ---------- update ----------
+  {ph:'u',box:[],tex:'\\theta \\leftarrow \\theta - \\eta\\,\\frac{\\partial L}{\\partial \\theta}\\quad\\text{for all 16 tensors (212 numbers)}',
+   lanes(b){const l=L('upd','one tensor in full: W_Q',`learning rate \u03b7 = ${lr}`);const N=blkStep(P,G,lr);
+     const w=MP('W_Q',P.Wq,{rl:dl(4),cl:dl(4)}),g=MP('\\partial L/\\partial W_Q',G.Wq,{cl:dl(4),cls:'gv',f:fg}),n=MP('W_Q^{\\text{new}}',N.Wq,{rl:dl(4),cl:dl(4),cls:'newv',blank:b});
+     l.append(w,kop(`-\\;${lr}\\,\\cdot`),g,kop('='),n);
+     const t=el('div');t.style.marginTop='10px';const Ln=blkForward(N).L;
+     t.innerHTML=`<table class="dtab"><tr><th style="text-align:left">tensor</th><th style="text-align:left">role</th><th>shape</th><th>numbers</th><th>\u2016\u03b8\u2016</th><th>\u2016\u2202L/\u2202\u03b8\u2016</th><th>\u2016\u03b7\u2202L/\u2202\u03b8\u2016 (step size)</th></tr>${BLK_PARAMS.map(([k,tx,role])=>{const p=P[k];const sh=Array.isArray(p[0])?`${p.length}\u00d7${p[0].length}`:`${p.length}`;
+       return `<tr><td style="text-align:left">${kx(tx)}</td><td style="text-align:left">${role}</td><td>${sh}</td><td>${blkCount(p)}</td><td>${f3(blkNorm(p))}</td><td>${f3(blkNorm(G[k]))}</td><td>${f3(lr*blkNorm(G[k]))}</td></tr>`;}).join('')}
+       <tr class="tot"><td style="text-align:left">total</td><td></td><td></td><td>${BLK_PARAMS.reduce((s,[k])=>s+blkCount(P[k]),0)}</td><td></td><td></td><td></td></tr></table>
+       <div class="nstat" style="margin-top:6px">loss on this sentence: ${f3(C.L)} now \u2192 ${f3(Ln)} after this update</div>`;
+     st.appendChild(t);return {outs:[n],hot:[w.cells[0][0],g.cells[0][0],n.cells[0][0]]};},
+   cap:()=>{const Ln=blkForward(blkStep(P,G,lr)).L;return `<b>Update every trainable tensor</b> with the same rule, ${kx('\\theta \\leftarrow \\theta - \\eta\\,\\partial L/\\partial\\theta')}, ${kx(`\\eta = ${lr}`)}. One entry: ${kx(`W_{Q,11}: ${P.Wq[0][0].toFixed(4)} - ${lr}\\times(${tg(G.Wq[0][0])}) = ${(P.Wq[0][0]-lr*G.Wq[0][0]).toFixed(4)}`)}. Running the same sentence again, the loss goes from ${kx(f3(C.L))} to ${kx(f3(Ln))}. Press <b>Apply update \u21bb</b> below to do it for real, or <b>Train \u00d710</b>.`;}}
+  ];
+  // ---------- pipeline strip ----------
+  const BOXES=[['\\text{tokens}',null,'3 ids'],['E',['E'],'3\u00d74'],['\\mathrm{LN}_1',['g1','b1n'],'3\u00d74'],['Q,K,V',['Wq','Wk','Wv'],'3\u00d74 \u00d73'],['\\mathrm{softmax}\\tfrac{QK^\\top}{2}',null,'3\u00d73'],['AV,\\ W_O',['Wo'],'3\u00d74'],['+',null,'3\u00d74'],
+    ['\\mathrm{LN}_2',['g2','b2n'],'3\u00d74'],['W_1,\\ \\mathrm{GELU}',['W1','b1'],'3\u00d78'],['W_2',['W2','b2'],'3\u00d74'],['+',null,'3\u00d74'],['\\mathrm{LN}_f',['gf','bfn'],'3\u00d74'],['U,\\ \\mathrm{softmax}',['U'],'3\u00d76'],['L',null,'1']];
+  const FWD_N=S.filter(s=>s.ph==='f').length;
+  function drawPipe(s){pipe.innerHTML='';const row=el('div','bpipe');pipe.appendChild(row);
+    const cur=s>0?S[s-1]:null,phase=cur?cur.ph:null;const seen=new Set();for(let k=0;k<s;k++)S[k].box.forEach(b=>seen.add(b));
+    const bseen=new Set();for(let k=FWD_N;k<s;k++)S[k].box.forEach(b=>bseen.add(b));
+    BOXES.forEach(([tx,params,shape],i)=>{if(i)row.appendChild(el('span','barr','\u2192'));
+      const n=params?params.reduce((a,k)=>a+blkCount(P[k]),0):0;
+      const bx=el('div','bbox'+(params?' tr':'')+(cur&&cur.box.includes(i)?' cur':''));
+      bx.innerHTML=`<div class="bn">${kx(tx)}</div><div class="bs">${seen.has(i)?'\u2713 '+shape:shape}</div><div class="bs">${params?n+' params':'\u00a0'}</div>`;
+      const g=el('div','bg');if(params&&bseen.has(i)){g.textContent='\u2016\u2207\u2016 '+f3(Math.sqrt(params.reduce((a,k)=>a+blkNorm(G[k])**2,0)));}else g.innerHTML='\u00a0';bx.appendChild(g);row.appendChild(bx);});
+    const lg=el('div','nstat');lg.innerHTML=`orange border = trainable (212 numbers in total) \u00b7 \u2713 = forward done \u00b7 \u2016\u2207\u2016 = size of that block\u2019s weight gradient, filled in during the backward pass \u00b7 small cells read 4e-3 = 0.004 \u00b7 phase: <b>${phase==='f'?'forward':phase==='b'?'backward':phase==='u'?'update':'ready'}</b>`;pipe.appendChild(lg);}
+  // ---------- deck ----------
+  function build(s,blank){st.innerHTML='';drawPipe(s);if(!s){const d=el('div','fbox on');d.innerHTML=`<div class="fgrid"><span class="dim">model</span><span>one transformer block, ${kx('d = 4')}, FFN width 8, vocabulary of 6 words, 212 trainable numbers</span><span class="dim">data</span><span>\u201cthe cat sat\u201d, predict the next word at every position: cat, sat, on</span><span class="dim">steps</span><span>11 forward stages, 13 backward stages, 1 update. Every number is computed live; gradients match finite differences.</span></div>`;st.appendChild(d);return {outs:[],hot:[]};}
+    const sg=S[s-1];const fb=el('div','fbox on');fb.innerHTML=kx(sg.tex,true);st.appendChild(fb);return sg.lanes(blank);}
+  function render(s){build(s,false);}
+  async function animate(s,ctx,run){const r=build(s,true);
+    r.hot.forEach(c=>c&&c.classList.add('hot'));await ctx.wait(900,run);
+    for(const p of r.outs){for(let i=0;i<p.__M.length;i++){fillP(p,i,true);await ctx.wait(p.__M.length>4?120:240,run);}await ctx.wait(160,run);}
+    await ctx.wait(500,run);r.hot.forEach(c=>c&&c.classList.remove('hot'));}
+  function caption(s){if(!s)return `A real one-block transformer, the same pipeline as slides 30\u201332: every matrix below is trainable and every number is computed in your browser. Press <b>Next step \u25b8</b> to run it one stage at a time: forward through 11 stages, backward through 13, then one update. ${updates?`<b>${updates} update${updates>1?'s':''} applied so far</b>, loss ${f3(C.L)}.`:''}`;return S[s-1].cap();}
+  const D=makeDeck('s13',{n:S.length,render,animate,caption});
+  // ---------- training controls ----------
+  const bar=document.getElementById('s13-train'),predH=document.getElementById('s13-pred'),lossH=document.getElementById('s13-loss');
+  const lp=cpanel('\\text{loss on the sentence, per update}',420,170);lossH.appendChild(lp);
+  function drawLoss(){const c=TC(),cv=lp.cv,ctx=cctx(cv),W=cv.__w,H=cv.__h,R={x:40,y:10,w:W-52,h:H-32};const hs=hist.concat([C.L]);
+    ctx.strokeStyle=c.line;ctx.strokeRect(R.x,R.y,R.w,R.h);ctx.font='10.5px ui-monospace,monospace';ctx.fillStyle=c.mut;const mx=Math.max(2,...hs);
+    ctx.fillText(mx.toFixed(1),6,R.y+8);ctx.fillText('0',26,R.y+R.h);ctx.fillText('update '+updates,R.x+R.w-70,H-6);
+    const y6=R.y+R.h-Math.log(6)/mx*R.h;ctx.strokeStyle=hexA(c.mut,0.6);ctx.setLineDash([3,3]);ctx.beginPath();ctx.moveTo(R.x,y6);ctx.lineTo(R.x+R.w,y6);ctx.stroke();ctx.setLineDash([]);ctx.fillText('ln 6 = guessing',R.x+R.w-104,y6-4);
+    if(hs.length>1){ctx.strokeStyle=c.acc;ctx.lineWidth=2;ctx.beginPath();hs.forEach((v,k)=>{const x=R.x+k/(hs.length-1)*R.w,y=R.y+R.h-v/mx*R.h;k?ctx.lineTo(x,y):ctx.moveTo(x,y);});ctx.stroke();}
+    const k=hs.length-1,x=R.x+(hs.length>1?R.w:0),y=R.y+R.h-hs[k]/mx*R.h;ctx.fillStyle=c.acc;ctx.beginPath();ctx.arc(x,y,3.5,0,7);ctx.fill();
+    lp.st.innerHTML=`update ${kx(String(updates))} \u00b7 loss ${kx(f3(C.L))}`;}
+  function drawPred(){predH.innerHTML=`<table class="dtab" style="margin-top:6px"><tr><th style="text-align:left">input</th><th style="text-align:left">target</th><th>P(target)</th><th style="text-align:left">model\u2019s top guess</th></tr>${BLK_TOK.map((t,i)=>{const r=C.Pr[i],j=r.indexOf(Math.max(...r)),ok=j===BLK_TGT[i];
+    return `<tr><td style="text-align:left">${BLK_VOCAB[t]}</td><td style="text-align:left">${BLK_VOCAB[BLK_TGT[i]]}</td><td>${r[BLK_TGT[i]].toFixed(2)}</td><td style="text-align:left;color:var(--${ok?'ok':'red'})">${BLK_VOCAB[j]} (${r[j].toFixed(2)}) ${ok?'\u2713':'\u2717'}</td></tr>`;}).join('')}</table>`;}
+  function after(){D.refresh();document.getElementById('s13-cap').innerHTML=caption(D.state().shown);drawLoss();drawPred();}
+  function stepOnce(){hist.push(C.L);P=blkStep(P,G,lr);updates++;recompute();}
+  const b1=el('button','primary','Apply update \u21bb'),b2=el('button','','Train \u00d710 \u25b8\u25b8'),b3=el('button','','Train \u00d7100'),b4=el('button','','Reset weights');
+  const lb=el('label','ctl');lb.innerHTML=`learning rate <span class="nt">\u03b7</span> <input type="range" min="0.02" max="0.5" step="0.02" value="${lr}"><span>${lr}</span>`;
+  const er=lb.querySelector('input'),ev=lb.querySelector('span:last-child');
+  b1.onclick=()=>{stepOnce();after();};b2.onclick=()=>{for(let k=0;k<10;k++)stepOnce();after();};b3.onclick=()=>{for(let k=0;k<100;k++)stepOnce();after();};
+  b4.onclick=()=>{P=blkInit(SEED);hist=[];updates=0;recompute();after();};
+  er.oninput=()=>{lr=+er.value;ev.textContent=lr.toFixed(2);after();};
+  bar.append(b1,b2,b3,b4,lb);drawLoss();drawPred();
+  window.__themeRedraws.push(drawLoss);
+  window.__blk={state:()=>({updates,L:C.L,lr}),C:()=>C,G:()=>G,P:()=>P};
+  return D;
 }
 
 /* ================= SLIDE 14: KV cache & GQA (stepped, animated) ================= */
@@ -4538,7 +4795,7 @@ function boot(){
   const PLAY={s1:s2.play,s2:s3.play,s3:ssub.play,s4:s4.play,s7:s7.play,s8:s8.play,s9:s9.play,s10:s10.play,
     s11:s11.play,s12:s12.play,s13:s13.play,s15:s15.play};
   const STOP={s6:()=>sim3.stopPlay(),s7:()=>sim4.stopPlay()};
-  const SPACE={s14:()=>s14.next(),...Object.fromEntries(Object.entries(NEW).map(([k,d])=>[k,()=>d.next()])),s5:()=>s5.next(),s12:()=>s12.next(),s6:()=>sim3.step(),s7:()=>sim4.step(),
+  const SPACE={s14:()=>s14.next(),s13:()=>s13.next(),...Object.fromEntries(Object.entries(NEW).map(([k,d])=>[k,()=>d.next()])),s5:()=>s5.next(),s12:()=>s12.next(),s6:()=>sim3.step(),s7:()=>sim4.step(),
     r2:()=>r2.next(),r3:()=>r3.next(),r4:()=>r4.next(),r6:()=>r6.next()};
 
   const ORDER=[],META={};
