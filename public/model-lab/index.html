@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Backprop from scratch — animated lessons</title>
+<title>Model lab — from backprop to a mini-LLM</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
 <style>
@@ -167,36 +167,61 @@ body.light .lbar{background:linear-gradient(90deg,var(--red),#f2eee4 50%,var(--b
 body.light .cell.gradcell{background:#fffdf8}
 #themetoggle{border-color:var(--acc);color:var(--acc)}
 
+
+/* ---- folding sidebar + per-slide nav ---- */
+aside.sidebar{max-height:calc(100vh - 40px);overflow-y:auto}
+aside.sidebar .sb-head{display:flex;align-items:center;justify-content:space-between;padding:4px 8px 8px 14px;border-bottom:1px solid var(--line)}
+aside.sidebar .sb-head .sb-title{padding:0;border:none}
+aside.sidebar button.sb-fold{display:inline-block;width:auto;border:1px solid var(--line);padding:2px 9px;font-size:13px;color:var(--fg)}
+aside.sidebar button.sb-gh{display:flex;align-items:center;gap:8px;color:var(--fg);font-size:11px;letter-spacing:.1em;text-transform:uppercase;padding:11px 12px;border-top:1px solid var(--line)}
+aside.sidebar button.sb-gh .chev{color:var(--acc);display:inline-block;width:10px;transition:transform .15s}
+aside.sidebar .sb-group.open button.sb-gh .chev{transform:rotate(90deg)}
+aside.sidebar button.sb-gh .gcount{margin-left:auto;color:var(--mut);font-size:10px;letter-spacing:0}
+aside.sidebar button.sb-gh .groman{display:none;color:var(--acc)}
+aside.sidebar .sb-group.has-cur button.sb-gh{border-left-color:var(--acc)}
+aside.sidebar .sb-items{display:none;padding-bottom:4px}
+aside.sidebar .sb-group.open .sb-items{display:block}
+aside.sidebar .sb-items button{padding:8px 14px 8px 24px}
+.layout.slim aside.sidebar{flex-basis:62px}
+.layout.slim aside.sidebar .sb-title,.layout.slim aside.sidebar .lbl,.layout.slim aside.sidebar .gname,
+.layout.slim aside.sidebar .gcount,.layout.slim aside.sidebar .chev{display:none}
+.layout.slim aside.sidebar .sb-head{padding:4px 6px 8px;justify-content:center}
+.layout.slim aside.sidebar button.sb-gh{justify-content:center;padding:9px 4px}
+.layout.slim aside.sidebar button.sb-gh .groman{display:inline}
+.layout.slim aside.sidebar .sb-items{display:block}
+.layout.slim aside.sidebar .sb-items button{padding:6px 4px;text-align:center}
+.layout.slim aside.sidebar .sb-items button .n{margin:0}
+.subnav{display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin:0 0 6px}
+.subnav .sn-g{color:var(--acc);font-size:11px;letter-spacing:.14em;text-transform:uppercase;margin-right:8px}
+.subnav .pip{width:28px;height:26px;padding:0;font-size:11px;letter-spacing:0;color:var(--mut);display:inline-flex;align-items:center;justify-content:center}
+.subnav .pip.on{background:var(--acc);border-color:var(--acc);color:#fff}
+.kick{color:var(--mut)}
+.slidenav{display:flex;gap:10px;flex-wrap:wrap;margin-top:22px}
+.slidenav .nextlesson{margin-top:0}
+.plot{border:1px solid var(--line);background:#101013}
+body.light canvas{background:#fffdf8 !important}
+.rtab{border-collapse:collapse;font-size:13px;margin-top:4px}
+.rtab th,.rtab td{border:1px solid var(--line);padding:7px 12px;text-align:left;vertical-align:top}
+.rtab th{color:var(--mut);font-weight:400;font-size:11px;letter-spacing:.08em;text-transform:uppercase}
+.rtab.wide{width:100%;max-width:1150px;margin:14px 0 4px}
+.rtab .sw{display:inline-block;width:10px;height:10px;margin-right:6px;vertical-align:middle}
+.rtab td.chg{background:rgba(255,92,57,.15)}
+body.light .rtab td.chg{background:rgba(214,60,20,.12)}
+code{font:inherit;color:var(--acc)}
+@media (max-width:900px){aside.sidebar{max-height:none}}
+
 footer{margin-top:26px;color:var(--mut);font-size:12px;border-top:1px solid var(--line);padding-top:12px}
 </style>
 </head>
-<body>
+<body class="light">
 <header>
-  <h1>Backprop from scratch</h1>
-  <div class="sub">animated lessons: the four rules → matrices → LoRA → build &amp; train a mini-LLM · ←/→ or the sidebar to move · space = next step</div>
-  <button id="themetoggle" style="margin-top:8px">☀ light mode</button>
+  <h1>Model lab</h1>
+  <div class="sub">from the four rules of backprop to training a mini-LLM · fold the lessons on the left · ←/→ to move · space = next step</div>
+  <button id="themetoggle" style="margin-top:8px">☾ dark mode</button>
 </header>
 
 <div class="layout">
-<aside class="sidebar" id="sidebar">
-  <div class="sb-title">Lessons</div>
-  <button data-s="0" class="on"><span class="n">1</span>the multiply rule</button>
-  <button data-s="1"><span class="n">2</span>add distributes</button>
-  <button data-s="2"><span class="n">3</span>subtract &amp; square</button>
-  <button data-s="3"><span class="n">4</span>the chain</button>
-  <button data-s="4"><span class="n">5</span>→ vectors</button>
-  <button data-s="5"><span class="n">6</span>→ matrices</button>
-  <button data-s="6"><span class="n">7</span>bias &amp; LoRA</button>
-  <button data-s="7"><span class="n">8</span>sampling &amp; batching</button>
-  <button data-s="8"><span class="n">9</span>embeddings</button>
-  <button data-s="9"><span class="n">10</span>the FFN</button>
-  <button data-s="10"><span class="n">11</span>attention</button>
-  <button data-s="11"><span class="n">12</span>layernorm</button>
-  <button data-s="12"><span class="n">13</span>the full block</button>
-  <button data-s="13"><span class="n">14</span>KV cache &amp; GQA</button>
-  <button data-s="14"><span class="n">15</span>residual networks</button>
-  <button data-s="15"><span class="n">16</span>regularization</button>
-</aside>
+<aside class="sidebar" id="sidebar"></aside>
 <main>
 
 <!-- ============ SLIDE 1: multiply ============ -->
@@ -502,6 +527,34 @@ footer{margin-top:26px;color:var(--mut);font-size:12px;border-top:1px solid var(
   <button class="nextlesson" data-go="12">Next: the full block ▸</button>
 </section>
 
+<!-- ============ SLIDE 15: residual networks ============ -->
+<section class="slide" id="s15">
+  <div class="kick">Slide 15</div>
+  <h2>Residual networks: the add gate that saves deep learning</h2>
+  <p class="prose">Stack many layers and gradients vanish — each multiply shrinks them. The residual
+  connection is disarmingly simple: <b>y = F(x) + x</b>. It exists <i>because</i> of slide 2: the
+  add gate <b>photocopies the gradient</b>, so a copy of g reaches every early layer unscaled, no
+  matter how deep. Watch the gradient split at the add and one copy travel the skip path untouched.</p>
+  <div class="controls">
+    <button class="primary" id="s15-next">Next step ▸</button>
+    <button id="s15-replay">↺ Replay</button>
+    <span class="stepcount" id="s15-count"></span>
+  </div>
+  <div id="s15-stage" style="margin-top:10px"></div>
+  <div class="fcaption" id="s15-cap"></div>
+  <div class="rulebox"><b>RESIDUAL RULE</b> — the skip is the add gate from slide 2:
+  <div class="tex" data-tex="y = F(x) + x \qquad \frac{\partial L}{\partial x} = g \cdot J_F + g"></div>
+  the gradient is the transformed part <b>plus an untouched copy of g</b> — the "+g" term is why a
+  100-layer network still trains. Residuals don't remove the work; they guarantee a clean highway
+  for the gradient to flow home.</div>
+  <div class="rulebox" style="border-color:var(--red)"><b>PITFALLS</b> — what residuals do <i>not</i> fix:
+  • <b>not a free lunch</b> — F(x) can still learn to be useless (dead branches); the skip just keeps the gradient alive.
+  • <b>shape must match</b> — x and F(x) need the same dimensions, or you need a projection on the skip.
+  • <b>scale drift</b> — without normalization the residual stream can grow with depth (that's why LN sits inside the block).
+  • <b>shallow illusion</b> — very deep residual nets behave like ensembles of shallower paths; depth ≠ depth of computation.</div>
+  <button class="nextlesson" data-go="15">Next: regularization ▸</button>
+</section>
+
 <!-- ============ SLIDE 13: full block ============ -->
 <section class="slide" id="s13">
   <div class="kick">Slide 13</div>
@@ -553,59 +606,208 @@ footer{margin-top:26px;color:var(--mut);font-size:12px;border-top:1px solid var(
   MQA is GQA with one K/V head. Fewer K/V heads = smaller cache, faster decode, tiny quality cost.</div>
 </section>
 
-<!-- ============ SLIDE 15: residual networks ============ -->
-<section class="slide" id="s15">
-  <div class="kick">Slide 15</div>
-  <h2>Residual networks: the add gate that saves deep learning</h2>
-  <p class="prose">Stack many layers and gradients vanish — each multiply shrinks them. The residual
-  connection is disarmingly simple: <b>y = F(x) + x</b>. It exists <i>because</i> of slide 2: the
-  add gate <b>photocopies the gradient</b>, so a copy of g reaches every early layer unscaled, no
-  matter how deep. Watch the gradient split at the add and one copy travel the skip path untouched.</p>
+
+
+
+<!-- ============ REGULARIZATION 1: why ============ -->
+<section class="slide" id="r1">
+  <div class="kick">Slide</div>
+  <h2>Why regularize: a model that memorizes</h2>
+  <p class="prose">Ten training points, a degree-9 polynomial: ten knobs for ten points. With no
+  regularization the model threads <b>every</b> training point — it has memorized the <b>noise</b>,
+  and the held-out points (blue rings) land far from the curve. Regularization adds a price for big
+  weights: <b>L_total = L_data + λ·R(w)</b>. Drag λ up from 0 and watch three things move together:
+  the curve smooths, the weights shrink, and held-out error falls — until λ is so big the model
+  underfits.</p>
   <div class="controls">
-    <button class="primary" id="s15-next">Next step ▸</button>
-    <button id="s15-replay">↺ Replay</button>
-    <span class="stepcount" id="s15-count"></span>
+    <label class="ctl">λ <input type="range" id="r1-lam" min="0" max="100" step="1" value="0"><span id="r1-lamval">0</span></label>
+    <button id="r1-best">Jump to the best λ ▸</button>
+    <span class="status" id="r1-status"></span>
   </div>
-  <div id="s15-stage" style="margin-top:10px"></div>
-  <div class="fcaption" id="s15-cap"></div>
-  <div class="rulebox"><b>RESIDUAL RULE</b> — the skip is the add gate from slide 2:
-  <div class="tex" data-tex="y = F(x) + x \qquad \frac{\partial L}{\partial x} = g \cdot J_F + g"></div>
-  the gradient is the transformed part <b>plus an untouched copy of g</b> — the "+g" term is why a
-  100-layer network still trains. Residuals don't remove the work; they guarantee a clean highway
-  for the gradient to flow home.</div>
-  <div class="rulebox" style="border-color:var(--red)"><b>PITFALLS</b> — what residuals do <i>not</i> fix:
-  • <b>not a free lunch</b> — F(x) can still learn to be useless (dead branches); the skip just keeps the gradient alive.
-  • <b>shape must match</b> — x and F(x) need the same dimensions, or you need a projection on the skip.
-  • <b>scale drift</b> — without normalization the residual stream can grow with depth (that's why LN sits inside the block).
-  • <b>shallow illusion</b> — very deep residual nets behave like ensembles of shallower paths; depth ≠ depth of computation.</div>
-  <button class="nextlesson" data-go="15">Next: regularization ▸</button>
+  <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:flex-start">
+    <canvas class="plot" id="r1-fit" width="560" height="300"></canvas>
+    <canvas class="plot" id="r1-err" width="340" height="300"></canvas>
+  </div>
+  <div class="dim" style="margin:14px 0 6px;font-size:12px">the 10 weights w₀ … w₉ (darker = bigger |w|)</div>
+  <div id="r1-w"></div>
+  <div class="fcaption" id="r1-cap"></div>
+  <div class="rulebox"><b>THE IDEA</b>
+  <div class="tex" data-tex="L_{\text{total}}(w) = \underbrace{L_{\text{data}}(w)}_{\text{fit the examples}} + \underbrace{\lambda\, R(w)}_{\text{keep the weights small}}"></div>
+  inside the model, overfitting looks like <b>huge, finely balanced weights</b> that cancel each other
+  to hit every noisy point. Charging for weight size trades a little training error for a much simpler
+  function. λ is the dial: 0 = memorize, moderate = generalize, huge = underfit. The next slides show
+  exactly what this extra term does to backprop.</div>
 </section>
 
-<!-- ============ SLIDE 16: regularization ============ -->
-<section class="slide" id="s16">
-  <div class="kick">Slide 16</div>
-  <h2>Regularization: keep the weights honest</h2>
-  <p class="prose">A big enough network memorizes the training set. Regularization fights that.
-  <b>L2</b> penalizes the square of the weights — the pull on each weight is <b>proportional to its
-  own value</b>, so big weights shrink fast, small weights barely move. <b>L1</b> penalizes the
-  absolute value — the pull is a <b>constant</b>, so every weight walks toward zero at the same rate
-  and small ones fall off entirely (sparsity). <b>Dropout</b> randomly silences units each step so no
-  single unit can carry the answer. Drag the weight and watch the two penalties differ.</p>
+<!-- ============ REGULARIZATION 2: in backprop ============ -->
+<section class="slide" id="r2">
+  <div class="kick">Slide</div>
+  <h2>Regularization in backprop: one more branch, summed at the weight</h2>
+  <p class="prose">Adding λ·R(w) to the loss adds a <b>second path</b> from the weight to the loss —
+  nothing inside the network changes. Going backward, the <b>+ gate photocopies</b> the gradient down
+  both branches (the add rule). And because w feeds two places, the two gradients that come back are
+  <b>summed</b> at w — the add rule's mirror image. Step through it, then switch to L1: only the
+  bottom branch's local rule changes.</p>
   <div class="controls">
-    <label class="ctl">w <input type="range" id="s16-w" min="-3" max="3" step="0.05" value="2"><span id="s16-wval">2.00</span></label>
-    <button class="primary" id="s16-drop">Dropout: mask a step ▸</button>
-    <span class="status" id="s16-status"></span>
+    <div class="seg" id="r2-mode"><button data-mode="l2" class="on">L2 penalty</button><button data-mode="l1">L1 penalty</button></div>
+    <button class="primary" id="r2-next">Next step ▸</button>
+    <button id="r2-replay">↺ Replay</button>
+    <span class="stepcount" id="r2-count"></span>
+  </div>
+  <div id="r2-graph"></div>
+  <div class="fbar" id="r2-formula"></div>
+  <div class="fcaption" id="r2-cap"></div>
+  <div class="rulebox"><b>WHAT REGULARIZATION DOES TO THE GRADIENT</b>
+  <div class="tex" data-tex="\frac{\partial L_{\text{total}}}{\partial w} = \underbrace{\frac{\partial L_{\text{data}}}{\partial w}}_{\text{backprop through every layer}} + \underbrace{\lambda\,R'(w)}_{\text{local: needs only } w}"></div>
+  <div class="tex" data-tex="\text{L2: } R = \tfrac12 w^2 \Rightarrow R'(w) = w \qquad\qquad \text{L1: } R = |w| \Rightarrow R'(w) = \mathrm{sign}(w)"></div>
+  the penalty's gradient never travels through the network — it depends on w alone. That's why
+  frameworks usually leave it out of the loss and add λw straight into each weight's update
+  ("weight decay"). Backprop through the layers is exactly what it was before.</div>
+</section>
+
+<!-- ============ REGULARIZATION 3: L2 ============ -->
+<section class="slide" id="r3">
+  <div class="kick">Slide</div>
+  <h2>L2 = weight decay: the pull is proportional to the weight</h2>
+  <p class="prose">L2's extra gradient is <b>λw</b> — twice the weight, twice the pull. Put it in the
+  update and it factors: <b>w ← (1 − ηλ)·w − η·g_data</b>. Every step first multiplies <i>every</i>
+  weight by the same factor (1 − ηλ), then takes the data step — hence the name <b>weight decay</b>.
+  To see the penalty on its own, these five weights get no data gradient at all.</p>
+  <div class="controls">
+    <label class="ctl">λ <input type="range" id="r3-lam" min="0.2" max="2" step="0.1" value="1"><span id="r3-lamval">1.0</span></label>
+    <span class="dim" style="font-size:12px">η = 0.1</span>
+    <button class="primary" id="r3-step">Step ▸</button>
+    <button id="r3-run">Run 10 ▸▸</button>
+    <button id="r3-reset">Reset</button>
+    <span class="status" id="r3-status"></span>
   </div>
   <div style="display:flex;gap:18px;flex-wrap:wrap;align-items:flex-start">
-    <canvas id="s16-pen" width="480" height="230" style="border:1px solid var(--line);background:#101013"></canvas>
-    <div id="s16-dropstage" style="flex:1;min-width:340px"></div>
+    <div id="r3-tab"></div>
+    <canvas class="plot" id="r3-plot" width="560" height="260"></canvas>
   </div>
-  <div class="fcaption" id="s16-cap"></div>
-  <div class="rulebox"><b>L1 vs L2 vs DROPOUT</b>
-  <div class="tex" data-tex="L_2 = L + \tfrac{\lambda}{2}\lVert w\rVert^2 \;\Rightarrow\; \partial_{w} = -\lambda w \;(\text{proportional}) \qquad L_1 = L + \lambda\lVert w\rVert_1 \;\Rightarrow\; \partial_{w} = -\lambda\,\mathrm{sign}(w) \;(\text{constant})"></div>
-  <div class="tex" data-tex="\text{dropout: } \tilde{h} = h \odot m, \;\; m \sim \mathrm{Bernoulli}(p), \;\; \text{scale by } 1/p \text{ at train, off at test}"></div>
-  <b>what's used most:</b> L2 (weight decay) is the default almost everywhere; dropout is standard in
-  FFNs and attention; L1 is rarer, used when you actually want sparse weights.</div>
+  <div class="fcaption" id="r3-cap"></div>
+  <div class="rulebox"><b>L2 IN THE UPDATE</b>
+  <div class="tex" data-tex="w_{t+1} = w_t - \eta\,(g_{\text{data}} + \lambda w_t) = (1-\eta\lambda)\,w_t - \eta\, g_{\text{data}}"></div>
+  <div class="tex" data-tex="g_{\text{data}} = 0 \;\Rightarrow\; w_t = (1-\eta\lambda)^t\, w_0 \qquad \text{exponential decay — never exactly } 0"></div>
+  with real data, a weight settles where the data's pull balances λw — it survives only while the data
+  keeps paying for it. Big weights are taxed hardest, so no single weight can grow huge: that's the
+  smooth curve you got on the first regularization slide.</div>
+</section>
+
+<!-- ============ REGULARIZATION 4: L1 ============ -->
+<section class="slide" id="r4">
+  <div class="kick">Slide</div>
+  <h2>L1: a constant pull that drives weights to exactly zero</h2>
+  <p class="prose">L1's extra gradient is <b>λ·sign(w)</b> — the same ±λ whether the weight is 2.0 or
+  0.01. So every step moves every weight the <b>same amount</b> toward zero. Small weights get there
+  first and are switched off — <b>exactly 0</b>. (Plain gradient steps would jitter ±ηλ around zero;
+  real L1 optimizers clip at zero with a "soft-threshold" step, which is what's shown.) The dashed
+  lines are the same weights under L2, for comparison.</p>
+  <div class="controls">
+    <label class="ctl">λ <input type="range" id="r4-lam" min="0.2" max="2" step="0.1" value="1"><span id="r4-lamval">1.0</span></label>
+    <span class="dim" style="font-size:12px">η = 0.1</span>
+    <button class="primary" id="r4-step">Step ▸</button>
+    <button id="r4-run">Run 10 ▸▸</button>
+    <button id="r4-reset">Reset</button>
+    <span class="status" id="r4-status"></span>
+  </div>
+  <div style="display:flex;gap:18px;flex-wrap:wrap;align-items:flex-start">
+    <div id="r4-tab"></div>
+    <canvas class="plot" id="r4-plot" width="560" height="260"></canvas>
+  </div>
+  <div class="fcaption" id="r4-cap"></div>
+  <div class="rulebox"><b>L1 IN THE UPDATE</b>
+  <div class="tex" data-tex="w_{t+1} = w_t - \eta\,\big(g_{\text{data}} + \lambda\,\mathrm{sign}(w_t)\big) \qquad g_{\text{data}} = 0 \Rightarrow |w| \text{ shrinks by } \eta\lambda \text{ every step}"></div>
+  <div class="tex" data-tex="\text{soft-threshold:}\;\; w \leftarrow \mathrm{sign}(w)\,\max\big(|w| - \eta\lambda,\; 0\big)"></div>
+  L2's pull fades as a weight shrinks (λw → 0), so weights get small but linger. L1's pull never fades,
+  so any weight the data doesn't defend goes all the way to 0 — L1 makes models <b>sparse</b>.</div>
+</section>
+
+<!-- ============ REGULARIZATION 5: geometry ============ -->
+<section class="slide" id="r5">
+  <div class="kick">Slide</div>
+  <h2>L1 vs L2: why only L1 gives exact zeros — the picture</h2>
+  <p class="prose">Two weights, w₁ and w₂. The ellipses are the data loss; its best point ★ wants both
+  weights nonzero. A penalty is equivalent to a <b>budget</b>: stay inside a <b>circle</b> for L2
+  (w₁² + w₂² ≤ t²) or a <b>diamond</b> for L1 (|w₁| + |w₂| ≤ t). The answer ● is where the smallest
+  ellipse first touches the shape. A circle has no corners, so it's touched somewhere smooth and both
+  weights survive. A diamond's <b>corners sit on the axes</b> and poke out toward the ellipses, so the
+  touch usually lands on a corner — where one weight is exactly 0. Drag the budget.</p>
+  <div class="controls">
+    <label class="ctl">budget t <input type="range" id="r5-t" min="0.3" max="2.9" step="0.05" value="1.2"><span id="r5-tval">1.20</span></label>
+    <span class="dim" style="font-size:12px">small t = strong regularization (big λ)</span>
+    <span class="status" id="r5-status"></span>
+  </div>
+  <div style="display:flex;gap:18px;flex-wrap:wrap">
+    <div><div class="ptitle" style="margin:4px 0">L2 · circle</div><canvas class="plot" id="r5-l2" width="380" height="330"></canvas></div>
+    <div><div class="ptitle" style="margin:4px 0">L1 · diamond</div><canvas class="plot" id="r5-l1" width="380" height="330"></canvas></div>
+  </div>
+  <div class="fcaption" id="r5-cap"></div>
+  <div class="rulebox"><b>A PENALTY IS A BUDGET</b>
+  <div class="tex" data-tex="\min_w\; L_{\text{data}}(w) + \lambda \lVert w \rVert_1 \quad\Longleftrightarrow\quad \min_w\; L_{\text{data}}(w) \;\;\text{s.t.}\;\; \lVert w \rVert_1 \le t"></div>
+  the same story as the gradient view: sitting on an axis, the L1 pull is still ±λ — strong enough to
+  hold a weight at 0 unless the data pushes harder than λ. L2's pull λw is zero at 0, so it can never
+  hold a weight there.</div>
+</section>
+
+<!-- ============ REGULARIZATION 6: dropout ============ -->
+<section class="slide" id="r6">
+  <div class="kick">Slide</div>
+  <h2>Dropout: regularize with noise — and what it does to backprop</h2>
+  <p class="prose">Dropout fights overfitting differently. During training, every step <b>switches off a
+  random set of units</b> — each kept with probability q. No unit can count on a particular partner
+  being there, so each feature has to be useful on its own. In backprop a dropped unit is a
+  <b>dead end</b>: its output was multiplied by 0, so by the multiply rule its gradient is multiplied
+  by 0 too, and the weights feeding it learn nothing from this example.</p>
+  <div class="controls">
+    <button class="primary" id="r6-next">Next step ▸</button>
+    <button id="r6-mask">New batch: new mask ▸</button>
+    <button id="r6-eval">Eval mode</button>
+    <label class="ctl">keep q <input type="range" id="r6-q" min="0.3" max="0.95" step="0.05" value="0.75"><span id="r6-qval">0.75</span></label>
+    <span class="stepcount" id="r6-count"></span>
+  </div>
+  <div id="r6-stage"></div>
+  <div class="fcaption" id="r6-cap"></div>
+  <div class="rulebox"><b>DROPOUT, FORWARD AND BACKWARD</b>
+  <div class="tex" data-tex="\tilde h = \frac{m \odot h}{q},\;\; m_i \sim \mathrm{Bernoulli}(q) \qquad\qquad \frac{\partial L}{\partial h} = \frac{m \odot g}{q}"></div>
+  dividing by q ("inverted dropout") keeps E[h̃] = h, so the next layer sees the same average signal in
+  training and at test time. At test time there's no mask and no scaling — the full network behaves
+  like an average of all the thinned networks it trained. Note: PyTorch's <code>nn.Dropout(p)</code>
+  takes the <b>drop</b> probability, p = 1 − q.</div>
+</section>
+
+<!-- ============ REGULARIZATION 7: in practice ============ -->
+<section class="slide" id="r7">
+  <div class="kick">Slide</div>
+  <h2>In practice: what's used most — and the optimizer catch</h2>
+  <p class="prose">Every regularizer here changes backprop in one of two ways: it <b>adds a term</b> to
+  each weight's gradient (L2, L1), or it <b>masks the backward path</b> (dropout). Here's how they're
+  used today.</p>
+  <table class="rtab wide">
+    <tr><th>technique</th><th>what it does to backprop</th><th>where it's used</th></tr>
+    <tr><td><b>weight decay (L2)</b></td><td>adds λw to every weight's gradient — or shrinks w by (1 − ηλ) each step</td><td>the default almost everywhere; LLM pretraining typically uses AdamW with weight decay ≈ 0.1</td></tr>
+    <tr><td><b>dropout</b></td><td>zeroes the gradient through dropped units each step</td><td>smaller models, fine-tuning, classic vision/NLP; large LLM pretraining often uses little or none — with huge data, one pass rarely overfits</td></tr>
+    <tr><td><b>L1</b></td><td>adds a constant λ·sign(w) → exact zeros</td><td>sparse and linear models (lasso), feature selection, pruning; rare as a default in deep nets</td></tr>
+    <tr><td><b>early stopping</b></td><td>stops applying gradients once held-out loss turns up</td><td>nearly always, at least implicitly</td></tr>
+    <tr><td><b>augmentation · label smoothing</b></td><td>change the data or the targets, not the update rule</td><td>vision (augmentation), classification (label smoothing)</td></tr>
+  </table>
+  <div class="rulebox"><b>THE OPTIMIZER CATCH: L2 IN THE LOSS ≠ WEIGHT DECAY WITH ADAM</b>
+  <div class="tex" data-tex="\text{SGD:}\;\; w \leftarrow w - \eta\,(g + \lambda w) \qquad \text{(the same either way)}"></div>
+  <div class="tex" data-tex="\text{Adam + L2:}\;\; w \leftarrow w - \eta\, \frac{\hat m(g + \lambda w)}{\sqrt{\hat v} + \epsilon} \qquad\quad \text{AdamW:}\;\; w \leftarrow w - \eta\, \frac{\hat m(g)}{\sqrt{\hat v} + \epsilon} - \eta\lambda w"></div>
+  Adam divides each weight's step by that weight's own gradient scale √v̂. Put λw inside the gradient
+  and the decay gets divided too: weights with big gradients barely decay, weights with tiny gradients
+  decay a lot. AdamW applies the decay <b>outside</b> the adaptive step, so every weight decays at the
+  same rate. One step with w = 1, λ = 0.1, η = 0.01:
+  <table class="rtab" style="margin-top:10px">
+    <tr><th></th><th>weight A (√v̂ = 10)</th><th>weight B (√v̂ = 0.1)</th></tr>
+    <tr><td>Adam + L2: decay ≈ ηλw / √v̂</td><td>0.0001</td><td>0.01 — 100× more</td></tr>
+    <tr><td>AdamW: decay = ηλw</td><td>0.001</td><td>0.001</td></tr>
+  </table></div>
+  <div class="rulebox" style="border-color:var(--red)"><b>PITFALLS</b><br>
+  • <b>don't decay biases or LayerNorm γ/β</b> — the usual practice is to exclude them; shrinking them costs accuracy and buys no generalization.<br>
+  • <b>turn dropout off at eval</b> (<code>model.eval()</code>) — leave it on and predictions change from run to run.<br>
+  • <b>too much λ underfits</b> — the right edge of the first regularization slide. Tune λ on held-out data, never on the test set.<br>
+  • <b>regularization isn't more data</b> — it's a preference for simpler functions. When you can get more (or augmented) data, that usually helps more.</div>
 </section>
 
 </main>
@@ -1614,28 +1816,24 @@ function createMatrixSim(root,opts){
 /* ================= theme toggle ================= */
 (function(){
   const btn=document.getElementById('themetoggle');
-  function apply(mode){
+  window.__themeRedraws=window.__themeRedraws||[];
+  function apply(mode,save){
     document.body.classList.toggle('light',mode==='light');
     btn.textContent=mode==='light'?'☾ dark mode':'☀ light mode';
-    try{localStorage.setItem('model-lab-theme',mode);}catch(e){}
-    document.querySelectorAll('canvas.spark').forEach(cv=>{
-      const evt=new Event('redraw');cv.dispatchEvent(evt);});
-  }
-  let mode='dark';
-  try{mode=localStorage.getItem('model-lab-theme')||'dark';}catch(e){}
-  btn.onclick=()=>apply(document.body.classList.contains('light')?'dark':'light');
-  apply(mode);
-  window.__applyTheme=apply;
-  // re-render anything theme-dependent on toggle
-  window.__themeRedraws=[];
-  document.querySelectorAll('canvas.spark').forEach(cv=>cv.addEventListener('redraw',()=>{
+    if(save){try{localStorage.setItem('model-lab-theme-v2',mode);}catch(e){}}
     window.__themeRedraws.forEach(f=>{try{f();}catch(e){}});
-  }));
+  }
+  let mode='light';
+  try{mode=localStorage.getItem('model-lab-theme-v2')||'light';}catch(e){}
+  btn.onclick=()=>apply(document.body.classList.contains('light')?'dark':'light',true);
+  apply(mode,false);
+  window.__applyTheme=apply;
 })();
 
 
 /* ================= SLIDE 8: sampling & batching ================= */
 function buildSlide8(){
+  let lastBatch=null;
   const dist=document.getElementById('s8-dist');
   const loss=document.getElementById('s8-loss');
   const cap=document.getElementById('s8-cap');
@@ -1698,7 +1896,7 @@ function buildSlide8(){
   }
   function sample(){
     const batch=Array.from({length:8},gauss);
-    const bm=drawDist(batch);
+    const bm=drawDist(batch);lastBatch=batch;
     const g=2*(w-bm);           // gradient of (w - batch_mean)^2
     const gfull=2*(w-MU);       // true gradient
     cap.innerHTML=`batch of 8 → sample mean <b>${bm.toFixed(2)}</b> (true ${MU.toFixed(2)}).
@@ -1716,9 +1914,10 @@ function buildSlide8(){
   document.getElementById('s8-sample').onclick=()=>{sample();};
   document.getElementById('s8-train').onclick=()=>{for(let i=0;i<20;i++)trainStep();
     cap.innerHTML+=`<br>20 noisy steps later: w = <b>${w.toFixed(3)}</b> — the noise averages out and the loss still falls.`;};
-  document.getElementById('s8-reset').onclick=()=>{w=-1.5;steps=0;hist=[];drawDist(null);drawLoss();
+  document.getElementById('s8-reset').onclick=()=>{w=-1.5;steps=0;hist=[];lastBatch=null;drawDist(null);drawLoss();
     status.textContent='';cap.innerHTML='';};
   drawDist(null);drawLoss();
+  if(window.__themeRedraws)window.__themeRedraws.push(()=>{drawDist(lastBatch);drawLoss();});
   return {play:()=>{}};
 }
 
@@ -2225,83 +2424,364 @@ function buildSlide15(){
   return {play:()=>ST.play()};
 }
 
-/* ================= SLIDE 16: regularization ================= */
-function buildSlide16(){
-  const pen=document.getElementById('s16-pen');
-  const ctx=pen.getContext('2d');
-  const cap=document.getElementById('s16-cap');
-  const wslider=document.getElementById('s16-w');
-  const wval=document.getElementById('s16-wval');
-  const status=document.getElementById('s16-status');
-  const dropstage=document.getElementById('s16-dropstage');
-  const LAM=0.5;
-  function penalties(w){
-    return { l2: LAM*Math.abs(w), l1: LAM };   // magnitude of the pull toward 0
+/* ================= REGULARIZATION (group IV) ================= */
+function TC(){const cs=getComputedStyle(document.body);const g=n=>cs.getPropertyValue(n).trim();
+  return {fg:g('--fg'),mut:g('--mut'),line:g('--line'),acc:g('--acc'),blue:g('--blue'),red:g('--red'),ok:g('--ok')};}
+function hexA(hex,a){let h=(hex||'#888888').replace('#','');if(h.length===3)h=h.split('').map(c=>c+c).join('');
+  const n=parseInt(h,16);return `rgba(${(n>>16)&255},${(n>>8)&255},${n&255},${a})`;}
+function solveLin(A,b){
+  const n=b.length;const M=A.map((r,i)=>r.slice().concat([b[i]]));
+  for(let c=0;c<n;c++){
+    let p=c;for(let i=c+1;i<n;i++)if(Math.abs(M[i][c])>Math.abs(M[p][c]))p=i;
+    const tmp=M[c];M[c]=M[p];M[p]=tmp;
+    const piv=M[c][c]||1e-300;
+    for(let i=c+1;i<n;i++){const f=M[i][c]/piv;if(!f)continue;for(let j=c;j<=n;j++)M[i][j]-=f*M[c][j];}
   }
-  function drawPen(){
-    const w=+wslider.value;
-    ctx.clearRect(0,0,pen.width,pen.height);
-    const light=document.body.classList.contains('light');
-    ctx.fillStyle=light?'#6b6659':'#8f8f8f';ctx.font='10px ui-monospace,monospace';
-    ctx.fillText('pull toward 0 (|gradient of penalty|) vs w',6,12);
-    const x0=40,x1=pen.width-16,y0=pen.height-30,ytop=20;
-    // axes
-    ctx.strokeStyle=light?'#d8d2c4':'#2b2b30';ctx.beginPath();
-    ctx.moveTo(x0,ytop);ctx.lineTo(x0,y0);ctx.lineTo(x1,y0);ctx.stroke();
-    const wx=v=>x0+(v+3)/6*(x1-x0), py=v=>y0-Math.min(1.6,v)/1.6*(y0-ytop);
-    // L2 curve: proportional
-    ctx.strokeStyle='#ff5c39';ctx.lineWidth=2;ctx.beginPath();
-    for(let px=x0;px<=x1;px++){
-      const wv=-3+(px-x0)/(x1-x0)*6;
-      const v=LAM*Math.abs(wv);
-      px===x0?ctx.moveTo(px,py(v)):ctx.lineTo(px,py(v));
-    }
-    ctx.stroke();
-    // L1 curve: constant
-    ctx.strokeStyle='#2f6fdb';ctx.beginPath();
-    ctx.moveTo(x0,py(LAM));ctx.lineTo(x1,py(LAM));ctx.stroke();
-    // current w marker
-    const {l2,l1}=penalties(w);
-    ctx.fillStyle='#ff5c39';ctx.beginPath();ctx.arc(wx(w),py(l2),5,0,7);ctx.fill();
-    ctx.fillStyle='#2f6fdb';ctx.beginPath();ctx.arc(wx(w),py(l1),5,0,7);ctx.fill();
-    ctx.fillStyle=light?'#1a1a1a':'#e8e6e3';ctx.font='11px ui-monospace,monospace';
-    ctx.fillText('L2 ∝ |w|',x1-70,py(LAM*2.4)-6);
-    ctx.fillText('L1 = const',x1-80,py(LAM)-8);
-    wval.textContent=w.toFixed(2);
-    cap.innerHTML=`at w = <b>${w.toFixed(2)}</b>: L2 pulls with force <b>${l2.toFixed(2)}</b> (proportional — big weights shrink hardest),
-      L1 pulls with a constant <b>${l1.toFixed(2)}</b> — so L1 keeps pushing even tiny weights all the way to 0 (sparsity), L2 lets them linger.`;
+  const x=new Array(n).fill(0);
+  for(let i=n-1;i>=0;i--){let s=M[i][n];for(let j=i+1;j<n;j++)s-=M[i][j]*x[j];x[i]=s/(M[i][i]||1e-300);}
+  return x;
+}
+function fmtW(v){const a=Math.abs(v);return a>=1000?v.toExponential(1):a>=100?v.toFixed(0):a>=10?v.toFixed(1):v.toFixed(2);}
+
+/* ---- R1: overfitting & the λ dial ---- */
+function buildReg1(){
+  const fit=document.getElementById('r1-fit'),err=document.getElementById('r1-err');
+  const lam=document.getElementById('r1-lam'),lamval=document.getElementById('r1-lamval');
+  const wbox=document.getElementById('r1-w'),cap=document.getElementById('r1-cap'),status=document.getElementById('r1-status');
+  const R=rng(42),K=10;
+  const truef=x=>Math.sin(2*Math.PI*x);
+  const noise=()=>{let u=R();if(u<1e-9)u=1e-9;const v=R();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);};
+  const xt=[],yt=[],xv=[],yv=[];
+  for(let i=0;i<10;i++){const x=(i+0.5)/10+(R()-0.5)*0.03;xt.push(x);yt.push(truef(x)+0.25*noise());}
+  for(let i=0;i<10;i++){const x=i/10+0.02+R()*0.06;xv.push(x);yv.push(truef(x)+0.25*noise());}
+  const phi=x=>{const t=2*x-1,r=[1];for(let k=1;k<K;k++)r.push(r[k-1]*t);return r;};
+  const P=xt.map(phi),n=xt.length;
+  const PtP=[...Array(K)].map((_,i)=>[...Array(K)].map((_,j)=>P.reduce((s,r)=>s+r[i]*r[j],0)));
+  const Pty=[...Array(K)].map((_,i)=>P.reduce((s,r,m)=>s+r[i]*yt[m],0));
+  const lamOf=v=>v<=0?0:Math.pow(10,-6+7*v/100);
+  // minimize (1/n)||Pw - y||^2 + (λ/2)||w||^2  ->  (2/n PᵀP + λI) w = (2/n) Pᵀy
+  const solve=l=>solveLin(PtP.map((r,i)=>r.map((x,j)=>2/n*x+(i===j?Math.max(l,1e-10):0))),Pty.map(x=>2/n*x));
+  const pred=(w,x)=>phi(x).reduce((s,p,k)=>s+p*w[k],0);
+  const mse=(w,xs,ys)=>xs.reduce((s,x,i)=>s+(pred(w,x)-ys[i])**2,0)/xs.length;
+  const GRID=[];for(let v=0;v<=100;v+=2){const w=solve(lamOf(v));GRID.push({v,tr:mse(w,xt,yt),va:mse(w,xv,yv)});}
+  const best=GRID.reduce((a,b)=>b.va<a.va?b:a);
+  const wref=Math.max(...solve(0).map(Math.abs));
+  function drawFit(w){
+    const c=TC(),ctx=fit.getContext('2d'),W=fit.width,H=fit.height;ctx.clearRect(0,0,W,H);
+    const L=34,Rr=W-12,T=28,B=H-14;const X=x=>L+x*(Rr-L),Y=y=>(T+B)/2-y*(B-T)/4.6;
+    ctx.strokeStyle=c.line;ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(L,Y(0));ctx.lineTo(Rr,Y(0));ctx.stroke();
+    ctx.setLineDash([5,4]);ctx.strokeStyle=c.mut;ctx.lineWidth=1.5;ctx.beginPath();
+    for(let i=0;i<=200;i++){const x=i/200;i?ctx.lineTo(X(x),Y(truef(x))):ctx.moveTo(X(x),Y(truef(x)));}
+    ctx.stroke();ctx.setLineDash([]);
+    ctx.save();ctx.beginPath();ctx.rect(L,T-6,Rr-L,B-T+12);ctx.clip();
+    ctx.strokeStyle=c.fg;ctx.lineWidth=2.2;ctx.beginPath();
+    for(let i=0;i<=500;i++){const x=i/500,y=Math.max(-40,Math.min(40,pred(w,x)));i?ctx.lineTo(X(x),Y(y)):ctx.moveTo(X(x),Y(y));}
+    ctx.stroke();ctx.restore();
+    ctx.fillStyle=c.acc;xt.forEach((x,i)=>{ctx.beginPath();ctx.arc(X(x),Y(yt[i]),5,0,7);ctx.fill();});
+    ctx.strokeStyle=c.blue;ctx.lineWidth=2;xv.forEach((x,i)=>{ctx.beginPath();ctx.arc(X(x),Y(yv[i]),5,0,7);ctx.stroke();});
+    ctx.font='12px ui-monospace,monospace';
+    ctx.fillStyle=c.acc;ctx.fillText('● train (fit these)',L,16);
+    ctx.fillStyle=c.blue;ctx.fillText('○ held-out (judge on these)',L+160,16);
+    ctx.fillStyle=c.mut;ctx.fillText('- - true curve',L+390,16);
   }
-  wslider.oninput=drawPen;
-  // dropout widget
-  const units=Array.from({length:8},(_,i)=>i);
-  function drawDrop(mask){
-    dropstage.innerHTML='';
-    const p=el('div','panel');
-    p.appendChild(el('div','ptitle','dropout on a hidden layer'));
-    const g=el('div','grid');g.style.gridTemplateColumns='repeat(8,var(--cw))';
-    units.forEach(i=>{
-      const on=!mask||mask[i];
-      const c=el('div','cell',on?'h'+(i+1):'0');
-      if(!on){c.style.opacity='0.3';c.style.textDecoration='line-through';}
-      g.appendChild(c);
-    });
-    p.appendChild(g);
-    p.appendChild(el('div','psub',mask?'some units silenced this step (scaled 1/p)':'all units active (test time)'));
-    dropstage.appendChild(p);
+  function drawErr(v){
+    const c=TC(),ctx=err.getContext('2d'),W=err.width,H=err.height;ctx.clearRect(0,0,W,H);
+    const L=40,Rr=W-12,T=34,B=H-32;const X=u=>L+u/100*(Rr-L);
+    const ly=e=>Math.log10(Math.min(100,Math.max(1e-3,e)));const Y=e=>T+(2-ly(e))/5*(B-T);
+    ctx.strokeStyle=c.line;ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(L,T);ctx.lineTo(L,B);ctx.lineTo(Rr,B);ctx.stroke();
+    ctx.font='11px ui-monospace,monospace';ctx.fillStyle=c.mut;
+    ctx.fillText('error vs λ (log scale)',L,16);ctx.fillText('λ=0',L-8,B+16);ctx.fillText('λ →',(L+Rr)/2-10,B+16);ctx.fillText('10',Rr-16,B+16);
+    [[GRID.map(g=>g.tr),c.acc,'train'],[GRID.map(g=>g.va),c.blue,'held-out']].forEach(([arr,col,name],k)=>{
+      ctx.strokeStyle=col;ctx.lineWidth=2;ctx.beginPath();
+      arr.forEach((e,i)=>{const x=X(GRID[i].v),y=Y(e);i?ctx.lineTo(x,y):ctx.moveTo(x,y);});ctx.stroke();
+      ctx.fillStyle=col;ctx.fillText(name,Rr-72,T+12+k*14);});
+    ctx.fillStyle=c.ok;ctx.beginPath();ctx.arc(X(best.v),Y(best.va),5,0,7);ctx.fill();
+    ctx.fillText('best',X(best.v)-14,Y(best.va)+18);
+    ctx.strokeStyle=c.fg;ctx.lineWidth=1;ctx.setLineDash([4,3]);ctx.beginPath();ctx.moveTo(X(v),T);ctx.lineTo(X(v),B);ctx.stroke();ctx.setLineDash([]);
   }
-  drawDrop(null);
-  document.getElementById('s16-drop').onclick=()=>{
-    const mask=units.map(()=>Math.random()<0.7);   // keep prob 0.7
-    drawDrop(mask);
-    const dropped=units.filter((_,i)=>!mask[i]).length;
-    status.textContent=`dropped ${dropped}/8 units — survivors scaled ×${(1/0.7).toFixed(2)}`;
-    cap.innerHTML+='<br>dropout: each training step randomly zeroes units, so the network can\'t rely on any single one — it must spread the answer across many. At test time all units stay on.';
-  };
-  drawPen();
+  function drawW(w){
+    wbox.innerHTML='';const g=el('div','grid');g.style.gridTemplateColumns=`repeat(${K},74px)`;
+    const c=TC();
+    w.forEach((v,k)=>{const a=Math.min(1,Math.log10(1+Math.abs(v))/Math.log10(1+wref));
+      const cell=el('div','cell',fmtW(v));cell.style.width='74px';cell.style.background=hexA(c.acc,0.08+0.85*a);
+      if(a>0.55)cell.style.color='#fff';cell.title='w'+k;g.appendChild(cell);});
+    wbox.appendChild(g);
+  }
+  function update(){
+    const v=+lam.value,l=lamOf(v),w=solve(l);
+    lamval.textContent=v===0?'0':(l<0.01?l.toExponential(0):l.toFixed(2));
+    drawFit(w);drawErr(v);drawW(w);
+    const tr=mse(w,xt,yt),va=mse(w,xv,yv),mx=Math.max(...w.map(Math.abs));
+    status.textContent=`train ${tr.toFixed(3)} · held-out ${va.toFixed(3)} · largest |w| ${fmtW(mx)}`;
+    if(v<best.v-12)cap.innerHTML=`<b>memorizing.</b> The curve passes through every orange training point (train error ${tr.toFixed(3)}) but swings wildly between them, so held-out error is <b>${va.toFixed(2)}</b>. Look at the weights: huge, opposite signs, cancelling each other. That fragile cancellation is what overfitting looks like inside the model.`;
+    else if(v>best.v+16)cap.innerHTML=`<b>underfitting.</b> The penalty dominates: weights are crushed toward 0 and the curve flattens, missing even the training points (train error ${tr.toFixed(3)}, held-out ${va.toFixed(3)}). Too much λ is as bad as none.`;
+    else cap.innerHTML=`<b>generalizing.</b> Near the sweet spot (λ ≈ ${lamOf(best.v).toExponential(1)}) the curve follows the trend, not the noise. Training error went <i>up</i> a little (${tr.toFixed(3)}), held-out error dropped to <b>${va.toFixed(3)}</b>, and every weight is modest.`;
+  }
+  lam.oninput=update;
+  document.getElementById('r1-best').onclick=()=>{lam.value=best.v;update();};
+  if(window.__themeRedraws)window.__themeRedraws.push(update);
+  update();
   return {play:()=>{}};
 }
 
+/* ---- R2: the extra branch in backprop ---- */
+function buildReg2(){
+  const stage=document.getElementById('r2-graph'),cap=document.getElementById('r2-cap'),cnt=document.getElementById('r2-count');
+  const F=makeFormula(document.getElementById('r2-formula'));
+  let mode='l2';
+  const w=2,gd=-1.2,lam=0.5,eta=0.1,Ld=0.8;
+  function V(){
+    if(mode==='l2'){const Rv=lam*0.5*w*w,Rp=lam*w;return {Rv,Rp,tot:gd+Rp,wn:w-eta*(gd+Rp),rTex:'\\tfrac{\\lambda}{2}w^2',rpTex:'\\lambda w',rpNum:`λ·w = ${fmt(lam)}·${fmt(w)}`};}
+    const Rv=lam*Math.abs(w),Rp=lam*Math.sign(w);return {Rv,Rp,tot:gd+Rp,wn:w-eta*(gd+Rp),rTex:'\\lambda|w|',rpTex:'\\lambda\\,\\mathrm{sign}(w)',rpNum:`λ·sign(w) = ${fmt(lam)}·(+1)`};}
+  const G=makeGraph(stage,{
+    nodes:[
+      {id:'w',x:70,y:145,label:'w (trainable)',trainable:true},
+      {id:'Ld',x:470,y:58,label:'L_data'},
+      {id:'Rn',x:470,y:232,label:'λ·R(w)'},
+      {id:'Lt',x:860,y:145,label:'L_total'},
+    ],
+    gates:[{id:'gnet',x:265,y:58,op:'ƒ'},{id:'greg',x:265,y:232,op:'R'},{id:'gplus',x:680,y:145,op:'+'}],
+    edges:[['w','gnet'],['gnet','Ld'],['w','greg'],['greg','Rn'],['Ld','gplus'],['Rn','gplus'],['gplus','Lt']]
+  });
+  const ST=makeStepper();
+  function base(){
+    G.clearPackets();G.clearPulses();
+    ['w','Ld','Rn','Lt'].forEach(k=>{G.setVal(k,'·');G.setGrad(k,'');});G.setVal('w',fmt(w));
+    F.render([{k:'h',t:kx('L_{\\text{total}} = L_{\\text{data}} + '+V().rTex)},{k:'d',t:'<span class="dim" style="font-size:14px">— the top branch is the whole network (ƒ); the bottom branch is the penalty</span>'}]);
+    cap.innerHTML='';cnt.textContent=ST.count();
+  }
+  ST.add(async()=>{
+    G.pulse('gnet');G.pulse('greg');
+    await Promise.all([G.packet('w','gnet',{label:'w',cls:'fwd'}),G.packet('w','greg',{label:'w',cls:'fwd'})]);
+    G.clearPulses();
+    cap.innerHTML='forward: the same weight w is used in <b>two places</b> — inside the network (top) and inside the penalty (bottom).';
+    cnt.textContent=ST.count();});
+  ST.add(async()=>{const v=V();
+    await Promise.all([G.packet('gnet','Ld',{label:fmt(Ld),cls:'fwd'}),G.packet('greg','Rn',{label:fmt(v.Rv),cls:'fwd'})]);
+    G.setVal('Ld',fmt(Ld));G.setVal('Rn',fmt(v.Rv));
+    cap.innerHTML=`the network produces the data loss L_data = ${fmt(Ld)}; the penalty is λ·R(w) = <b>${fmt(v.Rv)}</b>.`;
+    cnt.textContent=ST.count();});
+  ST.add(async()=>{const v=V();
+    G.pulse('gplus');
+    await Promise.all([G.packet('Ld','gplus',{label:fmt(Ld),cls:'fwd'}),G.packet('Rn','gplus',{label:fmt(v.Rv),cls:'fwd'})]);
+    await G.packet('gplus','Lt',{label:fmt(Ld+v.Rv),cls:'fwd'});
+    G.setVal('Lt',fmt(Ld+v.Rv));G.clearPulses();
+    cap.innerHTML=`a + gate sums them: L_total = ${fmt(Ld)} + ${fmt(v.Rv)} = <b>${fmt(Ld+v.Rv)}</b>. That one + gate is the entire change to the model.`;
+    cnt.textContent=ST.count();});
+  ST.add(async()=>{
+    G.pulse('gplus');await G.packet('Lt','gplus',{label:'1'});
+    G.flash(G.nodes.gplus.x,G.nodes.gplus.y-32,'copy ×2');
+    await Promise.all([G.packet('gplus','Ld',{label:'1'}),G.packet('gplus','Rn',{label:'1'})]);
+    G.setGrad('Ld','g = 1');G.setGrad('Rn','g = 1');G.clearPulses();
+    cap.innerHTML='backward starts at L_total with gradient 1. The + gate <b>photocopies</b> it down both branches — the add rule, unchanged.';
+    cnt.textContent=ST.count();});
+  ST.add(async()=>{const v=V();
+    G.pulse('gnet');await G.packet('Ld','gnet',{label:'1'});await G.packet('gnet','w',{label:'g_data = '+fmt(gd),dur:700});G.clearPulses();
+    G.pulse('greg');await G.packet('Rn','greg',{label:'1'});await G.packet('greg','w',{label:'λR′ = '+fmt(v.Rp),dur:700});G.clearPulses();
+    cap.innerHTML=`two gradients come home to w: <b>${fmt(gd)}</b> from the data — full backprop through every layer — and <b>${fmt(v.Rp)}</b> from the penalty, computed from w alone (${v.rpNum}). No backprop needed for that one.`;
+    cnt.textContent=ST.count();});
+  ST.add(async()=>{const v=V();
+    G.flash(G.nodes.w.x+44,G.nodes.w.y-44,'Σ');
+    G.setGrad('w','∂L/∂w = '+fmt(v.tot));
+    F.render([{k:'a',t:kx('\\frac{\\partial L_{\\text{total}}}{\\partial w} = \\underbrace{'+fmt(gd)+'}_{\\text{data}} + \\underbrace{'+fmt(v.Rp)+'}_{'+v.rpTex+'} =')},{k:'v',t:'<b>'+fmt(v.tot)+'</b>',cls:'changed'}]);
+    cap.innerHTML=`w was used in two places, so its gradient is the <b>sum</b> of the two copies — the add rule's mirror image. The data pushes w up (negative gradient); the penalty pushes back and cancels <b>${Math.round(100*Math.abs(v.Rp/gd))}%</b> of that push.`;
+    cnt.textContent=ST.count();});
+  ST.add(async()=>{const v=V();
+    G.setVal('w',fmt(v.wn));G.pulse('w');
+    F.render([{k:'a',t:kx('w \\leftarrow w - \\eta\\,(g_{\\text{data}} + '+v.rpTex+') = '+fmt(w)+' - '+fmt(eta)+'\\cdot('+fmt(v.tot)+') =')},{k:'v',t:'<b>'+fmt(v.wn)+'</b>',cls:'changed'}]);
+    cap.innerHTML=mode==='l2'
+      ?`update: w ← w − η(g_data + λw) = <b>${fmt(v.wn)}</b>. Rearranged it reads w ← (1 − ηλ)·w − η·g_data = ${fmt(1-eta*lam)}·${fmt(w)} + ${fmt(-eta*gd)}: every step first <b>shrinks w by the factor ${fmt(1-eta*lam)}</b>, then takes the data step. That's why L2 is called <b>weight decay</b>. Without the penalty w would have jumped to ${fmt(w-eta*gd)}.`
+      :`update: w ← w − η(g_data + λ·sign(w)) = <b>${fmt(v.wn)}</b>. The L1 pull is a fixed λ = ${fmt(lam)} no matter how big w is — under L2 it was λw = ${fmt(lam*w)}. Flip back to L2 to compare.`;
+    setTimeout(()=>G.clearPulses(),700);
+    cnt.textContent=ST.count();});
+  document.getElementById('r2-next').onclick=()=>ST.next();
+  document.getElementById('r2-replay').onclick=()=>{ST.reset();base();};
+  const seg=[...document.querySelectorAll('#r2-mode button')];
+  seg.forEach(b=>b.onclick=()=>{if(ST.busy)return;mode=b.dataset.mode;seg.forEach(x=>x.classList.toggle('on',x===b));
+    G.nodes.greg.el.textContent=mode==='l2'?'R':'|·|';ST.reset();base();});
+  base();
+  return {play:()=>{},next:()=>ST.next()};
+}
+
+/* ---- R3/R4: L2 vs L1 pull on five weights ---- */
+function buildDecay(prefix,kind){
+  const tab=document.getElementById(prefix+'-tab'),plot=document.getElementById(prefix+'-plot');
+  const cap=document.getElementById(prefix+'-cap'),status=document.getElementById(prefix+'-status');
+  const lamEl=document.getElementById(prefix+'-lam'),lamVal=document.getElementById(prefix+'-lamval');
+  const eta=0.1,W0=[2.0,1.0,0.4,0.1,-1.5],COLS=['#e5484d','#2f6fdb','#3fb68b','#d9a400','#9b5de5'],MAXT=40;
+  let lam,w,w2,hist,hist2,t,last;
+  const l2step=v=>v-eta*lam*v;
+  const l1step=v=>{if(v===0)return 0;const nv=v-eta*lam*Math.sign(v);return (Math.abs(nv)<1e-9||Math.sign(nv)!==Math.sign(v))?0:nv;};
+  const stepFn=kind==='l2'?l2step:l1step,ghostFn=kind==='l2'?null:l2step;
+  function reset(){
+    lam=+lamEl.value;lamVal.textContent=lam.toFixed(1);
+    w=W0.slice();w2=W0.slice();hist=W0.map(v=>[v]);hist2=W0.map(v=>[v]);t=0;last=null;render();
+    cap.innerHTML=kind==='l2'
+      ?'five weights, no data gradient — only the L2 pull λw acts. Press <b>Step ▸</b> and watch the “Δ this step” column: it scales with each weight.'
+      :'the same five weights — now only the L1 pull λ·sign(w) acts. Press <b>Step ▸</b> and watch the “Δ this step” column: it is identical for every nonzero weight.';
+  }
+  function step(){
+    if(t>=MAXT)return;
+    last=w.map(v=>({d:stepFn(v)-v}));
+    w=w.map(stepFn);w.forEach((v,i)=>hist[i].push(v));
+    if(ghostFn){w2=w2.map(ghostFn);w2.forEach((v,i)=>hist2[i].push(v));}
+    t++;render();explain();
+  }
+  function explain(){
+    if(kind==='l2'){const f=1-eta*lam;
+      cap.innerHTML=`step ${t}: every weight was multiplied by (1 − ηλ) = <b>${f.toFixed(2)}</b>. w1 lost ${Math.abs(last[0].d).toFixed(3)}; w4 lost only ${Math.abs(last[3].d).toFixed(4)} — <b>same fraction, different amounts</b>. Every weight is now ${(100*Math.pow(f,t)).toFixed(0)}% of where it started: shrinking forever, never exactly 0.`;}
+    else{const z=w.filter(v=>v===0).length;
+      cap.innerHTML=`step ${t}: every nonzero weight moved exactly ηλ = <b>${(eta*lam).toFixed(2)}</b> toward 0 — <b>same amount, whatever its size</b>. ${z} of 5 weights are now exactly 0 and stay there; the small ones die first. That's L1's sparsity — the dashed L2 curves only flatten out.`;}
+  }
+  function render(){
+    status.textContent=`step ${t} / ${MAXT}`;
+    let h='<table class="rtab"><tr><th>weight</th><th>value</th><th>penalty gradient</th><th>Δ this step</th><th></th></tr>';
+    w.forEach((v,i)=>{const L=last?last[i]:null;
+      const pg=kind==='l2'?`λ·w = ${(lam*v).toFixed(3)}`:(v===0?'— (held at 0)':`λ·sign(w) = ${(lam*Math.sign(v)).toFixed(2)}`);
+      const d=L?(Math.abs(L.d)<1e-12?'0':L.d.toFixed(kind==='l2'?4:3)):'·';
+      const note=v===0?'<b>0 · pruned</b>':`${(100*v/W0[i]).toFixed(0)}% left`;
+      h+=`<tr><td><span class="sw" style="background:${COLS[i]}"></span>w${i+1}</td><td>${v.toFixed(3)}</td><td>${pg}</td><td class="${L&&Math.abs(L.d)>=1e-12?'chg':''}">${d}</td><td>${note}</td></tr>`;});
+    tab.innerHTML=h+'</table>';
+    drawPlot();
+  }
+  function drawPlot(){
+    const c=TC(),ctx=plot.getContext('2d'),W=plot.width,H=plot.height;ctx.clearRect(0,0,W,H);
+    const L=44,Rr=W-12,T=24,B=H-22;const X=s=>L+s/MAXT*(Rr-L),Y=v=>(T+B)/2-v/2.3*((B-T)/2);
+    ctx.strokeStyle=c.line;ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(L,Y(0));ctx.lineTo(Rr,Y(0));ctx.moveTo(L,T);ctx.lineTo(L,B);ctx.stroke();
+    ctx.font='11px ui-monospace,monospace';ctx.fillStyle=c.mut;ctx.fillText('step →',Rr-48,B+16);
+    ctx.fillText(kind==='l2'?'L2: w × (1 − ηλ) each step':'L1: w − ηλ·sign(w) each step   (dashed = same weights under L2)',L+8,14);
+    hist.forEach((hh,i)=>{
+      if(ghostFn){ctx.strokeStyle=hexA(COLS[i],0.45);ctx.setLineDash([4,4]);ctx.lineWidth=1.5;ctx.beginPath();
+        hist2[i].forEach((v,s)=>s?ctx.lineTo(X(s),Y(v)):ctx.moveTo(X(s),Y(v)));ctx.stroke();ctx.setLineDash([]);}
+      ctx.strokeStyle=COLS[i];ctx.lineWidth=2.2;ctx.beginPath();
+      hh.forEach((v,s)=>s?ctx.lineTo(X(s),Y(v)):ctx.moveTo(X(s),Y(v)));ctx.stroke();
+      const s=hh.length-1;ctx.fillStyle=COLS[i];ctx.beginPath();ctx.arc(X(s),Y(hh[s]),4,0,7);ctx.fill();
+      ctx.fillText('w'+(i+1),L-32,Y(W0[i])+4);});
+  }
+  document.getElementById(prefix+'-step').onclick=step;
+  document.getElementById(prefix+'-run').onclick=()=>{for(let i=0;i<10;i++)step();};
+  document.getElementById(prefix+'-reset').onclick=reset;
+  lamEl.oninput=reset;
+  if(window.__themeRedraws)window.__themeRedraws.push(drawPlot);
+  reset();
+  return {play:()=>{},next:step};
+}
+
+/* ---- R5: the budget picture ---- */
+function buildReg5(){
+  const cv2=document.getElementById('r5-l2'),cv1=document.getElementById('r5-l1');
+  const tEl=document.getElementById('r5-t'),tVal=document.getElementById('r5-tval');
+  const cap=document.getElementById('r5-cap'),status=document.getElementById('r5-status');
+  const A=2.2,B=0.5,K2=1.5;
+  const Lf=(x,y)=>(x-A)**2+K2*(y-B)**2;
+  const isZ=v=>Math.abs(v)<1e-9;
+  function solve(kind,t){
+    const inside=kind==='l2'?Math.hypot(A,B)<=t:Math.abs(A)+Math.abs(B)<=t;
+    if(inside)return {x:A,y:B,inside:true};
+    let best=null;const consider=(x,y)=>{const v=Lf(x,y);if(!best||v<best.v)best={x,y,v};};
+    if(kind==='l2'){for(let i=0;i<7200;i++){const a=i/7200*2*Math.PI;consider(t*Math.cos(a),t*Math.sin(a));}}
+    else{const Vx=[[t,0],[0,t],[-t,0],[0,-t]];
+      for(let e=0;e<4;e++){const p0=Vx[e],p1=Vx[(e+1)%4];
+        for(let i=0;i<=2000;i++){const s=i/2000;consider(p0[0]+(p1[0]-p0[0])*s,p0[1]+(p1[1]-p0[1])*s);}}}
+    return {x:best.x,y:best.y,inside:false};
+  }
+  function draw(cv,kind,sol,t){
+    const c=TC(),ctx=cv.getContext('2d'),W=cv.width,H=cv.height;ctx.clearRect(0,0,W,H);
+    const S=75,ox=40+S,oy=H/2;const X=x=>ox+x*S,Y=y=>oy-y*S;
+    ctx.strokeStyle=c.line;ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(8,oy);ctx.lineTo(W-6,oy);ctx.moveTo(ox,8);ctx.lineTo(ox,H-8);ctx.stroke();
+    ctx.font='12px ui-monospace,monospace';ctx.fillStyle=c.mut;ctx.fillText('w₁',W-24,oy-8);ctx.fillText('w₂',ox+8,18);
+    ctx.fillStyle=hexA(c.blue,0.14);ctx.strokeStyle=c.blue;ctx.lineWidth=2;ctx.beginPath();
+    if(kind==='l2')ctx.arc(X(0),Y(0),t*S,0,2*Math.PI);
+    else{ctx.moveTo(X(t),Y(0));ctx.lineTo(X(0),Y(t));ctx.lineTo(X(-t),Y(0));ctx.lineTo(X(0),Y(-t));ctx.closePath();}
+    ctx.fill();ctx.stroke();
+    const ell=(cl,col,lw)=>{if(cl<=1e-9)return;ctx.strokeStyle=col;ctx.lineWidth=lw;ctx.beginPath();
+      ctx.ellipse(X(A),Y(B),Math.sqrt(cl)*S,Math.sqrt(cl/K2)*S,0,0,2*Math.PI);ctx.stroke();};
+    [0.12,0.5,1.3,2.6,4.4].forEach(cl=>ell(cl,hexA(c.mut,0.55),1));
+    ell(Lf(sol.x,sol.y),c.acc,2.2);
+    ctx.fillStyle=c.fg;ctx.font='16px ui-monospace,monospace';ctx.fillText('★',X(A)-6,Y(B)+6);
+    ctx.fillStyle=c.acc;ctx.beginPath();ctx.arc(X(sol.x),Y(sol.y),6,0,7);ctx.fill();
+    ctx.font='12px ui-monospace,monospace';ctx.fillStyle=c.fg;
+    const lbl=`(${sol.x.toFixed(2)}, ${isZ(sol.y)?'0':sol.y.toFixed(2)})`;
+    if(sol.inside)ctx.fillText(lbl,X(sol.x)+12,Y(sol.y)+24);else if(sol.y>0.05)ctx.fillText(lbl,X(sol.x)-112,Y(sol.y)+4);else ctx.fillText(lbl,X(sol.x)+10,Y(sol.y)+22);
+  }
+  function update(){
+    const t=+tEl.value;tVal.textContent=t.toFixed(2);
+    const s2=solve('l2',t),s1=solve('l1',t);
+    draw(cv2,'l2',s2,t);draw(cv1,'l1',s1,t);
+    status.textContent=`L2 → (${s2.x.toFixed(2)}, ${s2.y.toFixed(2)})   ·   L1 → (${s1.x.toFixed(2)}, ${isZ(s1.y)?'0 exactly':s1.y.toFixed(2)})`;
+    if(s1.inside&&s2.inside)cap.innerHTML=`budget t = ${t.toFixed(2)} is so loose that the unconstrained best point ★ already fits inside both shapes — that's λ ≈ 0: no regularization at all.`;
+    else if(isZ(s1.y)&&!isZ(s2.y))cap.innerHTML=`the circle is first touched at (${s2.x.toFixed(2)}, ${s2.y.toFixed(2)}): L2 shrank both weights but <b>kept</b> w₂. The diamond is first touched at its <b>corner</b> (${s1.x.toFixed(2)}, 0): L1 set w₂ to <b>exactly 0</b>. A weight switched off — that's sparsity.`;
+    else cap.innerHTML=`with this looser budget the ellipse meets the diamond on an <b>edge</b>, not a corner, so L1 keeps both weights (${s1.x.toFixed(2)}, ${s1.y.toFixed(2)}). Sparsity is the usual result of strong L1, not a guarantee — it depends on λ and the data.`;
+  }
+  tEl.oninput=update;
+  if(window.__themeRedraws)window.__themeRedraws.push(update);
+  update();
+  return {play:()=>{}};
+}
+
+/* ---- R6: dropout, forward and backward ---- */
+function buildReg6(){
+  const stage=document.getElementById('r6-stage'),cap=document.getElementById('r6-cap'),cnt=document.getElementById('r6-count');
+  const qEl=document.getElementById('r6-q'),qVal=document.getElementById('r6-qval'),evalBtn=document.getElementById('r6-eval');
+  const N=8,R=rng(11),MR=rng(5);
+  const h=[...Array(N)].map(()=>+(R()*1.4+0.1).toFixed(2));
+  const g=[...Array(N)].map(()=>+(R()*2-1).toFixed(2));
+  let q=0.75,m=null,shown=0,evalMode=false,batch=1;
+  function sample(){m=[...Array(N)].map(()=>MR()<q?1:0);if(m.every(v=>v))m[Math.floor(MR()*N)]=0;if(m.every(v=>!v))m[0]=1;}
+  sample();
+  const dropped=()=>m.map((v,i)=>v?0:i+1).filter(Boolean);
+  const dlist=()=>{const d=dropped();return d.map(i=>'h'+i).join(', ')+(d.length>1?' are':' is');};
+  function row(label,vals,dead,cls){
+    const r=el('div','l2row');const lb=el('span','rl',label);lb.style.width='170px';r.appendChild(lb);
+    const gr=el('div','grid');gr.style.gridTemplateColumns=`repeat(${N},var(--cw))`;
+    vals.forEach((v,i)=>{const c=el('div','cell'+(cls?' '+cls:''),typeof v==='number'?fmt(v):v);
+      if(dead&&dead[i]){c.style.opacity='0.3';c.style.textDecoration='line-through';}
+      gr.appendChild(c);});
+    r.appendChild(gr);return r;
+  }
+  function render(){
+    stage.innerHTML='';const rows=el('div','l2rows');stage.appendChild(rows);
+    const mm=evalMode?h.map(()=>1):m,sc=evalMode?1:1/q,dead=mm.map(v=>!v);
+    rows.appendChild(row('unit',[...Array(N)].map((_,i)=>'h'+(i+1))));
+    if(shown>=1)rows.appendChild(row('h  (forward)',h,shown>=2?dead:null));
+    if(shown>=2)rows.appendChild(row(evalMode?'mask (off at eval)':'mask m',mm.map(v=>v?'1':'0'),dead));
+    if(shown>=3)rows.appendChild(row(evalMode?'h̃ = h':'h̃ = m·h / q',h.map((v,i)=>mm[i]*v*sc),dead));
+    if(!evalMode){
+      if(shown>=4)rows.appendChild(row('g  (from above)',g));
+      if(shown>=5)rows.appendChild(row('∂L/∂h = m·g / q',g.map((v,i)=>mm[i]*v*sc),dead,'gradcell'));
+      if(shown>=6)rows.appendChild(row('weights into it learn?',mm.map(v=>v?'✓':'✗'),dead));
+    }
+    cnt.textContent=evalMode?'eval mode':(shown>=6?'done':`step ${shown}/6`);
+  }
+  const CAPS=[
+    ()=>'forward: a hidden layer produced 8 activations h.',
+    ()=>`training step, batch #${batch}: each unit is kept with probability q = ${q.toFixed(2)}. This time ${dlist()} dropped.`,
+    ()=>`dropped units output 0; survivors are scaled up by 1/q = ${(1/q).toFixed(2)}, so the layer's <b>expected</b> output is unchanged (E[h̃] = h).`,
+    ()=>'backward: the next layer sends a gradient g for all 8 units — it has no idea which ones were dropped.',
+    ()=>'the forward pass multiplied each unit by m/q, so by the <b>multiply rule</b> the backward pass does too: ∂L/∂h = g·m/q. Dropped units get <b>exactly 0</b> — the gradient stops dead there.',
+    ()=>'zero gradient at a unit means zero gradient for every weight feeding it (∂L/∂W[i,:] = ∂L/∂hᵢ · x). Those weights learn nothing from this example. Next batch a different random subset sits out — every step trains a different thinned network.'];
+  const ST=makeStepper();
+  for(let k=1;k<=6;k++)ST.add(async()=>{shown=k;render();cap.innerHTML=CAPS[k-1]();});
+  function next(){if(evalMode)return;if(ST.i>=ST.steps.length){ST.reset();shown=0;}ST.next();}
+  document.getElementById('r6-next').onclick=next;
+  document.getElementById('r6-mask').onclick=()=>{batch++;sample();if(evalMode){evalMode=false;evalBtn.textContent='Eval mode';}
+    render();cap.innerHTML=shown>=2?`batch #${batch}: a fresh random mask — now ${dlist()} sitting out. A different thinned network trains this step.`:'mask resampled — step through to see it.';};
+  evalBtn.onclick=()=>{evalMode=!evalMode;evalBtn.textContent=evalMode?'Train mode':'Eval mode';
+    if(evalMode)shown=Math.max(shown,3);render();
+    cap.innerHTML=evalMode?'<b>eval mode:</b> no mask, no 1/q scaling — h̃ = h. Every unit takes part, so predictions are deterministic, and the full network acts like an average of all the thinned networks it trained.':'back to training: a random mask is applied every step again.';};
+  qEl.oninput=()=>{q=+qEl.value;qVal.textContent=q.toFixed(2);sample();render();
+    if(shown>=2&&!evalMode)cap.innerHTML=`keep probability q = ${q.toFixed(2)}: about ${Math.round((1-q)*100)}% of units drop each step, and survivors are scaled by 1/q = ${(1/q).toFixed(2)}. This mask: ${dlist()} dropped.`;};
+  render();cap.innerHTML='press <b>Next step ▸</b> to run one training step through a dropout layer.';
+  return {play:()=>{},next};
+}
+
 /* ================= boot ================= */
+const GROUPS=[
+  {roman:'I',name:'The four rules',short:'Four rules',ids:[['s1','the multiply rule'],['s2','add distributes'],['s3','subtract & square'],['s4','the chain']]},
+  {roman:'II',name:'Vectors, matrices & LoRA',short:'Matrices & LoRA',ids:[['s5','→ vectors'],['s6','→ matrices'],['s7','bias & LoRA']]},
+  {roman:'III',name:'Build a mini-LLM',short:'Mini-LLM',ids:[['s8','sampling & batching'],['s9','embeddings'],['s10','the FFN'],['s11','attention'],['s12','layernorm'],['s15','residual networks'],['s13','the full block'],['s14','KV cache & GQA']]},
+  {roman:'IV',name:'Regularization',short:'Regularization',ids:[['r1','why regularize'],['r2','regularization in backprop'],['r3','L2 · weight decay'],['r4','L1 · constant pull'],['r5','L1 vs L2 · the picture'],['r6','dropout'],['r7','in practice']]},
+];
 function boot(){
   document.querySelectorAll('.tex[data-tex]').forEach(e=>{
     e.innerHTML=kx(e.dataset.tex,true);
@@ -2321,39 +2801,94 @@ function boot(){
   const s13=buildSlide13();
   const s14=buildSlide14();
   const s15=buildSlide15();
-  const s16=buildSlide16();
+  const r1=buildReg1();
+  const r2=buildReg2();
+  const r3=buildDecay('r3','l2');
+  const r4=buildDecay('r4','l1');
+  const r5=buildReg5();
+  const r6=buildReg6();
   const l2=createScriptedLesson(document.getElementById('l2'),buildVectorLesson);
   const sim3=createMatrixSim(document.getElementById('l3'),{allowLora:false});
   const sim4=createMatrixSim(document.getElementById('l4'),{allowLora:true});
-  window.__lessons={s2,s3,ssub,s4,s5,s6,s7,s8,s9,s10,s11,s12,s13,s14,s15,s16,l2,sim3,sim4};
+  window.__lessons={s2,s3,ssub,s4,s5,s6,s7,s8,s9,s10,s11,s12,s13,s14,s15,r1,r2,r3,r4,r5,r6,l2,sim3,sim4};
 
-  const players=[s2.play,s3.play,ssub.play,s4.play,()=>{},()=>{},s7.play,s8.play,s9.play,s10.play,s11.play,s12.play,s13.play,s14.play,s15.play,s16.play];
-  const stoppers=[()=>{},()=>{},()=>{},()=>{},()=>l2.stopPlay(),()=>sim3.stopPlay(),()=>sim4.stopPlay(),()=>{},()=>{},()=>{},()=>{},()=>{},()=>{},()=>{},()=>{},()=>{}];
-  let cur=0;
-  const played=new Array(16).fill(false);
-  function show(i){
-    cur=Math.max(0,Math.min(15,i));
-    document.querySelectorAll('.slide').forEach((s,k)=>s.classList.toggle('active',k===cur));
-    document.querySelectorAll('#sidebar button').forEach((b,k)=>b.classList.toggle('on',k===cur));
-    stoppers.forEach(f=>f());
+  // keyed by slide (section) id
+  const PLAY={s1:s2.play,s2:s3.play,s3:ssub.play,s4:s4.play,s7:s7.play,s8:s8.play,s9:s9.play,s10:s10.play,
+    s11:s11.play,s12:s12.play,s13:s13.play,s14:s14.play,s15:s15.play};
+  const STOP={s5:()=>l2.stopPlay(),s6:()=>sim3.stopPlay(),s7:()=>sim4.stopPlay()};
+  const SPACE={s5:()=>l2.stepOnce(),s6:()=>sim3.step(),s7:()=>sim4.step(),
+    r2:()=>r2.next(),r3:()=>r3.next(),r4:()=>r4.next(),r6:()=>r6.next()};
+
+  const ORDER=[],META={};
+  GROUPS.forEach((g,gi)=>g.ids.forEach(([id,label],k)=>{META[id]={gi,label,idx:ORDER.length,local:k};ORDER.push(id);}));
+  const N=ORDER.length;
+  const slides=ORDER.map(id=>document.getElementById(id));
+
+  // ---- folding sidebar ----
+  const layout=document.querySelector('.layout');
+  const sb=document.getElementById('sidebar');sb.innerHTML='';
+  const head=el('div','sb-head');head.appendChild(el('span','sb-title','Lessons'));
+  const fold=el('button','sb-fold','«');fold.title='fold the sidebar';head.appendChild(fold);sb.appendChild(head);
+  let show=()=>{};
+  const groupEls=GROUPS.map((g,gi)=>{
+    const ge=el('div','sb-group');ge.dataset.g=gi;
+    const gh=el('button','sb-gh');
+    gh.innerHTML=`<span class="chev">▸</span><span class="groman">${g.roman}</span><span class="gname">${g.roman} · ${g.short}</span><span class="gcount">${g.ids.length}</span>`;
+    gh.title=`${g.roman} · ${g.name}`;
+    gh.onclick=()=>{if(layout.classList.contains('slim')){show(META[g.ids[0][0]].idx);return;}ge.classList.toggle('open');};
+    ge.appendChild(gh);
+    const items=el('div','sb-items');
+    g.ids.forEach(([id,label])=>{const b=el('button');b.dataset.id=id;b.title=label;
+      b.innerHTML=`<span class="n">${META[id].idx+1}</span><span class="lbl">${label}</span>`;
+      b.onclick=()=>show(META[id].idx);items.appendChild(b);});
+    ge.appendChild(items);sb.appendChild(ge);return ge;
+  });
+  const setSlim=(on,save)=>{layout.classList.toggle('slim',on);fold.textContent=on?'»':'«';
+    fold.title=on?'unfold the sidebar':'fold the sidebar';
+    if(save){try{localStorage.setItem('model-lab-sidebar',on?'slim':'full');}catch(e){}}};
+  fold.onclick=()=>setSlim(!layout.classList.contains('slim'),true);
+  try{if(localStorage.getItem('model-lab-sidebar')==='slim')setSlim(true,false);}catch(e){}
+
+  // ---- per-slide chrome: group pips, slide counter, prev/next ----
+  slides.forEach((s,i)=>{
+    const id=ORDER[i],m=META[id],g=GROUPS[m.gi];
+    const kick=s.querySelector('.kick');if(kick)kick.textContent=`Slide ${i+1} / ${N}`;
+    const sn=el('div','subnav');
+    sn.appendChild(el('span','sn-g',`${g.roman} · ${g.name}`));
+    g.ids.forEach(([pid,pl],k)=>{const p=el('button','pip'+(pid===id?' on':''),String(k+1));p.title=pl;
+      p.onclick=()=>show(META[pid].idx);sn.appendChild(p);});
+    s.insertBefore(sn,s.firstChild);
+    s.querySelectorAll('.nextlesson').forEach(b=>b.remove());
+    const nav=el('div','slidenav');
+    if(i>0){const b=el('button','',`◂ ${META[ORDER[i-1]].label}`);b.onclick=()=>show(i-1);nav.appendChild(b);}
+    if(i<N-1){const b=el('button','primary nextlesson',`Next: ${META[ORDER[i+1]].label} ▸`);b.onclick=()=>show(i+1);nav.appendChild(b);}
+    s.appendChild(nav);
+  });
+
+  let cur=0;const played=new Set();
+  show=function(i){
+    cur=Math.max(0,Math.min(N-1,i));
+    document.querySelectorAll('.slide').forEach(s=>s.classList.remove('active'));
+    slides[cur].classList.add('active');
+    const id=ORDER[cur],gi=META[id].gi;
+    sb.querySelectorAll('.sb-items button').forEach(b=>b.classList.toggle('on',b.dataset.id===id));
+    groupEls.forEach((ge,k)=>{ge.classList.toggle('open',k===gi);ge.classList.toggle('has-cur',k===gi);});
+    Object.values(STOP).forEach(f=>f());
     history.replaceState(null,'','#'+(cur+1));
-    if(!played[cur]){played[cur]=true;players[cur]&&players[cur]();}
+    if(!played.has(id)){played.add(id);PLAY[id]&&PLAY[id]();}
     window.scrollTo({top:0,behavior:'smooth'});
-  }
-  document.querySelectorAll('#sidebar button').forEach(b=>b.onclick=()=>show(+b.dataset.s));
-  document.querySelectorAll('.nextlesson').forEach(b=>b.onclick=()=>show(+b.dataset.go));
+  };
+  window.__show=i=>show(i);
+  window.__order=ORDER;
   document.addEventListener('keydown',e=>{
     if(e.target!==document.body)return;
     if(e.code==='ArrowRight')show(cur+1);
     else if(e.code==='ArrowLeft')show(cur-1);
-    else if(e.code==='Space'){e.preventDefault();
-      if(cur!==4&&cur!==5&&cur!==6)players[cur]&&players[cur]();
-      else if(cur===4)l2.stepOnce();
-      else if(cur===5)sim3.step();
-      else sim4.step();}
+    else if(e.code==='Space'){e.preventDefault();const id=ORDER[cur];(SPACE[id]||PLAY[id]||(()=>{}))();}
   });
-  const h=parseInt((location.hash||'').slice(1),10);
-  if(h>=1&&h<=16)show(h-1);
+  window.addEventListener('hashchange',()=>{const n=parseInt((location.hash||'').slice(1),10);if(n>=1&&n<=N&&n-1!==cur)show(n-1);});
+  const hh=parseInt((location.hash||'').slice(1),10);
+  show(hh>=1&&hh<=N?hh-1:0);
 }
 document.addEventListener('DOMContentLoaded',boot);
 </script>
