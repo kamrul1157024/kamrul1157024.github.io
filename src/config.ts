@@ -1,7 +1,7 @@
 import type { Site, SocialObjects } from "./types";
 
 export const SITE: Site = {
-  website: "https://kamrul1157024.github.io/",
+  website: "https://md-kamrul-hassan.com/",
   author: "MD Kamrul Hassan",
   desc: "Senior Software Engineer at Optimizely, building AI agent platforms. Notes on backend, distributed systems, design patterns and developer tooling — in English and Bengali.",
   title: "MD Kamrul Hassan",
