@@ -966,7 +966,7 @@ footer{margin-top:26px;color:var(--mut);font-size:12px;border-top:1px solid var(
   regression task (learning rate 0.01, decayed to 0 over training). Without normalization, each layer's output distribution drifts: a slightly small weight scale
   shrinks the signal to nothing, a slightly large one pins units at ±1. Either way training stalls.
   Re-normalizing every layer's pre-activations keeps the distribution in the healthy zone, whatever the
-  weight scale. All the numbers below are computed live in your browser.</p>
+  weight scale. The top lane shows the forward distributions, the lane under it the backward (gradient) distributions at the same layers. All the numbers below are computed live in your browser.</p>
   <div class="dbar"><div class="stepbar" id="n3-bar"></div><div class="scap" id="n3-cap"></div></div>
   <div class="controls" style="margin-top:12px">
     <label class="ctl">init scale</label><div class="seg" id="n3-gain"></div>
@@ -3242,7 +3242,9 @@ function mlpBackward(net,F,Y){
   for(let n=0;n<B;n++){gr.bo+=dy[n];for(let j=0;j<H;j++){gr.Wo[j]+=hl[n*H+j]*dy[n];da[n*H+j]=dy[n]*net.Wo[j];}}
   for(let l=L-1;l>=0;l--){
     const P=net.layers[l],C=cache[l],fi=C.fi;
+    (gr.dh||(gr.dh=[]))[l]=da;
     const du=new Float64Array(B*H);for(let k=0;k<du.length;k++)du[k]=da[k]*(1-C.t[k]*C.t[k]);
+    (gr.du||(gr.du=[]))[l]=du;
     const g={W:new Float64Array(fi*H),b:new Float64Array(H),g:new Float64Array(H),be:new Float64Array(H)};
     let dz=du;
     if(C.nl!=='none'){dz=new Float64Array(B*H);const dx=new Float64Array(B*H);
@@ -4043,7 +4045,10 @@ function buildN3(){
   const EVAL=mlpData(11,256),RUNS={},STATS={};
   function statsFor(k){if(STATS[k])return STATS[k];const [g,n]=k.split('|');const net=mlpMake(7,{gain:+g,norm:n,H,L});
     const F=mlpForward(net,EVAL.X,256),{gr}=mlpBackward(net,F,EVAL.Y);
-    const acts=[0,9,19,29].map(l=>F.cache[l].a),gn=gr.layers.map(q=>Math.sqrt(q.W.reduce((s,v)=>s+v*v,0)));return STATS[k]={acts,gn};}
+    const acts=[0,9,19,29].map(l=>F.cache[l].a),gn=gr.layers.map(q=>Math.sqrt(q.W.reduce((s,v)=>s+v*v,0)));
+    const du=[0,9,19,29].map(l=>gr.du[l]),size=du.map(a=>Math.sqrt(a.reduce((s,v)=>s+v*v,0)/a.length));
+    const blocked=du.map((a,j)=>{let n=0;for(const v of a)if(Math.abs(v)<0.05*size[j])n++;return n/a.length;});
+    return STATS[k]={acts,gn,du,size,blocked};}
   function ensure(k){if(RUNS[k])return RUNS[k].p;const [g,n]=k.split('|');const run=RUNS[k]={hist:[],done:false};
     const net=mlpMake(7,{gain:+g,norm:n,H,L}),Dt=mlpData(11,512),R=rng(99),Xb=new Float64Array(B*2),Yb=new Float64Array(B);
     const ev=()=>{const F=mlpForward(net,EVAL.X,256);let s=0;for(let i=0;i<256;i++)s+=(F.yh[i]-EVAL.Y[i])**2;return s/256;};
@@ -4054,9 +4059,14 @@ function buildN3(){
       if(P.c)drawCurves();
       if(t<STEPS)setTimeout(chunk,0);else{run.done=true;if(P.c){drawCurves();const cp=document.getElementById('n3-cap');if(cp&&D)cp.innerHTML=caption(D.state().i);}res();}})();});
     return run.p;}
-  function build(){st.innerHTML='';P={};
-    const row=el('div','dpanels');st.appendChild(row);P.h=[];
-    [1,10,20,30].forEach(l=>{const p=cpanel(`\\text{layer } ${l}: \\; h = \\tanh(u)`,214,130);row.appendChild(p);P.h.push(p);});
+  function build(){st.innerHTML='';P={};P.h=[];P.b=[];
+    const f=flowLane(st,'fwd','forward pass','distribution of each layer\u2019s output h over a batch of 256 inputs');
+    [1,10,20,30].forEach((l,j)=>{if(j)f.appendChild(kop('\\xrightarrow{\\;\\cdots\\;}'));const p=cpanel(`\\text{layer } ${l}: \\; h = \\tanh(u)`,200,130);f.appendChild(p);P.h.push(p);});
+    f.appendChild(kop('\\xrightarrow{\\quad}\\,\\hat y'));
+    const b=flowLane(st,'bwd','backward pass','gradient at the same layers, read right to left \u00b7 strip under each panel: its typical size on one shared log ruler (grey dots = the other layers)');
+    [1,10,20,30].forEach((l,j)=>{if(j)b.appendChild(kop('\\xleftarrow{\\;\\cdots\\;}'));const p=cpanel(`\\text{layer } ${l}: \\; \\partial L/\\partial u`,200,158);b.appendChild(p);P.b.push(p);});
+    b.appendChild(kop('\\xleftarrow{\\quad}\\,L'));
+    const lg=el('div','nstat');lg.style.margin='4px 0 0 2px';lg.innerHTML='size = typical (root-mean-square) gradient \u00b7 \u2248 0 = share of units passing less than 5% of that, i.e. blocked by a flat tanh';b.parentNode.parentNode.appendChild(lg);
     P.g=cpanel('\\big\\|\\partial L/\\partial W_\\ell\\big\\| \\text{ at initialization, layer 1} \\to 30 \\text{ (log scale)}',940,170);st.appendChild(P.g);
     P.c=cpanel(`\\text{training loss, ${STEPS} SGD steps, same schedule for all: } \\eta_t = ${LR}\\cdot\\tfrac12\\big(1+\\cos\\tfrac{\\pi t}{${STEPS}}\\big)`,940,250);st.appendChild(P.c);}
   function drawHist(k,grow,layersShown){const c=TC(),S=statsFor(k);
@@ -4065,7 +4075,27 @@ function buildN3(){
       const a=S.acts[j],b=binsOf(a,-1,1,40);const ymax=Math.max(4,Math.max(...b)*0.6);
       drawBins(ctx,b,rect,{ymax,col:c.blue,alpha:0.8,grow:j===layersShown-1?grow:1});axisX(ctx,rect,-1,1,[-1,0,1],c);
       let rms=0,sat=0;for(const v of a){rms+=v*v;if(Math.abs(v)>0.95)sat++;}rms=Math.sqrt(rms/a.length);
-      p.st.innerHTML=`spread ${kx(rms<0.001?rms.toExponential(0):rms.toFixed(2))} · at ±1: <b>${(100*sat/a.length).toFixed(0)}%</b>`;});}
+      p.st.innerHTML=`spread ${kx(rms<0.001?T10(rms):rms.toFixed(2))} · at ±1: <b>${(100*sat/a.length).toFixed(0)}%</b>`;});}
+  const T10=v=>{const a=Math.abs(v);if(a>=0.01&&a<100)return v.toFixed(a<1?3:a<10?1:0);const e=Math.floor(Math.log10(a)),m=v/Math.pow(10,e);return `${m.toFixed(1)}\\times 10^{${e}}`;};
+  const sh=v=>{const a=Math.abs(v);return a===0?'0':a>=0.01&&a<100?v.toFixed(2):v.toExponential(0);};
+  function drawBack(k,grow,shown){const c=TC(),S=statsFor(k);
+    P.b.forEach((p,j)=>{const ctx=cctx(p.cv),W=p.cv.__w,H2=p.cv.__h,rect={x:8,y:8,w:W-16,h:H2-64};
+      if(j<4-shown){p.st.innerHTML='';return;}
+      const g=S.du[j],r=S.size[j];const ab=Array.from(g,Math.abs).sort((x,y)=>x-y);let R=ab[Math.floor(0.98*(ab.length-1))]*1.15;if(!(R>0))R=r*3||1e-12;
+      const nb=40,bins=new Float64Array(nb);for(const v of g){if(v<-R||v>R)continue;let q=Math.floor((v+R)/(2*R)*nb);if(q>=nb)q=nb-1;bins[q]++;}
+      const ymax=Math.max(...bins)*1.08||1;
+      drawBins(ctx,bins,rect,{ymax,col:c.acc,alpha:0.8,grow:j===4-shown?grow:1});
+      ctx.strokeStyle=c.line;ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(rect.x,rect.y+rect.h+0.5);ctx.lineTo(rect.x+rect.w,rect.y+rect.h+0.5);ctx.stroke();
+      ctx.fillStyle=c.mut;ctx.font='10.5px ui-monospace,monospace';const ty=rect.y+rect.h+13;ctx.textAlign='left';ctx.fillText(sh(-R),rect.x,ty);ctx.textAlign='center';ctx.fillText('0',rect.x+rect.w/2,ty);ctx.textAlign='right';ctx.fillText(sh(R),rect.x+rect.w,ty);ctx.textAlign='left';
+      // shared log ruler 1e-14 .. 1e1
+      const y=H2-20,x0=12,x1=W-12,lo=-14,hi=1,X=v=>x0+(Math.max(lo,Math.min(hi,Math.log10(Math.max(1e-30,v))))-lo)/(hi-lo)*(x1-x0);
+      ctx.strokeStyle=c.line;ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(x0,y);ctx.lineTo(x1,y);ctx.stroke();
+      ctx.font='9.5px ui-monospace,monospace';ctx.fillStyle=c.mut;ctx.textAlign='center';
+      [-12,-8,-4,0].forEach(e=>{const xx=x0+(e-lo)/(hi-lo)*(x1-x0);ctx.beginPath();ctx.moveTo(xx,y-3);ctx.lineTo(xx,y+3);ctx.stroke();ctx.fillText(e===0?'1':'1e'+e,xx,y+13);});
+      ctx.textAlign='left';
+      S.size.forEach((v,q)=>{if(q===j)return;ctx.fillStyle=hexA(c.mut,0.55);ctx.beginPath();ctx.arc(X(v),y,3,0,7);ctx.fill();});
+      ctx.fillStyle=c.acc;ctx.beginPath();ctx.arc(X(r),y,5,0,7);ctx.fill();
+      p.st.innerHTML=`size ${kx(T10(r))} \u00b7 <b>${(100*S.blocked[j]).toFixed(0)}%</b> \u2248 0`;});}
   function drawGrad(k,upto){const c=TC(),S=statsFor(k),cv=P.g.cv,ctx=cctx(cv),W=cv.__w,H2=cv.__h,rect={x:52,y:12,w:W-64,h:H2-36};
     const lo=-12,hi=3,Y=v=>rect.y+rect.h-(Math.max(lo,Math.min(hi,v))-lo)/(hi-lo)*rect.h;
     ctx.font='10.5px ui-monospace,monospace';ctx.fillStyle=c.mut;[3,0,-4,-8,-12].forEach(e=>{ctx.fillText('1e'+e,8,Y(e)+4);ctx.strokeStyle=hexA(c.mut,0.15);ctx.beginPath();ctx.moveTo(rect.x,Y(e));ctx.lineTo(rect.x+rect.w,Y(e));ctx.stroke();});
@@ -4090,24 +4120,28 @@ function buildN3(){
     const busyN=keys.filter(k=>RUNS[k]&&!RUNS[k].done).length;status.textContent=busyN?`training ${busyN} network${busyN>1?'s':''} in your browser…`:'';
     P.c.st.innerHTML='solid = small init, dashed = large init · <span style="color:var(--red)">red: no normalization</span> · <span style="color:var(--ok)">green: LayerNorm</span> · <span style="color:var(--blue)">blue: BatchNorm</span>';}
   function render(S){shownS=S;if(!user)cur={...PRE[S]};markG(cur.g);markN(cur.n);build();const k=cur.g+'|'+cur.n;
-    drawHist(k,1,S>=1||user?4:0);if(S>=2||user)drawGrad(k);else{cctx(P.g.cv);P.g.st.innerHTML='';}
+    drawHist(k,1,S>=1||user?4:0);drawBack(k,1,S>=2||user?4:0);if(S>=2||user)drawGrad(k);else{cctx(P.g.cv);P.g.st.innerHTML='';}
     showKeys=SHOW[S];showKeys.forEach(ensure);drawCurves();}
   async function animate(S,ctx,run){user=false;cur={...PRE[S]};markG(cur.g);markN(cur.n);build();const k=cur.g+'|'+cur.n;showKeys=SHOW[S-1];drawCurves();
-    if(S===1){cctx(P.g.cv);for(let j=1;j<=4;j++){await ctx.tween(800,e=>drawHist(k,e,j),run);await ctx.wait(250,run);}return;}
+    if(S===1){cctx(P.g.cv);drawBack(k,1,0);for(let j=1;j<=4;j++){await ctx.tween(800,e=>drawHist(k,e,j),run);await ctx.wait(250,run);}return;}
     drawHist(k,1,4);
-    if(S===2){for(let u=L-1;u>=0;u--){drawGrad(k,u);await ctx.wait(70,run);}return;}
-    drawGrad(k);showKeys=SHOW[S];showKeys.forEach(ensure);drawCurves();
+    if(S===2){drawBack(k,1,0);for(let j=1;j<=4;j++){await ctx.tween(800,e=>drawBack(k,e,j),run);await ctx.wait(300,run);}
+      for(let u=L-1;u>=0;u--){drawGrad(k,u);await ctx.wait(70,run);}return;}
+    drawBack(k,1,4);drawGrad(k);showKeys=SHOW[S];showKeys.forEach(ensure);drawCurves();
     await Promise.race([Promise.all(showKeys.map(q=>RUNS[q].p)),new Promise((_,rej)=>{const t=setInterval(()=>{if(!ctx.live(run)){clearInterval(t);rej(DECK_ABORT);}},200);})]);
     drawCurves();await ctx.wait(400,run);}
   function fin(k){const r=RUNS[k];return r&&r.done?r.hist[r.hist.length-1].toFixed(3):'…';}
   function caption(S){
     if(S===0)return `A 30-layer tanh network, 32 units per layer, input = 2 numbers, output = 1 number. We start with weights drawn a little too <b>small</b> and no normalization. Press <b>Next step ▸</b>.`;
     if(S===1)return `<b>Forward, small init:</b> each layer shrinks the signal a bit more. By layer 10 the spread is ≈ 0.001 and by layer 30 every unit outputs ≈ 0: the network's output no longer depends on its input.`;
-    if(S===2)return `<b>Backward:</b> gradients for every layer are around ${kx('10^{-10}')}. With a learning rate of 0.01, a weight changes by roughly ${kx('10^{-12}')} per step: effectively nothing.`;
+    const Z=q=>statsFor(q),sz=(q,j)=>kx(T10(Z(q).size[j])),ratio=q=>Z(q).size[0]/Z(q).size[3];
+    const rtxt=q=>{const r=ratio(q);return r>=1?kx(`\\times ${T10(r)}`):kx(`\\div ${T10(1/r)}`);};
+    if(S===2){const S0=Z('0.5|none'),lg=Math.log10,a=Math.floor(lg(Math.min(...S0.gn))),b=Math.floor(lg(Math.max(...S0.gn)));
+      return `<b>Backward, small init:</b> the gradient enters at layer 30 with a typical size of ${sz('0.5|none',3)}, and every layer multiplies it by roughly ${kx("w\\,\\tanh'(u)")}, which is below 1 here: ${sz('0.5|none',2)} at layer 20, ${sz('0.5|none',1)} at layer 10, ${sz('0.5|none',0)} at layer 1. The shape barely changes from layer to layer; it is the <b>scale</b> that collapses (follow the orange dot along the rulers). And a weight's gradient is input × upstream gradient (the multiply rule): near the top the input ${kx('h')} is ≈ 0, near the bottom the gradient is, so ${kx('\\partial L/\\partial W')} is between ${kx('10^{'+a+'}')} and ${kx('10^{'+(b+1)+'}')} in every layer.`;}
     if(S===3)return `<b>Train it:</b> the red line sits on 0.203, which is the loss of just predicting the average. The network cannot learn at all.`;
-    if(S===4)return `<b>Large init (2.5), still no normalization:</b> now the opposite failure. About a third of all units are pinned at ±1 (saturated, slope ≈ 0) and the gradients are erratic, 50× larger at layer 1 than at layer 30. Training stalls around ${kx(fin('2.5|none'))}.`;
-    if(S===5)return `<b>Add LayerNorm</b> before every tanh: each layer's pre-activations are re-centred to mean 0, spread 1. The histograms stay healthy at every depth, gradients are similar across layers, and <b>both</b> bad inits now train (green: ${kx(fin('0.5|layer'))} and ${kx(fin('2.5|layer'))}).`;
-    return `<b>BatchNorm helps too</b> (blue: ${kx(fin('0.5|batch'))}, ${kx(fin('2.5|batch'))}), though in this small network LayerNorm does better. Both stop the drift; they differ only in <b>which numbers</b> μ and σ are averaged over. Try "careful (1.0)" with no normalization: it also trains, but only because the init is just right. Normalization removes that knife-edge.`;
+    if(S===4)return `<b>Large init (2.5), still no normalization:</b> the opposite failure. Forward, a third to a half of all units are pinned at ±1. Backward, the gradient <b>grows</b> on the way down (${sz('2.5|none',3)} at layer 30, ${sz('2.5|none',0)} at layer 1, ${rtxt('2.5|none')}) and turns spiky: at layer 1, ${(100*Z('2.5|none').blocked[0]).toFixed(0)}% of units pass almost nothing (the tall spike at 0, where ${kx("\\tanh'\\approx 0")}) while the rest pass large values. Training stalls around ${kx(fin('2.5|none'))}.`;
+    if(S===5)return `<b>Add LayerNorm</b> before every tanh from layer 2 on (layer 1 reads the raw input and is left alone, so it still saturates). Forward, layers 10–30 stay in the healthy middle of tanh. Backward, the gradient's size changes only ${rtxt('2.5|layer')} across 30 layers (${sz('2.5|layer',3)} → ${sz('2.5|layer',0)}), against ${rtxt('0.5|none')} for small init without normalization. <b>Both</b> bad inits now train (green: ${kx(fin('0.5|layer'))} and ${kx(fin('2.5|layer'))}).`;
+    return `<b>BatchNorm helps too</b> (blue: ${kx(fin('0.5|batch'))}, ${kx(fin('2.5|batch'))}): its gradients change ${rtxt('2.5|batch')} across the 30 layers, a bit more than LayerNorm's, and in this small network LayerNorm trains better. Both stop the drift; they differ only in <b>which numbers</b> μ and σ are averaged over. Try "careful (1.0)" with no normalization: it also trains, but only because the init is just right. Normalization removes that knife-edge.`;
   }
   const D=makeDeck('n3',{n:6,render,animate,caption});return D;
 }
