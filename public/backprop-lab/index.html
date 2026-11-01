@@ -138,6 +138,17 @@ canvas.spark{border:1px solid var(--line);background:#101013}
 .legend{display:flex;align-items:center;gap:8px;font-size:10px;color:var(--mut)}
 .lbar{width:120px;height:8px;border:1px solid var(--line);
   background:linear-gradient(90deg,var(--red),#141418 50%,var(--blue))}
+
+.layout{display:flex;gap:26px;align-items:flex-start;margin-top:6px}
+aside.sidebar{position:sticky;top:20px;flex:0 0 205px;border:1px solid var(--line);background:#101013;padding:8px 0}
+aside.sidebar .sb-title{font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:var(--mut);padding:4px 14px 10px;border-bottom:1px solid var(--line)}
+aside.sidebar button{display:block;width:100%;text-align:left;border:none;border-left:2px solid transparent;padding:9px 14px;font-size:11.5px;text-transform:none;letter-spacing:.02em;color:var(--mut)}
+aside.sidebar button:hover{color:var(--fg);border-left-color:var(--line)}
+aside.sidebar button.on{color:var(--fg);border-left-color:var(--acc);background:#141418}
+aside.sidebar button .n{color:var(--acc);margin-right:8px}
+main{flex:1;min-width:0}
+@media (max-width:900px){.layout{flex-direction:column}aside.sidebar{position:static;width:100%}}
+
 footer{margin-top:26px;color:var(--mut);font-size:11px;border-top:1px solid var(--line);padding-top:12px}
 </style>
 </head>
@@ -146,47 +157,27 @@ footer{margin-top:26px;color:var(--mut);font-size:11px;border-top:1px solid var(
   <div class="headrow">
     <div>
       <h1>Backprop from scratch</h1>
-      <div class="sub">animated lessons: one number → a vector → a matrix → LoRA</div>
+      <div class="sub">animated lessons: the four rules → vectors → matrices → LoRA</div>
     </div>
-    <nav class="snav" id="snav">
-      <button data-s="0" class="on">1 the question</button>
-      <button data-s="1">2 multiply</button>
-      <button data-s="2">3 add distributes</button>
-      <button data-s="3">4 the chain</button>
-      <button data-s="4">5 → vectors</button>
-      <button data-s="5">6 → matrices</button>
-      <button data-s="6">7 bias &amp; LoRA</button>
-    </nav>
   </div>
 </header>
+<div class="layout">
+<aside class="sidebar" id="sidebar">
+  <div class="sb-title">Lessons</div>
+  <button data-s="0" class="on"><span class="n">1</span>the multiply rule</button>
+  <button data-s="1"><span class="n">2</span>add distributes</button>
+  <button data-s="2"><span class="n">3</span>subtract &amp; square</button>
+  <button data-s="3"><span class="n">4</span>the chain</button>
+  <button data-s="4"><span class="n">5</span>→ vectors</button>
+  <button data-s="5"><span class="n">6</span>→ matrices</button>
+  <button data-s="6"><span class="n">7</span>bias &amp; LoRA</button>
+</aside>
+<main>
+
 
 <!-- ============ SLIDE 1: the question ============ -->
 <section class="slide active" id="s1">
   <div class="kick">Slide 1</div>
-  <h2>The question backprop answers</h2>
-  <p class="prose">The smallest possible network: <b>y = w·x + b</b>, loss <b>L = (y − t)²</b>.
-  Move the sliders — the forward pass recomputes live. The whole of training is one question:
-  <b>which way do we turn w and b to make L smaller, and by how much?</b> Press
-  <b>Animate forward ▸</b> to watch numbers flow through the graph.</p>
-  <div class="controls">
-    <button class="primary" id="s1-play">Animate forward ▸</button>
-    <span class="status" id="s1-status"></span>
-  </div>
-  <div id="s1-graph"></div>
-  <div class="sliders" id="s1-sliders"></div>
-  <div class="rulebox"><b>THE GRAPH</b>
-  w ─┐
-     × → s ─┐
-  x ─┘      + → y ─┐
-        b ─┘       − → e → ² → L
-              t ───┘
-every node is one tiny function; every edge is a number. Training = nudging w and b so L shrinks.</div>
-  <button class="nextlesson" data-go="1">Next: the multiply rule ▸</button>
-</section>
-
-<!-- ============ SLIDE 2: multiply ============ -->
-<section class="slide" id="s2">
-  <div class="kick">Slide 2</div>
   <h2>Local rule №1: multiply</h2>
   <p class="prose">Zoom into one gate: <b>s = w·x</b>. A gradient <b>g</b> arrives at s from the right
   ("L changes this much when s changes"). The gate hands it backward to <i>both</i> inputs —
@@ -202,12 +193,11 @@ every node is one tiny function; every edge is a number. Training = nudging w an
   ∂L/∂w = g · x      ← w's gradient is the upstream gradient, scaled by the OTHER input
   ∂L/∂x = g · w
 why: nudge w by ε and s moves by x·ε — the gate amplifies w's influence by exactly x.</div>
-  <button class="nextlesson" data-go="2">Next: the add rule ▸</button>
+  <button class="nextlesson" data-go="1">Next: the add rule ▸</button>
 </section>
 
-<!-- ============ SLIDE 3: add distributes ============ -->
-<section class="slide" id="s3">
-  <div class="kick">Slide 3</div>
+<section class="slide" id="s2">
+  <div class="kick">Slide 2</div>
   <h2>Local rule №2: addition is distribution</h2>
   <p class="prose">The gate <b>y = s + b</b> does nothing to the gradient at all — it
   <b>photocopies</b> it. One gradient g arrives at y; two identical copies leave, one down each
@@ -223,24 +213,54 @@ why: nudge w by ε and s moves by x·ε — the gate amplifies w's influence by 
   ∂L/∂s = g      ∂L/∂b = g      ← the upstream gradient COPIES to every input, unchanged
 and the mirror image: when one value feeds N different places, its total gradient is the
 SUM of all N copies coming back. Distribution forward, summation backward. (Slide 7 uses this.)</div>
-  <button class="nextlesson" data-go="3">Next: chain them ▸</button>
+  <button class="nextlesson" data-go="2">Next: subtract &amp; square ▸</button>
 </section>
 
-<!-- ============ SLIDE 4: the chain ============ -->
+<section class="slide" id="s3">
+  <div class="kick">Slide 3</div>
+  <h2>Two more rules: subtract and square</h2>
+  <p class="prose">The last two gates of the graph. <b>Subtract</b> (e = y − t) is add's sibling:
+  the gradient copies to the first input and copies <b>negated</b> to the second.
+  <b>Square</b> (L = e²) scales the incoming gradient by 2e — the only other gate that changes it.
+  Press <b>Animate ▸</b>: square first (it feeds the subtract gate), then subtract.</p>
+  <div class="controls"><button class="primary" id="ssub-play">Animate ▸</button></div>
+  <div style="display:flex;gap:18px;flex-wrap:wrap">
+    <div>
+      <div class="dim" style="margin:6px 0">L = e²</div>
+      <div id="ssub-graph2"></div>
+      <div class="fbar" id="ssub-formula2" style="max-width:470px;font-size:14px"></div>
+    </div>
+    <div>
+      <div class="dim" style="margin:6px 0">e = y − t</div>
+      <div id="ssub-graph1"></div>
+      <div class="fbar" id="ssub-formula1" style="max-width:470px;font-size:14px"></div>
+    </div>
+  </div>
+  <div class="fcaption" id="ssub-cap"></div>
+  <div class="rulebox"><b>SUBTRACT RULE</b>   e = y − t     ∂e/∂y = 1    ∂e/∂t = −1      →  ∂L/∂y = g,   ∂L/∂t = −g
+<b>SQUARE RULE</b>      L = e²        ∂L/∂e = 2e               →  incoming g leaves as g·2e
+four gates, four rules: multiply scales by the other input, add copies, subtract copies with a
+sign, square scales by 2·input. That is the entire vocabulary of backprop.</div>
+  <button class="nextlesson" data-go="3">Next: chain them all ▸</button>
+</section>
+
 <section class="slide" id="s4">
   <div class="kick">Slide 4</div>
   <h2>The chain: every gate does its one rule</h2>
-  <p class="prose">Same graph as slide 1, now running <b>backward</b>. Watch the gradient packet
-  travel right to left: the square gate scales it, the subtract gate signs it, the add gate
-  copies it, the multiply gate scales it again. What arrives at w <i>is</i> the chain rule —
-  one multiplication per gate on the path.</p>
+  <p class="prose">All four rules, one graph: <b>y = w·x + b</b>, loss <b>L = (y − t)²</b>.
+  Move the sliders and run it <b>forward</b> — then watch it run <b>backward</b>: the square gate
+  scales the gradient, the subtract gate signs it, the add gate copies it, the multiply gate
+  scales it again. What arrives at w <i>is</i> the chain rule — one multiplication per gate on
+  the path.</p>
   <div class="controls">
+    <button id="s4-fwd">Animate forward ▸</button>
     <button class="primary" id="s4-play">Animate backward ▸</button>
     <button id="s4-update">Apply update ▸</button>
     <button id="s4-train">Train 10 epochs ▸▸</button>
     <button id="s4-reset">Reset</button>
     <span class="status" id="s4-status"></span>
   </div>
+  <div class="sliders" id="s4-sliders"></div>
   <div id="s4-graph"></div>
   <div class="fbar" id="s4-formula"></div>
   <div class="fcaption" id="s4-cap"></div>
@@ -253,7 +273,6 @@ nothing else exists. Every backprop in every framework is these local rules, com
   <button class="nextlesson" data-go="4">Next: same rule, vectors ▸</button>
 </section>
 
-<!-- ============ SLIDE 5: scalar → vector ============ -->
 <section class="slide" id="s5">
   <div class="kick">Slide 5</div>
   <h2>The formula morphs: one weight → a vector of weights</h2>
@@ -274,7 +293,6 @@ The add gates distribute g to every product; each multiply gate scales it by its
   <button class="nextlesson" data-go="5">Next: same rule, matrices ▸</button>
 </section>
 
-<!-- ============ SLIDE 6: vector → matrix ============ -->
 <section class="slide" id="s6">
   <div class="kick">Slide 6</div>
   <h2>The formula morphs again: vectors → matrices</h2>
@@ -297,7 +315,6 @@ The add gates distribute g to every product; each multiply gate scales it by its
   <button class="nextlesson" data-go="6">Next: bias &amp; LoRA ▸</button>
 </section>
 
-<!-- ============ SLIDE 7: bias & LoRA ============ -->
 <section class="slide" id="s7">
   <div class="kick">Slide 7</div>
   <h2>Distribution in reverse — and LoRA</h2>
@@ -319,6 +336,9 @@ The add gates distribute g to every product; each multiply gate scales it by its
 The price: if the needed update isn't low-rank, LoRA plateaus where full fine-tuning would keep going.
 The payoff: a fraction of the parameters, one frozen base model, many swappable adapters.</div>
 </section>
+
+</main>
+</div>
 
 <footer>
   Backpropagation is four local rules — multiply, add, subtract, square — chained over a computation
@@ -602,6 +622,32 @@ function buildSlide4(){
       `epoch ${st.epoch} · w=${fmt(st.w)} b=${fmt(st.b)} L=${fmt(v.L)}`;
     paint();
   }
+  // forward animation + sliders
+  const sl=document.getElementById('s4-sliders');
+  [['w',-2,4],['x',0.5,4],['b',-2,2],['t',0,8]].forEach(([name,mn,mx])=>{
+    const lab=el('label','ctl');lab.append(name+' ');
+    const inp=el('input');inp.type='range';inp.min=mn;inp.max=mx;inp.step=0.1;inp.value=st[name];
+    const span=el('span',null,fmt(st[name]));
+    inp.oninput=()=>{st[name]=+inp.value;span.textContent=fmt(st[name]);paint();};
+    lab.append(inp,span);sl.appendChild(lab);
+  });
+  let fwdPlaying=false;
+  async function playFwd(){
+    if(fwdPlaying)return; fwdPlaying=true;
+    G.clearPackets();G.clearPulses();
+    const v=scalarVals(st);
+    const seq=[['w','gmul',fmt(st.w)],['x','gmul',fmt(st.x)],['gmul','s',fmt(v.s)],
+      ['s','gadd',fmt(v.s)],['b','gadd',fmt(st.b)],['gadd','y',fmt(v.y)],
+      ['y','gsub',fmt(v.y)],['t','gsub',fmt(st.t)],['gsub','e',fmt(v.e)],
+      ['e','gsq',fmt(v.e)],['gsq','L',fmt(v.L)]];
+    for(const [a,b2,label] of seq){
+      G.pulse(a);G.pulse(b2);
+      await G.packet(a,b2,{label,cls:'fwd',dur:420});
+      G.clearPulses();
+    }
+    fwdPlaying=false;
+  }
+  document.getElementById('s4-fwd').onclick=playFwd;
   document.getElementById('s4-play').onclick=play;
   document.getElementById('s4-update').onclick=()=>{update();};
   document.getElementById('s4-train').onclick=()=>{for(let i=0;i<10;i++)update();};
@@ -699,6 +745,54 @@ function buildSlide3(){
     G.clearPulses();playing=false;
   }
   document.getElementById('s3-play').onclick=play;
+  return {play};
+}
+
+/* ================= SLIDE 3: subtract & square ================= */
+function buildSlideSub(){
+  const G2=makeGraph(document.getElementById('ssub-graph2'),{
+    small:true,
+    nodes:[{id:'e',x:60,y:120,label:'e'},{id:'L',x:310,y:120,label:'L'},{id:'g',x:415,y:120,label:'g = 1'}],
+    gates:[{id:'gsq',x:185,y:120,op:'²'}],
+    edges:[['e','gsq'],['gsq','L'],['L','g']]});
+  const G1=makeGraph(document.getElementById('ssub-graph1'),{
+    small:true,
+    nodes:[{id:'y',x:60,y:55,label:'y'},{id:'t',x:60,y:185,label:'t'},
+      {id:'e',x:310,y:120,label:'e'},{id:'g',x:415,y:120,label:'g (from L)'}],
+    gates:[{id:'gsub',x:185,y:120,op:'−'}],
+    edges:[['y','gsub'],['t','gsub'],['gsub','e'],['e','g']]});
+  const F2=makeFormula(document.getElementById('ssub-formula2'));
+  const F1=makeFormula(document.getElementById('ssub-formula1'));
+  const cap=document.getElementById('ssub-cap');
+  const y=2.5,t=5,e=y-t,g=2*e;
+  G2.setVal('e',fmt(e));G2.setVal('L',fmt(e*e));G2.setVal('g','1');
+  G1.setVal('y',fmt(y));G1.setVal('t',fmt(t));G1.setVal('e',fmt(e));G1.setVal('g',fmt(g));
+  F2.render([{k:'h',t:'<span class="dim">L = e² — incoming 1 leaves as 2e</span>'}]);
+  F1.render([{k:'h',t:'<span class="dim">e = y − t — g copies to y, −g to t</span>'}]);
+  let playing=false;
+  async function play(){
+    if(playing)return; playing=true;
+    G2.clearPackets();G2.clearPulses();G2.pulse('gsq');
+    await G2.packet('g','L',{label:'1',dur:500});
+    await G2.packet('L','gsq',{label:'1',dur:400});
+    await G2.packet('gsq','e',{label:'1·2e = '+fmt(g),dur:550});
+    G2.setGrad('e','∂L/∂e = '+fmt(g));
+    F2.render([{k:'a',t:'∂L/∂e = 2e·1 = '},{k:'v',t:'<b>'+fmt(g)+'</b>',cls:'changed'}]);
+    cap.innerHTML='the <b>square</b> gate scales by 2e — that '+fmt(g)+' is exactly what the subtract gate receives next.';
+    G2.clearPulses();
+    G1.clearPackets();G1.clearPulses();G1.pulse('gsub');
+    await G1.packet('g','e',{label:fmt(g),dur:500});
+    await G1.packet('e','gsub',{label:fmt(g),dur:400});
+    const p1=G1.packet('gsub','y',{label:fmt(g),dur:520});
+    const p2=G1.packet('gsub','t',{label:fmt(-g),dur:520});
+    G1.setGrad('y','∂L/∂y = '+fmt(g));G1.setGrad('t','∂L/∂t = '+fmt(-g));
+    await Promise.all([p1,p2]);
+    F1.render([{k:'a',t:'∂L/∂y = g = '},{k:'v',t:'<b>'+fmt(g)+'</b>',cls:'changed'},
+      {k:'sp',t:'&nbsp;&nbsp;'},{k:'b',t:'∂L/∂t = −g = '},{k:'bv',t:'<b>'+fmt(-g)+'</b>',cls:'changed'}]);
+    cap.innerHTML='<b>subtract</b>: copy to the first input, negated copy to the second. All four rules are on the table — time to chain them.';
+    G1.clearPulses();playing=false;
+  }
+  document.getElementById('ssub-play').onclick=play;
   return {play};
 }
 
@@ -1259,9 +1353,9 @@ function createMatrixSim(root,opts){
 }
 
 /* ================= boot ================= */
-const s1=buildSlide1();
 const s2=buildSlide2();
 const s3=buildSlide3();
+const ssub=buildSlideSub();
 const s4=buildSlide4();
 const s5=buildSlide5();
 const s6=buildSlide6();
@@ -1269,22 +1363,22 @@ const s7=buildSlide7();
 const l2=createScriptedLesson(document.getElementById('l2'),buildVectorLesson);
 const sim3=createMatrixSim(document.getElementById('l3'),{allowLora:false});
 const sim4=createMatrixSim(document.getElementById('l4'),{allowLora:true});
-window.__lessons={s1,s2,s3,s4,s5,s6,s7,l2,sim3,sim4};
+window.__lessons={s2,s3,ssub,s4,s5,s6,s7,l2,sim3,sim4};
 
-const players=[s1.play,s2.play,s3.play,s4.play,()=>{},()=>{},s7.play];
+const players=[s2.play,s3.play,ssub.play,s4.play,()=>{},()=>{},s7.play];
 const stoppers=[()=>{},()=>{},()=>{},()=>{},()=>l2.stopPlay(),()=>sim3.stopPlay(),()=>sim4.stopPlay()];
 let cur=0;
 const played=new Array(7).fill(false);
 function show(i){
   cur=Math.max(0,Math.min(6,i));
   document.querySelectorAll('.slide').forEach((s,k)=>s.classList.toggle('active',k===cur));
-  document.querySelectorAll('#snav button').forEach((b,k)=>b.classList.toggle('on',k===cur));
+  document.querySelectorAll('#sidebar button').forEach((b,k)=>b.classList.toggle('on',k===cur));
   stoppers.forEach(f=>f());
   history.replaceState(null,'','#'+(cur+1));
   if(!played[cur]){played[cur]=true;players[cur]&&players[cur]();}
   window.scrollTo({top:0,behavior:'smooth'});
 }
-document.querySelectorAll('#snav button').forEach(b=>b.onclick=()=>show(+b.dataset.s));
+document.querySelectorAll('#sidebar button').forEach(b=>b.onclick=()=>show(+b.dataset.s));
 document.querySelectorAll('.nextlesson').forEach(b=>b.onclick=()=>show(+b.dataset.go));
 document.addEventListener('keydown',e=>{
   if(e.target!==document.body)return;
