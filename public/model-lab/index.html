@@ -295,6 +295,87 @@ body.light .kvhead.kv{background:#e3ebf8}
 .kvreal{font-size:12.5px;color:var(--mut);margin-top:10px;line-height:1.8}
 .kvreal .katex{color:var(--fg)}
 
+/* ---- shared step decks (new slides) ---- */
+.dbar{position:sticky;top:0;z-index:20;background:var(--bg);padding:2px 0 8px;border-bottom:1px solid var(--line)}
+.stepbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:8px 0 6px}
+.scap{min-height:50px;font-size:14px;color:var(--fg);max-width:1150px;line-height:1.7}
+.scap .katex{font-size:1.06em}
+.tex-i .katex{font-size:1.04em}
+.dk{--dkpop:880ms;--dkfade:1100ms}
+.dk .cell{transition:background var(--dkfade),opacity var(--dkfade),box-shadow .4s,color .4s;cursor:default;position:relative}
+.dk .cell.blank{color:transparent;background:transparent;border-style:dashed}
+body.light .dk .cell.blank{background:transparent}
+.dk .cell.fwdv{background:rgba(47,111,219,.16)}
+.dk .cell.newv{background:rgba(255,92,57,.2);box-shadow:0 0 0 1.5px var(--acc) inset}
+.dk .cell.gv{color:var(--acc);font-weight:700}
+.dk .cell.hot{box-shadow:0 0 0 2px var(--acc) inset;background:rgba(255,92,57,.38)}
+.dk .cell.dim{opacity:.3}
+.dk .cell.zero{opacity:.35}
+.dk .cell.chg{background:rgba(229,72,77,.25);box-shadow:0 0 0 1.5px var(--red) inset}
+.dk .cell.same{background:rgba(63,182,139,.18);box-shadow:0 0 0 1.5px var(--ok) inset}
+body.light .dk .cell.fwdv{background:rgba(29,91,191,.12)}
+body.light .dk .cell.newv{background:rgba(214,60,20,.12)}
+body.light .dk .cell.hot{background:rgba(214,60,20,.3)}
+.dk .cell.pop{animation:dkpop var(--dkpop) cubic-bezier(.2,.7,.2,1)}
+@keyframes dkpop{0%{transform:scale(.5);opacity:0}100%{transform:scale(1);opacity:1}}
+.dk .stage{margin-top:6px}
+.dk .lane{gap:8px;padding:10px 0;align-items:center}
+.dk .panel .ptitle{font-weight:400;font-size:12.5px;margin-bottom:4px}
+.dk .op{font-size:16px}
+.dk .vgrid{gap:2px;align-items:center}
+.dlbl{font-size:12px;color:var(--mut);padding-right:5px;text-align:right;white-space:nowrap}
+.dclbl{font-size:12px;color:var(--mut);text-align:center;padding-bottom:1px}
+.dlane{border:1px solid var(--line);padding:6px 12px 2px;margin-top:12px}
+.dlane .dlh{display:flex;gap:12px;align-items:baseline;flex-wrap:wrap;font-size:12px}
+.dlt{font-weight:700;letter-spacing:.14em;text-transform:uppercase;font-size:12px}
+.dlt.fwd{color:var(--blue)}
+.dlt.bwd{color:var(--acc)}
+.fbox{border:1px dashed var(--acc);padding:10px 16px;margin-top:12px;max-width:1150px;font-size:14px;opacity:0;transition:opacity var(--dkfade)}
+.fbox.on{opacity:1}
+.fbox .katex{font-size:1.12em}
+.fgrid{display:grid;grid-template-columns:auto 1fr;gap:6px 18px;align-items:center}
+.dpanels{display:flex;gap:14px;flex-wrap:wrap;align-items:flex-start;margin-top:12px}
+.cpanel{border:1px solid var(--line);background:#101013;padding:8px 10px}
+body.light .cpanel{background:#fffdf8}
+.cpanel .ct{font-size:13px;margin-bottom:4px;min-height:20px}
+.cpanel .cs{font-size:12px;color:var(--mut);margin-top:4px;min-height:18px}
+.cpanel .cs b{color:var(--fg)}
+.cpanel canvas{display:block}
+.dk canvas.plot{background:transparent}
+body.light .dk canvas.plot{background:transparent !important}
+.dtab{border-collapse:collapse;font-size:12.5px}
+.dtab th,.dtab td{border:1px solid var(--line);padding:4px 9px;text-align:right}
+.dtab th{color:var(--mut);font-weight:400}
+.dtab td.hl{color:var(--acc);font-weight:700}
+.dtab tr.tot td{border-top:2px solid var(--fg)}
+/* board (v2) */
+.board{position:relative;border:1px solid var(--line);background:#101013;margin-top:12px;overflow:hidden}
+body.light .board{background:#fffdf8}
+.board svg{position:absolute;inset:0;width:100%;height:100%}
+.board .bn{position:absolute;transform:translate(-50%,-50%)}
+.board .bn .cell{width:58px}
+.board .blab{position:absolute;transform:translate(-50%,-50%);font-size:12px;color:var(--mut);white-space:nowrap}
+.board .bgrad{position:absolute;transform:translate(-50%,0);font-size:12px;color:var(--acc);font-weight:700;white-space:nowrap}
+.board .bgate{position:absolute;transform:translate(-50%,-50%);width:34px;height:34px;border:1px solid var(--acc);border-radius:50%;
+  display:flex;align-items:center;justify-content:center;color:var(--acc);font-size:16px;background:var(--bg);z-index:2}
+.board .bgate.hot{outline:2px solid var(--acc);outline-offset:2px}
+/* n2 chain */
+.chainrow{display:flex;gap:6px;align-items:stretch;flex-wrap:nowrap;overflow-x:auto;margin-top:12px;padding-bottom:4px}
+.cnode{border:1px solid var(--line);min-width:74px;padding:5px 6px;text-align:center;font-size:12px;background:#101013;transition:box-shadow .3s}
+body.light .cnode{background:#fffdf8}
+.cnode .cn{color:var(--mut);font-size:11.5px}
+.cnode .cv{font-size:15px;font-weight:700;min-height:20px}
+.cnode .cz{color:var(--mut);font-size:11px;min-height:16px}
+.cnode .cg{color:var(--acc);font-size:12px;font-weight:700;min-height:17px}
+.cnode.hot{box-shadow:0 0 0 2px var(--acc) inset}
+.carrow{align-self:center;color:var(--mut);font-size:13px}
+/* n4/n5 */
+.nmat .cell{width:64px}
+.nstat{font-size:11.5px;color:var(--mut)}
+.ctl .nt{text-transform:none}
+.splitbar{display:flex;height:14px;max-width:520px;border:1px solid var(--line);margin-top:6px}
+.splitbar i{display:block;height:100%}
+
 footer{margin-top:26px;color:var(--mut);font-size:12px;border-top:1px solid var(--line);padding-top:12px}
 </style>
 </head>
@@ -495,10 +576,10 @@ footer{margin-top:26px;color:var(--mut);font-size:12px;border-top:1px solid var(
 <!-- ============ SLIDE 8: sampling & batching ============ -->
 <section class="slide" id="s8">
   <div class="kick">Slide 8</div>
-  <h2>Sampling stands in for the whole dataset</h2>
-  <p class="prose">Training on the full dataset every step is slow. The trick: a
-  <b>random sample</b> of the data has, on average, the same shape as the whole —
-  so its gradient points the same way on average. That sample is a <b>batch</b>, and training
+  <h2>From samples to gradients: a batch points the right way on average</h2>
+  <p class="prose">The previous slide showed that a
+  <b>random sample</b> has, on average, the same shape as the whole dataset. The same holds for
+  gradients: a sample's gradient points the same way as the full gradient, on average. That sample is a <b>batch</b>, and training
   batch by batch is <b>stochastic gradient descent</b>. Press <b>Sample a batch ▸</b> and watch
   the sample mean hug the true mean — then watch the loss still go down.</p>
   <div class="controls">
@@ -684,7 +765,7 @@ footer{margin-top:26px;color:var(--mut);font-size:12px;border-top:1px solid var(
       <button id="s14-play">&#9654; Play all</button>
       <button id="s14-replay">&#8634; Replay</button>
       <label class="ctl">speed</label>
-      <div class="seg" id="s14-speed"><button data-sp="1.6">Slow</button><button data-sp="1">Normal</button><button data-sp="0.5">Fast</button></div>
+      <div class="seg spdseg" id="s14-speed"><button data-sp="1.6">Slow</button><button data-sp="1">Normal</button><button data-sp="0.5">Fast</button></div>
       <span class="stepcount" id="s14-count"></span>
     </div>
     <div class="kvcap" id="s14-cap"></div>
@@ -711,6 +792,235 @@ footer{margin-top:26px;color:var(--mut);font-size:12px;border-top:1px solid var(
 
 
 
+
+
+<!-- ============ VECTORS 1: elementwise ============ -->
+<section class="slide" id="v1">
+  <div class="kick">Slide</div>
+  <h2>Elementwise: the scalar rules, once per position</h2>
+  <p class="prose">A vector is just several numbers side by side. When an operation works on each position
+  separately (<b>elementwise</b>), the backward pass is exactly the scalar rule from Group I, run once
+  per position. Below, four neurons' worth of the slide-4 chain run side by side. Each row is its own little
+  scalar problem; the vector notation is only a way to write four of them at once.</p>
+  <div class="dbar"><div class="stepbar" id="v1-bar"></div><div class="scap" id="v1-cap"></div></div>
+  <div id="v1-stage"></div>
+  <div class="rulebox"><b>ELEMENTWISE RULE</b>
+  <div class="tex" data-tex="y = w \odot x + b,\quad e = y - t,\quad L = \sum_i e_i^2 \qquad\Longrightarrow\qquad \frac{\partial L}{\partial w} = 2e \odot x,\quad \frac{\partial L}{\partial x} = 2e \odot w,\quad \frac{\partial L}{\partial b} = 2e"></div>
+  ⊙ means "multiply position by position". Read any one row and it is the scalar formula
+  <span class="tex-i" data-tex="\partial L/\partial w = 2e\cdot x"></span> from slide 4.</div>
+</section>
+
+<!-- ============ VECTORS 2: sum & dot product ============ -->
+<section class="slide" id="v2">
+  <div class="kick">Slide</div>
+  <h2>Sum and dot product: many inputs, one output</h2>
+  <p class="prose">Two operations collapse a vector into one number. A <b>sum</b> is an add gate with many inputs,
+  so by the add rule the incoming gradient is <b>copied</b> to every input. A <b>dot product</b>
+  <span class="tex-i" data-tex="w\cdot x = \sum_i w_i x_i"></span> is n multiply gates feeding one sum, so each
+  <span class="tex-i" data-tex="w_i"></span> receives the copied gradient times its own partner
+  <span class="tex-i" data-tex="x_i"></span>. Two rules you already know, no new calculus.</p>
+  <div class="dbar"><div class="stepbar" id="v2-bar"></div><div class="scap" id="v2-cap"></div></div>
+  <div id="v2-stage"></div>
+  <div class="rulebox"><b>SUM AND DOT PRODUCT</b>
+  <div class="tex" data-tex="s = \sum_i x_i \;\Rightarrow\; \frac{\partial L}{\partial x} = g\,\mathbf{1} \qquad\qquad y = w \cdot x = \sum_i w_i x_i \;\Rightarrow\; \frac{\partial L}{\partial w} = g\,x,\quad \frac{\partial L}{\partial x} = g\,w"></div>
+  The gradient of a vector always has the <b>same shape</b> as the vector. That is a free check you can run
+  on every formula from here on.</div>
+</section>
+
+<!-- ============ VECTORS 3: activation ============ -->
+<section class="slide" id="v3">
+  <div class="kick">Slide</div>
+  <h2>Activations: each position multiplies the gradient by its own slope</h2>
+  <p class="prose">Between layers sits an activation <span class="tex-i" data-tex="h = f(z)"></span>, applied
+  elementwise. By the chain rule each position multiplies the incoming gradient by the slope of
+  <span class="tex-i" data-tex="f"></span> at its own input: <span class="tex-i" data-tex="\partial L/\partial z_i = g_i\, f'(z_i)"></span>.
+  Where the slope is near 0, the gradient stops there. Keep this slide in mind: it is the root of the
+  vanishing-gradient problem in Group VI.</p>
+  <div class="dbar"><div class="stepbar" id="v3-bar"></div><div class="scap" id="v3-cap"></div></div>
+  <div class="controls" style="margin-top:12px"><label class="ctl">activation</label><div class="seg" id="v3-act"></div></div>
+  <div id="v3-stage"></div>
+  <div class="rulebox"><b>ACTIVATION RULE</b>
+  <div class="tex" data-tex="h = f(z) \;\Rightarrow\; \frac{\partial L}{\partial z} = g \odot f'(z) \qquad \frac{\partial h}{\partial z} = \mathrm{diag}\big(f'(z_1),\dots,f'(z_n)\big)"></div>
+  <div class="tex" data-tex="\mathrm{ReLU}'(z) \in \{0,1\} \qquad \tanh'(z) = 1-\tanh^2 z \le 1 \qquad \sigma'(z) = \sigma(z)\,(1-\sigma(z)) \le \tfrac14"></div>
+  Elementwise functions have diagonal Jacobians, so frameworks never build the matrix. They just multiply
+  position by position.</div>
+</section>
+
+<!-- ============ MATRICES 1: x W ============ -->
+<section class="slide" id="m1">
+  <div class="kick">Slide</div>
+  <h2>A layer is a stack of dot products: <span class="tex-i" data-tex="y = xW"></span></h2>
+  <p class="prose">A layer has several neurons, each with its own weight vector. Put those vectors side by side
+  as the <b>columns</b> of <span class="tex-i" data-tex="W"></span> and the whole layer is one product
+  <span class="tex-i" data-tex="y = xW"></span>: column j dotted with x gives <span class="tex-i" data-tex="y_j"></span>.
+  Backward, each column is the dot product from the last group, so its gradient is
+  <span class="tex-i" data-tex="g_j\, x"></span>. And x feeds every neuron, so its gradient collects one copy per
+  neuron and they add up.</p>
+  <div class="dbar"><div class="stepbar" id="m1-bar"></div><div class="scap" id="m1-cap"></div></div>
+  <div id="m1-stage"></div>
+  <div class="rulebox"><b>ONE INPUT, MANY NEURONS</b>
+  <div class="tex" data-tex="y = xW \qquad \frac{\partial L}{\partial W} = x^{\top} g \;\; (N{\times}1)(1{\times}M) = N{\times}M \qquad \frac{\partial L}{\partial x} = g\,W^{\top} \;\; (1{\times}M)(M{\times}N) = 1{\times}N"></div>
+  <div class="tex" data-tex="\frac{\partial L}{\partial W_{ij}} = x_i\, g_j \quad\text{(the multiply rule, once per weight)} \qquad \frac{\partial L}{\partial x_i} = \sum_j W_{ij}\, g_j \quad\text{(copies from every neuron, summed)}"></div>
+  The transpose is not a new rule. It is the only way the shapes line up, and the shape check always
+  agrees with the per-entry formula.</div>
+</section>
+
+<!-- ============ DATA 1: sampling ============ -->
+<section class="slide" id="t1">
+  <div class="kick">Slide</div>
+  <h2>A random sample looks like the whole dataset</h2>
+  <p class="prose">Before any model: why can we learn from a <b>small random piece</b> of the data? Pick examples
+  <b>uniformly at random</b> (every example equally likely) and the sample is a small, noisy copy of the
+  whole dataset. Its histogram takes the same shape and its mean lands near the true mean, and the noise
+  shrinks predictably as the sample grows. Step through samples of 1, 10, 100 and 1000 points from a
+  dataset of 20,000.</p>
+  <div class="dbar"><div class="stepbar" id="t1-bar"></div><div class="scap" id="t1-cap"></div></div>
+  <div id="t1-stage"></div>
+  <div class="rulebox"><b>WHY A SAMPLE REPRESENTS THE DATA</b>
+  <div class="tex" data-tex="i_1,\dots,i_n \sim \mathrm{Uniform}\{1,\dots,N\} \qquad \bar{x} = \frac{1}{n}\sum_{k=1}^{n} x_{i_k} \qquad \mathbb{E}[\bar{x}] = \mu \qquad \mathrm{SD}(\bar{x}) = \frac{\sigma}{\sqrt{n}}"></div>
+  The sample mean is right <b>on average</b> (unbiased), and its typical error falls like
+  <span class="tex-i" data-tex="1/\sqrt{n}"></span>. 100× more data buys only 10× less noise, which is why
+  training uses many small samples rather than one giant one.</div>
+</section>
+
+<!-- ============ DATA 3: SGD vs GD ============ -->
+<section class="slide" id="t2">
+  <div class="kick">Slide</div>
+  <h2>More steps for the same compute: gradient descent vs SGD</h2>
+  <p class="prose">Fit a line <span class="tex-i" data-tex="\hat y = wx + b"></span> to 2,000 points. <b>Full-batch
+  gradient descent</b> reads all 2,000 points to take <b>one</b> careful step. <b>Mini-batch SGD</b> reads 32 random points per
+  step, so one pass over the data (an <b>epoch</b>) buys 62 noisy steps. Each noisy step points the right way
+  on average (previous slide), and many cheap steps beat a few perfect ones.</p>
+  <div class="dbar"><div class="stepbar" id="t2-bar"></div><div class="scap" id="t2-cap"></div></div>
+  <div id="t2-stage"></div>
+  <div class="rulebox"><b>GD VS SGD</b>
+  <div class="tex" data-tex="\text{GD: } \theta \leftarrow \theta - \eta\,\nabla_\theta \tfrac{1}{N}\textstyle\sum_{i=1}^{N} \ell_i \;\;(\text{cost } N) \qquad \text{SGD: } \theta \leftarrow \theta - \eta\,\nabla_\theta \tfrac{1}{B}\textstyle\sum_{i \in \text{batch}} \ell_i \;\;(\text{cost } B)"></div>
+  <div class="tex" data-tex="\text{updates per epoch: GD } = 1, \qquad \text{SGD} = N/B = 2000/32 \approx 62"></div>
+  The price is noise: SGD jitters around the minimum instead of landing on it. In practice the learning
+  rate is lowered over time (a schedule) so the jitter dies down.</div>
+</section>
+
+<!-- ============ DATA 4: train / val / test ============ -->
+<section class="slide" id="t3">
+  <div class="kick">Slide</div>
+  <h2>Train, validation, test: three piles, three jobs</h2>
+  <p class="prose">A model that fits its training data can still be useless on new data (it may have memorized
+  noise). So we shuffle the data once and split it three ways: the <b>training set</b> to fit the weights,
+  the <b>validation set</b> (also called the dev set) to choose <b>hyperparameters</b> (anything we pick
+  rather than learn: the polynomial degree here, λ, the learning rate, the number of layers), and the
+  <b>test set</b>, locked away and used <b>once</b> at the very end as an honest estimate of real-world
+  performance.</p>
+  <div class="dbar"><div class="stepbar" id="t3-bar"></div><div class="scap" id="t3-cap"></div></div>
+  <div id="t3-stage"></div>
+  <div class="rulebox"><b>THE SPLIT</b>
+  <div class="tex" data-tex="w^{*}(d) = \arg\min_w \; \mathrm{MSE}_{\text{train}}(w; d) \qquad d^{*} = \arg\min_d \; \mathrm{MSE}_{\text{val}}\big(w^{*}(d)\big) \qquad \text{report } \mathrm{MSE}_{\text{test}}\big(w^{*}(d^{*})\big)"></div>
+  Each pile answers one question: training fits the weights, validation picks the settings, test grades
+  the final choice. The moment the test set influences a decision, it stops being a test.</div>
+</section>
+
+<!-- ============ DEEP 2: activations & distributions ============ -->
+<section class="slide" id="n1">
+  <div class="kick">Slide</div>
+  <h2>Activations reshape the distribution of the numbers</h2>
+  <p class="prose">Feed a whole batch of numbers through an activation and look at the <b>histogram</b>, not
+  just one value. ReLU deletes the negative half, GELU does the same more softly, tanh and sigmoid squash
+  everything into a narrow band. The next layer receives this new distribution, and the backward pass
+  multiplies by the <b>slope</b> histogram (the bottom row). Step through, then drag μ and σ yourself.</p>
+  <div class="dbar"><div class="stepbar" id="n1-bar"></div><div class="scap" id="n1-cap"></div></div>
+  <div class="controls" style="margin-top:12px">
+    <label class="ctl">activation</label><div class="seg" id="n1-act"></div>
+    <label class="ctl">mean <span class="nt">μ</span> <input type="range" id="n1-mu" min="-4" max="4" step="0.1" value="0"><span id="n1-muv">0.0</span></label>
+    <label class="ctl">spread <span class="nt">σ</span> <input type="range" id="n1-sd" min="0.2" max="4" step="0.1" value="1"><span id="n1-sdv">1.0</span></label>
+  </div>
+  <div id="n1-stage"></div>
+  <div class="rulebox"><b>WORKED NUMBERS FOR <span class="tex-i" data-tex="z \sim \mathcal{N}(0,1)"></span></b>
+  <div class="tex" data-tex="\mathbb{E}[\mathrm{ReLU}(z)] = \tfrac{1}{\sqrt{2\pi}} \approx 0.40 \qquad \mathrm{Var}[\mathrm{ReLU}(z)] = \tfrac12 - \tfrac{1}{2\pi} \approx 0.34 \qquad \Pr[\mathrm{ReLU}'(z) = 0] = \tfrac12"></div>
+  <div class="tex" data-tex="\mathbb{E}[\mathrm{GELU}(z)] = \tfrac{1}{2\sqrt{\pi}} \approx 0.28 \qquad \mathbb{E}[\sigma(z)] = 0.5 \;(\text{not centred}) \qquad z \text{ far from } 0 \Rightarrow \tanh'(z),\ \sigma'(z) \approx 0"></div>
+  An activation changes the mean and the spread, so the next layer sees a shifted, squashed or
+  half-deleted input. Stack 30 layers and these shifts compound.</div>
+</section>
+
+<!-- ============ DEEP 3: vanishing gradients in a chain ============ -->
+<section class="slide" id="n2">
+  <div class="kick">Slide</div>
+  <h2>At the extremes the gradient vanishes</h2>
+  <p class="prose">Strip a deep network down to one neuron per layer: ten copies of
+  <span class="tex-i" data-tex="h_\ell = f(w\,h_{\ell-1})"></span> in a row. Backward, the chain rule from slide 4
+  multiplies one local factor per layer, <span class="tex-i" data-tex="w\cdot f'(z_\ell)"></span>. If those factors sit
+  below 1, the product shrinks <b>exponentially</b> with depth, and the first layers get almost no gradient,
+  so they barely learn. Drag w to find how narrow the healthy zone is.</p>
+  <div class="dbar"><div class="stepbar" id="n2-bar"></div><div class="scap" id="n2-cap"></div></div>
+  <div class="controls" style="margin-top:12px">
+    <label class="ctl">activation</label><div class="seg" id="n2-act"></div>
+    <label class="ctl">weight <span class="nt">w</span> <input type="range" id="n2-w" min="0.2" max="4" step="0.05" value="1"><span id="n2-wv">1.00</span></label>
+  </div>
+  <div id="n2-stage"></div>
+  <div class="rulebox"><b>THE DEPTH PRODUCT</b>
+  <div class="tex" data-tex="\frac{\partial L}{\partial h_0} = \frac{\partial L}{\partial h_{10}} \prod_{\ell=1}^{10} w\, f'(z_\ell) \qquad \frac{\partial L}{\partial w_1} = \frac{\partial L}{\partial h_1}\, f'(z_1)\, h_0"></div>
+  <div class="tex" data-tex="\text{sigmoid: } f' \le \tfrac14 \;\Rightarrow\; \textstyle\prod \le 0.25^{10} \approx 10^{-6} \qquad \text{saturated tanh: } f'(3) \approx 0.01 \;\Rightarrow\; 3^{10} \cdot 0.01^{10} \approx 10^{-15}"></div>
+  A tiny gradient means a tiny update <span class="tex-i" data-tex="\Delta w = -\eta\, \partial L/\partial w"></span>:
+  the early layers learn a million times slower than the last ones, or not at all.</div>
+</section>
+
+<!-- ============ DEEP 4: deep net with/without normalization ============ -->
+<section class="slide" id="n3">
+  <div class="kick">Slide</div>
+  <h2>A 30-layer network, with and without normalization</h2>
+  <p class="prose">Now a real network: 30 layers of 32 tanh units, trained with the same learning rate on a small
+  regression task (learning rate 0.01, decayed to 0 over training). Without normalization, each layer's output distribution drifts: a slightly small weight scale
+  shrinks the signal to nothing, a slightly large one pins units at ±1. Either way training stalls.
+  Re-normalizing every layer's pre-activations keeps the distribution in the healthy zone, whatever the
+  weight scale. All the numbers below are computed live in your browser.</p>
+  <div class="dbar"><div class="stepbar" id="n3-bar"></div><div class="scap" id="n3-cap"></div></div>
+  <div class="controls" style="margin-top:12px">
+    <label class="ctl">init scale</label><div class="seg" id="n3-gain"></div>
+    <label class="ctl">normalization</label><div class="seg" id="n3-norm"></div>
+    <button id="n3-train">Train this setup ▸</button>
+    <span class="status" id="n3-status"></span>
+  </div>
+  <div id="n3-stage"></div>
+  <div class="rulebox"><b>WHAT NORMALIZATION BUYS</b>
+  <div class="tex" data-tex="z_\ell = h_{\ell-1} W_\ell + b_\ell \qquad u_\ell = \gamma \odot \frac{z_\ell - \mu}{\sigma} + \beta \qquad h_\ell = \tanh(u_\ell)"></div>
+  Normalization pins every layer's input to mean ≈ 0, spread ≈ 1, the zone where tanh's slope is
+  healthy, so the depth product neither dies nor explodes. Careful initialization can do the same at
+  the start, but it is a knife-edge; normalization holds it during training too. The next two slides
+  show the two ways to compute μ and σ.</div>
+</section>
+
+<!-- ============ DEEP 5: batch norm ============ -->
+<section class="slide" id="n4">
+  <div class="kick">Slide</div>
+  <h2>BatchNorm: normalize each feature across the batch</h2>
+  <p class="prose">Batch normalization (2015) was the first normalization layer to make very deep networks train easily. Take a batch: rows are
+  examples, columns are features. For <b>each feature (column)</b>, compute its mean and spread over the
+  batch, then rescale that column to mean 0 and spread 1. Finally a learned scale γ and shift β per feature let the network
+  undo the normalization wherever that helps.</p>
+  <div class="dbar"><div class="stepbar" id="n4-bar"></div><div class="scap" id="n4-cap"></div></div>
+  <div id="n4-stage"></div>
+  <div class="rulebox"><b>BATCHNORM</b>
+  <div class="tex" data-tex="\mu_j = \frac{1}{B}\sum_{b=1}^{B} x_{bj} \qquad \sigma_j^2 = \frac{1}{B}\sum_{b=1}^{B} (x_{bj} - \mu_j)^2 \qquad \hat{x}_{bj} = \frac{x_{bj} - \mu_j}{\sqrt{\sigma_j^2 + \epsilon}} \qquad y_{bj} = \gamma_j\, \hat{x}_{bj} + \beta_j"></div>
+  <div class="tex" data-tex="\text{inference: } \hat\mu \leftarrow 0.9\,\hat\mu + 0.1\,\mu_{\text{batch}} \text{ (running average from training)} \qquad \frac{\partial L}{\partial b_{\text{before BN}}} = 0"></div>
+  The catch: statistics come from the <b>other examples in the batch</b>. Small batches give noisy
+  statistics, a batch of one has no spread at all, and training and inference behave differently.</div>
+</section>
+
+<!-- ============ DEEP 6: batch vs layer norm ============ -->
+<section class="slide" id="n5">
+  <div class="kick">Slide</div>
+  <h2>BatchNorm vs LayerNorm: which axis gets normalized</h2>
+  <p class="prose">Same matrix, rows = examples, columns = features. <b>BatchNorm</b> normalizes down each
+  <b>column</b>, mixing examples. <b>LayerNorm</b> normalizes across each <b>row</b>: one example's own
+  features, nothing else. That one change makes LayerNorm independent of the batch, the same at
+  training and inference, and fine with a batch of one. That is why every transformer uses it (or
+  its cheaper cousin, RMSNorm).</p>
+  <div class="dbar"><div class="stepbar" id="n5-bar"></div><div class="scap" id="n5-cap"></div></div>
+  <div id="n5-stage"></div>
+  <div class="rulebox"><b>TWO AXES</b>
+  <div class="tex" data-tex="\text{BatchNorm: } \mu_j = \tfrac{1}{B}\textstyle\sum_b x_{bj} \;\;(\text{per feature, over examples}) \qquad \text{LayerNorm: } \mu_b = \tfrac{1}{d}\textstyle\sum_j x_{bj} \;\;(\text{per example, over features})"></div>
+  <div class="tex" data-tex="\text{RMSNorm: } y = \gamma \odot \frac{x}{\sqrt{\tfrac{1}{d}\sum_j x_j^2 + \epsilon}} \quad (\text{no mean subtraction; used in LLaMA, Mistral})"></div>
+  In a transformer the tensor is batch × tokens × features. LayerNorm normalizes each token's feature vector on
+  its own, so sequence length, padding and batch size never leak into the statistics.</div>
+</section>
 
 <!-- ============ REGULARIZATION 1: why ============ -->
 <section class="slide" id="r1">
@@ -1375,7 +1685,7 @@ function buildSlide6(){
   const cap=document.getElementById('s6-cap');
   const states=[
     {toks:[{k:'l',t:kx('\\frac{\\partial L}{\\partial \\mathbf{w}}')},{k:'e',t:'='},{k:'g',t:'g'},{k:'m',t:kx('\\cdot')},{k:'x',t:kx('\\mathbf{x}')}],
-     cap:'slide 5’s rule, vector form.'},
+     cap:'the vector rule, now with a whole batch.'},
     {toks:[{k:'l',t:kx('\\frac{\\partial L}{\\partial W}'),shape:'N×M'},{k:'e',t:'='},
            {k:'g',t:'G',shape:'B×M'},{k:'m',t:kx('\\cdot')},{k:'x',t:'X',shape:'B×N'}],
      cap:'batch it: B gradient rows become G, B input rows become X. But look at the shapes…'},
@@ -2415,9 +2725,7 @@ function buildSlide14(){
   const tA=s=>s>=9?T:Math.ceil(s/2), tB=s=>s>=9?T:Math.floor(s/2);
 
   // ---- timing (Slow by default) ----
-  let SP=1.6;
-  try{const v=parseFloat(localStorage.getItem('model-lab-speed'));if(v>0)SP=v;}catch(e){}
-  const ms=x=>x*SP;
+  const ms=x=>x*SPEED.v;
   let RUN=0,i=0,busy=false,shown=-1,playing=false;
   const ABORT={abort:true};
   const live=new Set();
@@ -2707,11 +3015,11 @@ function buildSlide14(){
   $('s14-replay').onclick=replay;
   playBtn.onclick=playAll;
   const spBtns=[...document.querySelectorAll('#s14-speed button')];
-  const markSp=()=>spBtns.forEach(b=>b.classList.toggle('on',Math.abs(+b.dataset.sp-SP)<1e-6));
-  spBtns.forEach(b=>b.onclick=()=>{SP=+b.dataset.sp;markSp();setDur();try{localStorage.setItem('model-lab-speed',String(SP));}catch(e){}});
+  const markSp=()=>spBtns.forEach(b=>b.classList.toggle('on',Math.abs(+b.dataset.sp-SPEED.v)<1e-6));
+  spBtns.forEach(b=>b.onclick=()=>{setSpeed(+b.dataset.sp);markSp();setDur();});
   markSp();
   renderState(0);
-  window.__kv={Qm,Km,Vm,Am,Om,state:()=>({i,busy,shown,SP})};
+  window.__kv={Qm,Km,Vm,Am,Om,state:()=>({i,busy,shown,SP:SPEED.v})};
   return {play:()=>{},next,back,replay};
 }
 
@@ -3134,17 +3442,1058 @@ function buildReg6(){
   return {play:()=>{},next};
 }
 
+/* ---------- deep tanh MLP with optional BatchNorm / LayerNorm (Group VI) ---------- */
+function gaussRng(R){let spare=null;return ()=>{if(spare!==null){const s=spare;spare=null;return s;}
+  let u=0,v=0;while(u===0)u=R();while(v===0)v=R();const m=Math.sqrt(-2*Math.log(u));spare=m*Math.sin(2*Math.PI*v);return m*Math.cos(2*Math.PI*v);};}
+function mlpMake(seed,o){
+  const R=rng(seed),G=gaussRng(R),H=o.H||16,L=o.L||12,gain=o.gain,din=o.din||2;
+  const layers=[];
+  for(let l=0;l<L;l++){const fi=l===0?din:H,W=new Float64Array(fi*H);
+    for(let k=0;k<W.length;k++)W[k]=G()*gain/Math.sqrt(fi);
+    layers.push({fi,W,b:new Float64Array(H),g:new Float64Array(H).fill(1),be:new Float64Array(H)});}
+  const Wo=new Float64Array(H);for(let k=0;k<H;k++)Wo[k]=G()/Math.sqrt(H);
+  return {H,L,din,norm:o.norm||'none',res:!!o.res,layers,Wo,bo:0};
+}
+function mlpForward(net,X,B){
+  const {H,L,norm}=net,eps=1e-5;let h=X,fi=net.din;const cache=[];
+  for(let l=0;l<L;l++){
+    const P=net.layers[l],z=new Float64Array(B*H);
+    for(let n=0;n<B;n++)for(let j=0;j<H;j++){let s=P.b[j];for(let i=0;i<fi;i++)s+=h[n*fi+i]*P.W[i*H+j];z[n*H+j]=s;}
+    let u=z,xh=null,sd=null;const nl=l>0?norm:'none';
+    if(nl!=='none'){
+      xh=new Float64Array(B*H);u=new Float64Array(B*H);
+      if(nl==='layer'){sd=new Float64Array(B);
+        for(let n=0;n<B;n++){let m=0;for(let j=0;j<H;j++)m+=z[n*H+j];m/=H;let v=0;for(let j=0;j<H;j++)v+=(z[n*H+j]-m)**2;v/=H;
+          const s=Math.sqrt(v+eps);sd[n]=s;for(let j=0;j<H;j++){const k=n*H+j;xh[k]=(z[k]-m)/s;u[k]=P.g[j]*xh[k]+P.be[j];}}}
+      else{sd=new Float64Array(H);
+        for(let j=0;j<H;j++){let m=0;for(let n=0;n<B;n++)m+=z[n*H+j];m/=B;let v=0;for(let n=0;n<B;n++)v+=(z[n*H+j]-m)**2;v/=B;
+          const s=Math.sqrt(v+eps);sd[j]=s;for(let n=0;n<B;n++){const k=n*H+j;xh[k]=(z[k]-m)/s;u[k]=P.g[j]*xh[k]+P.be[j];}}}
+    }
+    const t=new Float64Array(B*H);for(let k=0;k<t.length;k++)t[k]=Math.tanh(u[k]);
+    const res=net.res&&l>0;let a=t;if(res){a=new Float64Array(B*H);for(let k=0;k<a.length;k++)a[k]=h[k]+t[k];}
+    cache.push({hin:h,fi,z,u,xh,sd,t,a,res,nl});h=a;fi=H;
+  }
+  const yh=new Float64Array(B);for(let n=0;n<B;n++){let s=net.bo;for(let j=0;j<H;j++)s+=h[n*H+j]*net.Wo[j];yh[n]=s;}
+  return {cache,yh,B};
+}
+function mlpBackward(net,F,Y){
+  const {H,L,norm}=net,{cache,yh,B}=F;let loss=0;const dy=new Float64Array(B);
+  for(let n=0;n<B;n++){const e=yh[n]-Y[n];loss+=e*e/B;dy[n]=2*e/B;}
+  const gr={layers:[],Wo:new Float64Array(H),bo:0};
+  const hl=cache[L-1].a;let da=new Float64Array(B*H);
+  for(let n=0;n<B;n++){gr.bo+=dy[n];for(let j=0;j<H;j++){gr.Wo[j]+=hl[n*H+j]*dy[n];da[n*H+j]=dy[n]*net.Wo[j];}}
+  for(let l=L-1;l>=0;l--){
+    const P=net.layers[l],C=cache[l],fi=C.fi;
+    const du=new Float64Array(B*H);for(let k=0;k<du.length;k++)du[k]=da[k]*(1-C.t[k]*C.t[k]);
+    const g={W:new Float64Array(fi*H),b:new Float64Array(H),g:new Float64Array(H),be:new Float64Array(H)};
+    let dz=du;
+    if(C.nl!=='none'){dz=new Float64Array(B*H);const dx=new Float64Array(B*H);
+      for(let n=0;n<B;n++)for(let j=0;j<H;j++){const k=n*H+j;g.g[j]+=du[k]*C.xh[k];g.be[j]+=du[k];dx[k]=du[k]*P.g[j];}
+      if(C.nl==='layer'){for(let n=0;n<B;n++){let s1=0,s2=0;for(let j=0;j<H;j++){const k=n*H+j;s1+=dx[k];s2+=dx[k]*C.xh[k];}
+        for(let j=0;j<H;j++){const k=n*H+j;dz[k]=(H*dx[k]-s1-C.xh[k]*s2)/(H*C.sd[n]);}}}
+      else{for(let j=0;j<H;j++){let s1=0,s2=0;for(let n=0;n<B;n++){const k=n*H+j;s1+=dx[k];s2+=dx[k]*C.xh[k];}
+        for(let n=0;n<B;n++){const k=n*H+j;dz[k]=(B*dx[k]-s1-C.xh[k]*s2)/(B*C.sd[j]);}}}
+    }
+    const dh=new Float64Array(B*fi);
+    for(let n=0;n<B;n++)for(let j=0;j<H;j++){const d=dz[n*H+j];if(!d)continue;g.b[j]+=d;
+      for(let i=0;i<fi;i++){g.W[i*H+j]+=C.hin[n*fi+i]*d;dh[n*fi+i]+=d*P.W[i*H+j];}}
+    if(C.res)for(let k=0;k<dh.length;k++)dh[k]+=da[k];
+    gr.layers[l]=g;da=dh;
+  }
+  return {loss,gr};
+}
+function mlpStep(net,gr,lr){
+  net.layers.forEach((P,l)=>{const g=gr.layers[l];for(let k=0;k<P.W.length;k++)P.W[k]-=lr*g.W[k];
+    for(let j=0;j<net.H;j++){P.b[j]-=lr*g.b[j];if(net.norm!=='none'&&l>0){P.g[j]-=lr*g.g[j];P.be[j]-=lr*g.be[j];}}});
+  for(let j=0;j<net.H;j++)net.Wo[j]-=lr*gr.Wo[j];net.bo-=lr*gr.bo;
+}
+function mlpData(seed,N){const R=rng(seed);const X=new Float64Array(N*2),Y=new Float64Array(N);
+  for(let n=0;n<N;n++){const a=R()*4-2,b=R()*4-2;X[2*n]=a;X[2*n+1]=b;Y[n]=Math.sin(1.5*a)*Math.cos(1.2*b);}return {X,Y,N};}
+function mlpTrain(o){ // returns loss history (full-data loss every `every` steps)
+  const net=mlpMake(o.seed||7,o),D=mlpData(11,o.N||512),B=o.B||64,R=rng(99),hist=[];
+  const Xb=new Float64Array(B*2),Yb=new Float64Array(B);
+  const evalLoss=()=>{const F=mlpForward(net,D.X,D.N);let s=0;for(let n=0;n<D.N;n++)s+=(F.yh[n]-D.Y[n])**2;return s/D.N;};
+  hist.push(evalLoss());
+  for(let t=1;t<=o.steps;t++){for(let k=0;k<B;k++){const n=Math.floor(R()*D.N);Xb[2*k]=D.X[2*n];Xb[2*k+1]=D.X[2*n+1];Yb[k]=D.Y[n];}
+    const F=mlpForward(net,Xb,B),{gr}=mlpBackward(net,F,Yb);mlpStep(net,gr,o.lr);if(t%(o.every||10)===0)hist.push(evalLoss());}
+  return {hist,net,D};
+}
+
+/* ================= shared step-deck helpers (new slides) ================= */
+const SPEED={v:1.6};
+try{const v=parseFloat(localStorage.getItem('model-lab-speed'));if(v>0)SPEED.v=v;}catch(e){}
+const DECK_ABORT={abort:true};
+function setSpeed(v){SPEED.v=v;try{localStorage.setItem('model-lab-speed',String(v));}catch(e){}
+  document.querySelectorAll('.spdseg button').forEach(b=>b.classList.toggle('on',Math.abs(+b.dataset.sp-v)<1e-6));
+  document.querySelectorAll('.dk').forEach(d=>{d.style.setProperty('--dkpop',(550*v)+'ms');d.style.setProperty('--dkfade',(700*v)+'ms');});}
+function speedSeg(){const s=el('div','seg spdseg');
+  [['Slow',1.6],['Normal',1],['Fast',0.5]].forEach(([t,v])=>{const b=el('button','',t);b.dataset.sp=v;b.onclick=()=>setSpeed(v);s.appendChild(b);});
+  s.querySelectorAll('button').forEach(b=>b.classList.toggle('on',Math.abs(+b.dataset.sp-SPEED.v)<1e-6));return s;}
+function segInto(host,opts,cur,onPick){host.innerHTML='';const bs=opts.map(([v,t])=>{const b=el('button','',t);b.dataset.v=v;
+  b.onclick=()=>onPick(v);host.appendChild(b);return b;});const mark=v=>bs.forEach(b=>b.classList.toggle('on',b.dataset.v===String(v)));mark(cur);return mark;}
+/* makeDeck: Back / Next / Play all / Replay / speed, a caption, and a step state machine.
+   cfg.render(s) draws the finished state of step s instantly; cfg.animate(s,ctx,run) animates s-1 -> s. */
+function makeDeck(id,cfg){
+  const sec=document.getElementById(id);sec.classList.add('dk');
+  const bar=document.getElementById(id+'-bar'),cap=document.getElementById(id+'-cap');
+  const back=el('button','','\u25c2 Back'),next=el('button','primary','Next step \u25b8'),
+    play=el('button','','\u25b6 Play all'),rep=el('button','','\u21ba Replay'),cnt=el('span','stepcount');
+  bar.innerHTML='';bar.append(back,next,play,rep,el('label','ctl','speed'),speedSeg(),cnt);
+  let i=0,busy=false,RUN=0,playing=false,shown=-1;
+  const ctx={
+    ms:x=>x*SPEED.v,
+    wait(x,run){return new Promise((res,rej)=>setTimeout(()=>run!==RUN?rej(DECK_ABORT):res(),x*SPEED.v));},
+    tween(x,fn,run){return new Promise((res,rej)=>{const t0=performance.now(),dur=x*SPEED.v;
+      (function f(now){if(run!==RUN){rej(DECK_ABORT);return;}const k=Math.min(1,(now-t0)/Math.max(1,dur));
+        try{fn(k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2,k);}catch(err){rej(err);return;}if(k<1)requestAnimationFrame(f);else res();})(t0);});},
+    alive(run){if(run!==RUN)throw DECK_ABORT;},
+    live(run){return run===RUN;}
+  };
+  function upd(){const end=i>=cfg.n&&!busy;cnt.textContent=end?'done':`step ${i} / ${cfg.n}`;
+    next.textContent=end?'Next lesson \u25b8':'Next step \u25b8';}
+  function renderState(s){RUN++;busy=false;cfg.render(s);cap.innerHTML=cfg.caption(s);shown=s;upd();}
+  async function step(){
+    if(busy){renderState(i);return;}
+    if(i>=cfg.n){const k=window.__order?window.__order.indexOf(id):-1;if(k>=0&&window.__show)window.__show(k+1);return;}
+    if(shown!==i)renderState(i);
+    i++;busy=true;const run=++RUN;cap.innerHTML=cfg.caption(i);upd();
+    try{await cfg.animate(i,ctx,run);}catch(e){if(e!==DECK_ABORT)console.error(e);}
+    if(run===RUN){busy=false;if(cfg.settle!==false)cfg.render(i);shown=i;upd();}
+  }
+  function setPlay(){play.textContent=playing?'\u275a\u275a Pause':'\u25b6 Play all';}
+  async function playAll(){
+    if(playing){playing=false;setPlay();return;}
+    playing=true;setPlay();if(busy)renderState(i);if(i>=cfg.n){i=0;renderState(0);}
+    while(playing&&i<cfg.n){await step();if(!playing||i>=cfg.n)break;
+      try{await ctx.wait(1300,RUN);}catch(e){break;}}
+    playing=false;setPlay();
+  }
+  next.onclick=()=>step();
+  back.onclick=()=>{playing=false;setPlay();i=Math.max(0,i-1);renderState(i);};
+  rep.onclick=()=>{playing=false;setPlay();i=0;renderState(0);};
+  play.onclick=playAll;
+  setSpeed(SPEED.v);
+  window.__themeRedraws=window.__themeRedraws||[];
+  window.__themeRedraws.push(()=>{if(!busy)cfg.render(shown);});
+  renderState(0);
+  return {next:step,refresh:()=>{if(busy)renderState(i);else cfg.render(shown);},state:()=>({i,busy,shown}),
+    play:()=>{},goto:s=>{playing=false;setPlay();i=Math.max(0,Math.min(cfg.n,s));renderState(i);}};
+}
+/* small DOM + canvas helpers */
+function kpanel(title,sub,cls){const p=el('div','panel'+(cls?' '+cls:''));const t=el('div','ptitle');t.innerHTML=kx(title);p.appendChild(t);
+  if(sub!=null){const s=el('div','psub');s.innerHTML=sub;p.__sub=s;}return p;}
+function kmat(title,rows,cols,o){o=o||{};const p=kpanel(title);
+  const g=el('div','grid vgrid');g.style.gridTemplateColumns=(o.rl?'auto ':'')+`repeat(${cols},${o.cw||'var(--cw)'})`;
+  if(o.cl){if(o.rl)g.appendChild(el('div','dclbl'));for(let c=0;c<cols;c++){const h=el('div','dclbl');h.innerHTML=kx(o.cl[c]);g.appendChild(h);}}
+  const cells=[];for(let r=0;r<rows;r++){if(o.rl){const l=el('div','dlbl');l.innerHTML=kx(o.rl[r]);g.appendChild(l);}
+    const row=[];for(let c=0;c<cols;c++){const ce=el('div','cell blank');if(o.cw)ce.style.width=o.cw;g.appendChild(ce);row.push(ce);}cells.push(row);}
+  p.appendChild(g);if(o.sub){const s=el('div','psub');s.innerHTML=o.sub;p.appendChild(s);p.__sub=s;}
+  p.cells=cells;return p;}
+function setc(ce,txt,cls,pop){ce.textContent=txt;ce.className='cell'+(cls?' '+cls:'')+(pop?' pop':'');
+  if(pop)ce.addEventListener('animationend',()=>ce.classList.remove('pop'),{once:true});}
+function kop(tex){const o=el('div','op');o.innerHTML=kx(tex);return o;}
+function lab(p,n,o){return Array.from({length:n},(_,k)=>`${p}_{${k+(o||0)}}`);}
+function hiCanvas(w,h){const c=el('canvas','plot');const d=window.devicePixelRatio||1;c.width=Math.round(w*d);c.height=Math.round(h*d);
+  c.style.width=w+'px';c.style.height=h+'px';c.__w=w;c.__h=h;c.__d=d;return c;}
+function cctx(c){const x=c.getContext('2d');x.setTransform(c.__d,0,0,c.__d,0,0);x.clearRect(0,0,c.__w,c.__h);return x;}
+function cpanel(title,w,h){const p=el('div','cpanel');const t=el('div','ct');t.innerHTML=kx(title);p.appendChild(t);
+  const c=hiCanvas(w,h);p.appendChild(c);const s=el('div','cs');p.appendChild(s);p.cv=c;p.st=s;p.tt=t;return p;}
+function gaussFrom(R){let spare=null;return ()=>{if(spare!==null){const s=spare;spare=null;return s;}
+  let u=0,v=0;while(u===0)u=R();while(v===0)v=R();const m=Math.sqrt(-2*Math.log(u));spare=m*Math.sin(2*Math.PI*v);return m*Math.cos(2*Math.PI*v);};}
+function binsOf(data,lo,hi,nb){const b=new Float64Array(nb);const w=(hi-lo)/nb;let n=0;
+  for(const v of data){let k=Math.floor((v-lo)/w);if(k<0)k=0;if(k>=nb)k=nb-1;b[k]++;n++;}
+  for(let k=0;k<nb;k++)b[k]/=Math.max(1,n)*w;return b;}
+/* draw a histogram (density) into a rect; o:{lo,hi,ymax,col,fill,alpha,outline,grow} */
+function drawBins(ctx,bins,rect,o){const nb=bins.length,bw=rect.w/nb,gr=o.grow==null?1:o.grow;
+  ctx.save();ctx.globalAlpha=o.alpha==null?0.75:o.alpha;
+  for(let k=0;k<nb;k++){const hgt=Math.min(1,bins[k]/o.ymax)*rect.h*gr;if(hgt<=0)continue;
+    const x=rect.x+k*bw,y=rect.y+rect.h-hgt;
+    if(o.outline){ctx.strokeStyle=o.col;ctx.lineWidth=1.5;ctx.strokeRect(x+0.5,y,bw-1,hgt);}else{ctx.fillStyle=o.col;ctx.fillRect(x+0.5,y,bw-1,hgt);}}
+  ctx.restore();}
+function axisX(ctx,rect,lo,hi,ticks,c,fmtT){ctx.strokeStyle=c.line;ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(rect.x,rect.y+rect.h+0.5);ctx.lineTo(rect.x+rect.w,rect.y+rect.h+0.5);ctx.stroke();
+  ctx.fillStyle=c.mut;ctx.font='10.5px ui-monospace,monospace';ctx.textAlign='center';
+  ticks.forEach(t=>{const x=rect.x+(t-lo)/(hi-lo)*rect.w;ctx.fillText(fmtT?fmtT(t):String(t),x,rect.y+rect.h+13);});ctx.textAlign='left';}
+function statsOf(a){let m=0;for(const v of a)m+=v;m/=a.length;let s=0;for(const v of a)s+=(v-m)**2;return {m,sd:Math.sqrt(s/a.length)};}
+const ACT={
+  relu:{n:'ReLU',f:z=>z>0?z:0,d:z=>z>0?1:0},
+  gelu:{n:'GELU',f:z=>0.5*z*(1+Math.tanh(0.7978845608*(z+0.044715*z*z*z))),d:z=>{const h=1e-4,f=ACT.gelu.f;return (f(z+h)-f(z-h))/(2*h);}},
+  tanh:{n:'tanh',f:z=>Math.tanh(z),d:z=>{const t=Math.tanh(z);return 1-t*t;}},
+  sigmoid:{n:'sigmoid',f:z=>1/(1+Math.exp(-z)),d:z=>{const s=1/(1+Math.exp(-z));return s*(1-s);}}
+};
+const ACT_TEX={relu:'\\mathrm{ReLU}',gelu:'\\mathrm{GELU}',tanh:'\\tanh',sigmoid:'\\sigma'};
+function f2(v){return fmt(v);}
+function f3(v){const a=Math.abs(v);if(a!==0&&a<0.001)return v.toExponential(1);return v.toFixed(3);}
+
+/* ================= VECTORS 1: elementwise ================= */
+function buildV1(){
+  const st=document.getElementById('v1-stage');
+  const x=[2,1,-1,3],w=[0.5,-1.2,0.8,0.3],b=[0.1,0.2,-0.3,0],t=[1.5,-0.5,0,1];
+  const s=x.map((v,i)=>w[i]*v),y=s.map((v,i)=>v+b[i]),e=y.map((v,i)=>v-t[i]),e2=e.map(v=>v*v),L=e2.reduce((a,c)=>a+c,0);
+  const ge=e.map(v=>2*v),gw=ge.map((v,i)=>v*x[i]),gx=ge.map((v,i)=>v*w[i]);
+  const RL=['1','2','3','4'];let P={};
+  function build(){
+    st.innerHTML='';P={};
+    const mk=(host,title,sub)=>{const d=el('div','dlane');d.innerHTML=`<div class="dlh"><span class="dlt ${title==='forward'?'fwd':'bwd'}">${title}</span><span class="dim">${sub}</span></div>`;
+      const sc=el('div','stage');const ln=el('div','lane');sc.appendChild(ln);d.appendChild(sc);host.appendChild(d);return ln;};
+    const f=mk(st,'forward','each row is its own scalar chain from slide 4');
+    P.x=kmat('x',4,1,{rl:RL});P.w=kmat('w',4,1);P.s=kmat('s = w \\odot x',4,1);P.b=kmat('b',4,1);P.y=kmat('y = s + b',4,1);
+    P.t=kmat('t',4,1);P.e=kmat('e = y - t',4,1);P.e2=kmat('e^2',4,1);P.L=kmat('L = \\textstyle\\sum_i e_i^2',1,1,{sub:'one number'});
+    f.append(P.x,kop('\\odot'),P.w,kop('='),P.s,kop('+'),P.b,kop('='),P.y,kop('-'),P.t,kop('='),P.e,kop('\\xrightarrow{(\\cdot)^2}'),P.e2,kop('\\xrightarrow{\\sum}'),P.L);
+    const g=mk(st,'backward','read right to left: each gate applies its own rule, row by row');
+    P.gw=kmat('\\partial L/\\partial w',4,1,{rl:RL,sub:'= g_s ⊙ x'});P.gx=kmat('\\partial L/\\partial x',4,1,{sub:'= g_s ⊙ w'});
+    P.gs=kmat('g_s = \\partial L/\\partial s',4,1);P.gb=kmat('\\partial L/\\partial b',4,1);P.gy=kmat('\\partial L/\\partial y',4,1);P.ge=kmat('\\partial L/\\partial e = 2e',4,1);
+    g.append(P.gw,P.gx,kop('\\xleftarrow{\\;\\times\\;}'),P.gs,P.gb,kop('\\xleftarrow{\\;+\\;}'),P.gy,kop('\\xleftarrow{\\;-\\;}'),P.ge);
+    P.fb=el('div','fbox');
+    P.fb.innerHTML=`<div class="fgrid"><span class="dim">scalar (slide 4)</span>${kx('\\frac{\\partial L}{\\partial w} = 2e \\cdot x')}
+      <span class="dim">vector</span>${kx('\\frac{\\partial L}{\\partial w} = 2e \\odot x = ['+gw.map(fmt).join(',\\;')+']')}
+      <span class="dim">check row 3</span>${kx('2\\cdot('+fmt(e[2])+')\\cdot('+fmt(x[2])+') = '+fmt(gw[2]))}</div>`;
+    st.appendChild(P.fb);
+  }
+  const col=(p,vals,cls,pop,k)=>{for(let i=0;i<vals.length;i++)if(k==null||k===i)setc(p.cells[i][0],fmt(vals[i]),cls,pop);};
+  function render(S){
+    build();
+    col(P.x,x,'fwdv');col(P.w,w,'fwdv');col(P.b,b,'fwdv');col(P.t,t,'fwdv');
+    if(S>=1)col(P.s,s,'fwdv');
+    if(S>=2){col(P.y,y,'fwdv');col(P.e,e,'fwdv');}
+    if(S>=3){col(P.e2,e2,'fwdv');setc(P.L.cells[0][0],fmt(L),'newv');}
+    if(S>=4){col(P.ge,ge,'gv');col(P.gy,ge,'gv');col(P.gs,ge,'gv');col(P.gb,ge,'gv');}
+    if(S>=5){col(P.gw,gw,'gv');col(P.gx,gx,'gv');}
+    if(S>=6)P.fb.classList.add('on');
+  }
+  const hot=(cells,on)=>cells.forEach(c=>c.classList.toggle('hot',on));
+  async function rowwise(ctx,run,srcs,fill){for(let i=0;i<4;i++){const cs=srcs.map(p=>p.cells[i][0]);hot(cs,true);fill(i);await ctx.wait(520,run);hot(cs,false);}}
+  async function animate(S,ctx,run){
+    if(S===1)await rowwise(ctx,run,[P.x,P.w],i=>col(P.s,s,'newv',true,i));
+    if(S===2){await rowwise(ctx,run,[P.s,P.b],i=>col(P.y,y,'newv',true,i));await rowwise(ctx,run,[P.y,P.t],i=>col(P.e,e,'newv',true,i));}
+    if(S===3){await rowwise(ctx,run,[P.e],i=>col(P.e2,e2,'newv',true,i));await ctx.wait(300,run);setc(P.L.cells[0][0],fmt(L),'newv',true);await ctx.wait(500,run);}
+    if(S===4){await rowwise(ctx,run,[P.e],i=>col(P.ge,ge,'gv',true,i));await ctx.wait(250,run);
+      col(P.gy,ge,'gv',true);await ctx.wait(650,run);col(P.gs,ge,'gv',true);col(P.gb,ge,'gv',true);await ctx.wait(600,run);}
+    if(S===5){for(let i=0;i<4;i++){const cs=[P.gs.cells[i][0],P.x.cells[i][0],P.w.cells[i][0]];hot(cs,true);
+      col(P.gw,gw,'gv',true,i);col(P.gx,gx,'gv',true,i);await ctx.wait(650,run);hot(cs,false);}}
+    if(S===6){P.fb.classList.add('on');await ctx.wait(900,run);}
+  }
+  const r3=i=>`row ${i+1}`;
+  function caption(S){
+    if(S===0)return `Four positions, each with its own <span class="tex-i">${kx('x_i, w_i, b_i, t_i')}</span>. Press <b>Next step ▸</b> (or space) to run the forward pass one row at a time.`;
+    if(S===1)return `<b>Multiply, elementwise:</b> ${kx('s_i = w_i x_i')} in every row, and no row looks at another. Row 3: ${kx(`(${fmt(w[2])})(${fmt(x[2])}) = ${fmt(s[2])}`)}.`;
+    if(S===2)return `<b>Add, then subtract:</b> ${kx('y_i = s_i + b_i')}, ${kx('e_i = y_i - t_i')}, still one row at a time. Row 3: ${kx(`e_3 = ${fmt(s[2])} + (${fmt(b[2])}) - ${fmt(t[2])} = ${fmt(e[2])}`)}.`;
+    if(S===3)return `<b>Square and sum:</b> each row squares its own error and the sum adds them into one loss, ${kx(`L = ${e2.map(fmt).join(' + ')} = ${fmt(L)}`)}. The sum is an add gate, so backward it hands every row the same gradient 1.`;
+    if(S===4)return `<b>Backward through square, subtract and add:</b> the square rule gives ${kx('\\partial L/\\partial e_i = 2e_i')}; subtract and add pass it through unchanged (×1) to ${kx('y')}, ${kx('s')} and ${kx('b')}. Every row is exactly slide 4.`;
+    if(S===5)return `<b>Backward through the multiply:</b> each row multiplies by the <b>other</b> factor, ${kx('\\partial L/\\partial w_i = g_{s,i}\\, x_i')} and ${kx('\\partial L/\\partial x_i = g_{s,i}\\, w_i')}. Row 3: ${kx(`(${fmt(ge[2])})(${fmt(x[2])}) = ${fmt(gw[2])}`)}.`;
+    return `<b>The vector formula is the scalar formula with ⊙.</b> Nothing new was needed: elementwise operations just run the scalar rule in every position at once.`;
+  }
+  return makeDeck('v1',{n:6,render,animate,caption});
+}
+
+/* ================= VECTORS 2: sum & dot product ================= */
+function buildV2(){
+  const st=document.getElementById('v2-stage');
+  const w=[0.5,-1.2,0.8,0.3],x=[2,1,-1,3],t=1;
+  const p=w.map((v,i)=>v*x[i]),y=p.reduce((a,c)=>a+c,0),e=y-t,L=e*e,g=2*e;
+  const gw=x.map(v=>g*v),gx=w.map(v=>g*v);
+  const W=940,H=372,RY=i=>52+i*88,MID=(RY(0)+RY(3))/2;
+  let B=null,C={};
+  function board(){
+    st.innerHTML='';C={};
+    const b=el('div','board');b.style.width=W+'px';b.style.height=H+'px';st.appendChild(b);
+    const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');svg.setAttribute('viewBox',`0 0 ${W} ${H}`);b.appendChild(svg);
+    const tc=TC();
+    const line=(x1,y1,x2,y2)=>{const l=document.createElementNS('http://www.w3.org/2000/svg','line');l.setAttribute('x1',x1);l.setAttribute('y1',y1);
+      l.setAttribute('x2',x2);l.setAttribute('y2',y2);l.setAttribute('stroke',tc.line);l.setAttribute('stroke-width','1.6');svg.appendChild(l);};
+    const cell=(cx,cy,cls)=>{const n=el('div','bn');const c=el('div','cell blank');n.appendChild(c);n.style.left=cx+'px';n.style.top=cy+'px';b.appendChild(n);return c;};
+    const labl=(cx,cy,tex)=>{const d=el('div','blab');d.innerHTML=kx(tex);d.style.left=cx+'px';d.style.top=cy+'px';b.appendChild(d);return d;};
+    const gate=(cx,cy,t)=>{const d=el('div','bgate');d.innerHTML=t;d.style.left=cx+'px';d.style.top=cy+'px';b.appendChild(d);return d;};
+    C.w=[];C.x=[];C.gt=[];C.p=[];
+    for(let i=0;i<4;i++){const r=RY(i);
+      line(119,r-20,215,r);line(119,r+20,215,r);line(232,r,291,r);line(349,r,480,MID);
+      labl(36,r-20,`w_{${i+1}}`);labl(36,r+20,`x_{${i+1}}`);
+      C.w.push(cell(90,r-20));C.x.push(cell(90,r+20));C.gt.push(gate(215,r,'×'));C.p.push(cell(320,r));
+      labl(320,r-30,`p_{${i+1}}`);}
+    line(497,MID,561,MID);line(619,MID,741,MID);
+    C.sum=gate(480,MID,'Σ');C.y=cell(590,MID);labl(590,MID-30,'y = w\\cdot x');
+    C.L=cell(770,MID);labl(770,MID-30,`L = (y - t)^2`);labl(770,MID+34,`t = ${t}`);
+    C.g=el('div','blab');C.g.style.left='770px';C.g.style.top=(MID+64)+'px';b.appendChild(C.g);
+    C.note=el('div','blab');C.note.style.left='480px';C.note.style.top=(MID+42)+'px';b.appendChild(C.note);
+    B=b;
+    const lanes=el('div','dlane');lanes.innerHTML='<div class="dlh"><span class="dlt bwd">gradients</span><span class="dim">same shape as the vectors they belong to</span></div>';
+    const sc=el('div','stage');const ln=el('div','lane');sc.appendChild(ln);lanes.appendChild(sc);st.appendChild(lanes);
+    C.gwP=kmat('\\partial L/\\partial w = g\\,x',4,1,{rl:['1','2','3','4']});C.gxP=kmat('\\partial L/\\partial x = g\\,w',4,1);
+    ln.append(C.gwP,C.gxP);
+    C.fb=el('div','fbox');
+    C.fb.innerHTML=`<div class="fgrid"><span class="dim">dot product</span>${kx(`\\frac{\\partial L}{\\partial w} = g\\,x = (${fmt(g)})\\,[${x.join(',\\,')}] = [${gw.map(fmt).join(',\\,')}]`)}
+      <span class="dim">plain sum</span>${kx('s = \\textstyle\\sum_i x_i \\;\\Rightarrow\\; \\partial L/\\partial x = g\\,\\mathbf{1} = [g, g, g, g]')}
+      <span class="dim">why</span><span>sum = add gate (copy ${kx('g')}), then each multiply gate scales its copy by the other input</span></div>`;
+    st.appendChild(C.fb);
+  }
+  function pos(c){const r=c.getBoundingClientRect(),o=B.getBoundingClientRect();return [r.left-o.left+r.width/2,r.top-o.top+r.height/2];}
+  function packet(from,to,label,cls,dur,ctx,run){
+    const a=Array.isArray(from)?from:pos(from),z=Array.isArray(to)?to:pos(to);
+    return new Promise((res,rej)=>{const k=el('div','pkt '+(cls||''),label);B.appendChild(k);const t0=performance.now(),D=ctx.ms(dur);
+      (function f(now){if(!ctx.live(run)){k.remove();rej(DECK_ABORT);return;}const u=Math.min(1,(now-t0)/D),e2=u<.5?2*u*u:1-Math.pow(-2*u+2,2)/2;
+        k.style.left=(a[0]+(z[0]-a[0])*e2)+'px';k.style.top=(a[1]+(z[1]-a[1])*e2)+'px';if(u<1)requestAnimationFrame(f);else{k.remove();res();}})(t0);});}
+  function render(S){
+    board();
+    for(let i=0;i<4;i++){setc(C.w[i],fmt(w[i]),'fwdv');setc(C.x[i],fmt(x[i]),'fwdv');}
+    if(S>=1)for(let i=0;i<4;i++)setc(C.p[i],fmt(p[i]),'fwdv');
+    if(S>=2){setc(C.y,fmt(y),'fwdv');setc(C.L,fmt(L),'newv');C.g.innerHTML=kx(`g = \\tfrac{\\partial L}{\\partial y} = 2(y-t) = ${fmt(g)}`);}
+    if(S>=3){for(let i=0;i<4;i++)setc(C.p[i],fmt(g),'gv');C.note.innerHTML='copy ×4';C.note.style.color='var(--acc)';}
+    if(S>=4)for(let i=0;i<4;i++){setc(C.gwP.cells[i][0],fmt(gw[i]),'gv');setc(C.gxP.cells[i][0],fmt(gx[i]),'gv');}
+    if(S>=5)C.fb.classList.add('on');
+  }
+  async function animate(S,ctx,run){
+    const gp=i=>{const r=RY(i);return [215,r];};
+    if(S===1){await Promise.all([0,1,2,3].map(async i=>{await ctx.wait(i*260,run);C.gt[i].classList.add('hot');
+      await Promise.all([packet(C.w[i],gp(i),fmt(w[i]),'fwd',700,ctx,run),packet(C.x[i],gp(i),fmt(x[i]),'fwd',700,ctx,run)]);
+      await packet(gp(i),C.p[i],fmt(p[i]),'fwd',500,ctx,run);C.gt[i].classList.remove('hot');setc(C.p[i],fmt(p[i]),'newv',true);}));}
+    if(S===2){C.sum.classList.add('hot');await Promise.all(C.p.map((c,i)=>packet(c,[480,MID],fmt(p[i]),'fwd',900,ctx,run)));
+      await packet([480,MID],C.y,fmt(y),'fwd',600,ctx,run);C.sum.classList.remove('hot');setc(C.y,fmt(y),'newv',true);
+      await ctx.wait(300,run);await packet(C.y,C.L,fmt(y),'fwd',600,ctx,run);setc(C.L,fmt(L),'newv',true);
+      await ctx.wait(400,run);C.g.innerHTML=kx(`g = \\tfrac{\\partial L}{\\partial y} = 2(y-t) = ${fmt(g)}`);await ctx.wait(500,run);}
+    if(S===3){await packet(C.L,C.y,'g = '+fmt(g),'',700,ctx,run);await packet(C.y,[480,MID],'g','',600,ctx,run);
+      C.sum.classList.add('hot');C.note.innerHTML='copy ×4';C.note.style.color='var(--acc)';
+      await Promise.all(C.p.map(c=>packet([480,MID],c,fmt(g),'',1000,ctx,run)));C.sum.classList.remove('hot');
+      for(let i=0;i<4;i++)setc(C.p[i],fmt(g),'gv',true);await ctx.wait(400,run);}
+    if(S===4){for(let i=0;i<4;i++){C.gt[i].classList.add('hot');await packet(C.p[i],gp(i),fmt(g),'',450,ctx,run);
+      await Promise.all([packet(gp(i),C.w[i],fmt(gw[i]),'',700,ctx,run),packet(gp(i),C.x[i],fmt(gx[i]),'',700,ctx,run)]);
+      C.gt[i].classList.remove('hot');C.w[i].classList.add('hot');C.x[i].classList.add('hot');
+      setc(C.gwP.cells[i][0],fmt(gw[i]),'gv',true);setc(C.gxP.cells[i][0],fmt(gx[i]),'gv',true);
+      await ctx.wait(350,run);C.w[i].classList.remove('hot');C.x[i].classList.remove('hot');}}
+    if(S===5){C.fb.classList.add('on');await ctx.wait(900,run);}
+  }
+  function caption(S){
+    if(S===0)return `A dot product of two 4-vectors: ${kx('y = w\\cdot x = \\sum_i w_i x_i')}. It is four multiply gates and one sum gate. Press <b>Next step ▸</b>.`;
+    if(S===1)return `<b>Four multiplies,</b> each its own scalar gate: ${kx('p_i = w_i x_i')} → ${kx(p.map(fmt).join(',\\;'))}.`;
+    if(S===2)return `<b>One sum</b> collapses the vector to a number: ${kx(`y = ${p.map(v=>'('+fmt(v)+')').join('+')} = ${fmt(y)}`)}. A loss downstream gives the gradient arriving at y: ${kx(`g = ${fmt(g)}`)}.`;
+    if(S===3)return `<b>Backward through the sum:</b> a sum is an add gate with four inputs, so ${kx('g')} is <b>copied</b> to every input (slide 2). Nothing is split; each ${kx('p_i')} receives the full ${kx(`g = ${fmt(g)}`)}.`;
+    if(S===4)return `<b>Backward through each multiply:</b> the copy is scaled by the <b>partner</b> input, ${kx('\\partial L/\\partial w_i = g\\,x_i')} and ${kx('\\partial L/\\partial x_i = g\\,w_i')}. So the gradient of ${kx('w')} is the vector ${kx('x')}, scaled by ${kx('g')}.`;
+    return `<b>Vector form:</b> ${kx('\\partial L/\\partial w = g\\,x')}. A plain sum is the special case ${kx('w = \\mathbf{1}')}, where every input just gets ${kx('g')}. Next: what happens when the vector passes through an activation.`;
+  }
+  return makeDeck('v2',{n:5,render,animate,caption});
+}
+
+/* ================= VECTORS 3: activation ================= */
+function buildV3(){
+  const st=document.getElementById('v3-stage');
+  const z=[-2.5,-0.8,0.2,0.6,1.5,3.0],g=[0.5,-0.4,0.8,0.3,-0.6,0.9],n=z.length;
+  let act='relu',picked=false,P={};
+  const mark=segInto(document.getElementById('v3-act'),[['relu','ReLU'],['tanh','tanh'],['sigmoid','sigmoid'],['gelu','GELU']],act,v=>{act=v;picked=true;mark(v);D.refresh();});
+  const vals=()=>{const A=ACT[act];const h=z.map(A.f),d=z.map(A.d),gz=g.map((v,i)=>v*d[i]);return {h,d,gz};};
+  function build(){
+    st.innerHTML='';P={};
+    const row=el('div','dpanels');st.appendChild(row);
+    P.plot=cpanel(`h = ${ACT_TEX[act]}(z) \\;\\text{and its slope}\\; ${ACT_TEX[act]}'(z)`,430,290);row.appendChild(P.plot);
+    const lanes=el('div','stage');const ln=el('div','lane');lanes.appendChild(ln);row.appendChild(lanes);
+    const RL=lab('',n,1).map(s=>s.replace('_{','').replace('}',''));
+    P.z=kmat('z',n,1,{rl:RL});P.h=kmat(`h = ${ACT_TEX[act]}(z)`,n,1);P.d=kmat(`${ACT_TEX[act]}'(z)`,n,1);P.g=kmat('g = \\partial L/\\partial h',n,1);P.gz=kmat('\\partial L/\\partial z',n,1,{sub:'= g ⊙ f′(z)'});
+    ln.append(P.z,kop('\\to'),P.h,P.d,kop('\\quad'),P.g,kop('\\odot\\, f\'\\;='),P.gz);
+    P.jac=el('div');st.appendChild(P.jac);
+  }
+  function plot(k,tang){
+    const {h,d}=vals(),A=ACT[act],c=TC(),cv=P.plot.cv,ctx=cctx(cv),Wd=cv.__w,Hd=cv.__h;
+    const xs=[];for(let i=0;i<=200;i++)xs.push(-4+8*i/200);
+    const fy=xs.map(A.f),dy=xs.map(A.d);let lo=Math.min(0,...fy,...dy),hi=Math.max(1,...fy,...dy);lo-=0.15;hi+=0.15;
+    const X=v=>34+(v+4)/8*(Wd-46),Y=v=>Hd-22-(v-lo)/(hi-lo)*(Hd-40);
+    ctx.strokeStyle=c.line;ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(X(-4),Y(0));ctx.lineTo(X(4),Y(0));ctx.moveTo(X(0),Y(lo));ctx.lineTo(X(0),Y(hi));ctx.stroke();
+    ctx.fillStyle=c.mut;ctx.font='10.5px ui-monospace,monospace';ctx.textAlign='center';[-4,-2,0,2,4].forEach(v=>ctx.fillText(v,X(v),Hd-6));ctx.textAlign='left';
+    ctx.strokeStyle=c.fg;ctx.lineWidth=2.2;ctx.beginPath();xs.forEach((v,i)=>i?ctx.lineTo(X(v),Y(fy[i])):ctx.moveTo(X(v),Y(fy[i])));ctx.stroke();
+    ctx.strokeStyle=c.acc;ctx.setLineDash([5,4]);ctx.lineWidth=1.8;ctx.beginPath();xs.forEach((v,i)=>i?ctx.lineTo(X(v),Y(dy[i])):ctx.moveTo(X(v),Y(dy[i])));ctx.stroke();ctx.setLineDash([]);
+    ctx.fillStyle=c.fg;ctx.fillText('— h = f(z)',40,14);ctx.fillStyle=c.acc;ctx.fillText('- - slope f′(z)',150,14);
+    if(k==null)return;
+    for(let i=0;i<n;i++){const yy=0+(h[i]-0)*k;
+      ctx.strokeStyle=hexA(c.blue,0.5);ctx.lineWidth=1;ctx.setLineDash([2,3]);ctx.beginPath();ctx.moveTo(X(z[i]),Y(0));ctx.lineTo(X(z[i]),Y(yy));ctx.stroke();ctx.setLineDash([]);
+      ctx.fillStyle=c.blue;ctx.beginPath();ctx.arc(X(z[i]),Y(yy),5,0,7);ctx.fill();
+      if(tang>0){const L=0.7*tang;ctx.strokeStyle=c.acc;ctx.lineWidth=2.4;ctx.beginPath();ctx.moveTo(X(z[i]-L),Y(h[i]-L*d[i]));ctx.lineTo(X(z[i]+L),Y(h[i]+L*d[i]));ctx.stroke();
+        ctx.fillStyle=c.acc;ctx.beginPath();ctx.arc(X(z[i]),Y(d[i]),3.5,0,7);ctx.fill();}
+    }
+  }
+  function jac(on){P.jac.innerHTML='';if(!on)return;const {d}=vals();
+    const box=el('div','dlane');box.innerHTML='<div class="dlh"><span class="dlt bwd">the Jacobian</span><span class="dim">∂h/∂z is diagonal: position i only depends on z_i</span></div>';
+    const sc=el('div','stage');const ln=el('div','lane');sc.appendChild(ln);box.appendChild(sc);
+    const J=kmat('\\partial h/\\partial z = \\mathrm{diag}(f\'(z))',n,n,{cw:'52px'});
+    for(let i=0;i<n;i++)for(let j=0;j<n;j++)setc(J.cells[i][j],i===j?f3(d[i]):'0',i===j?'gv':'zero');
+    const {gz}=vals();const G=kmat('g',n,1);g.forEach((v,i)=>setc(G.cells[i][0],fmt(v),'fwdv'));const R=kmat('J^{\\top} g',n,1);gz.forEach((v,i)=>setc(R.cells[i][0],fmt(v),'gv'));
+    ln.append(J,kop('\\cdot'),G,kop('='),R);P.jac.appendChild(box);}
+  function render(S){
+    if(!picked)act=S>=4?'tanh':'relu';mark(act);build();
+    const {h,d,gz}=vals();
+    z.forEach((v,i)=>setc(P.z.cells[i][0],fmt(v),'fwdv'));
+    if(S>=1)h.forEach((v,i)=>setc(P.h.cells[i][0],fmt(v),'fwdv'));
+    if(S>=2)d.forEach((v,i)=>setc(P.d.cells[i][0],f3(v),'newv'));
+    if(S>=3){g.forEach((v,i)=>setc(P.g.cells[i][0],fmt(v),'fwdv'));gz.forEach((v,i)=>setc(P.gz.cells[i][0],fmt(v),Math.abs(v)<0.02?'gv zero':'gv'));}
+    plot(S>=1?1:null,S>=2?1:0);jac(S>=5);
+  }
+  async function animate(S,ctx,run){
+    const {h,d,gz}=vals();
+    if(S===1){await ctx.tween(1400,e=>plot(e,0),run);for(let i=0;i<n;i++){setc(P.h.cells[i][0],fmt(h[i]),'newv',true);await ctx.wait(160,run);}}
+    if(S===2){await ctx.tween(1200,e=>plot(1,e),run);for(let i=0;i<n;i++){setc(P.d.cells[i][0],f3(d[i]),'newv',true);await ctx.wait(220,run);}}
+    if(S===3){g.forEach((v,i)=>setc(P.g.cells[i][0],fmt(v),'fwdv',true));await ctx.wait(500,run);
+      for(let i=0;i<n;i++){const cs=[P.g.cells[i][0],P.d.cells[i][0]];cs.forEach(c=>c.classList.add('hot'));
+        setc(P.gz.cells[i][0],fmt(gz[i]),Math.abs(gz[i])<0.02?'gv zero':'gv',true);await ctx.wait(480,run);cs.forEach(c=>c.classList.remove('hot'));}}
+    if(S===4){if(!picked){act='tanh';mark(act);}render(3);await ctx.wait(200,run);}
+    if(S===5){jac(true);await ctx.wait(700,run);}
+  }
+  function caption(S){
+    const name=ACT[act].n;
+    if(S===0)return `Six pre-activations ${kx('z_i')}. The plot shows the activation (solid) and its slope (dashed). Press <b>Next step ▸</b>.`;
+    if(S===1)return `<b>Forward:</b> each ${kx('z_i')} is pushed through ${kx(ACT_TEX[act])} on its own, ${kx(`h_i = ${ACT_TEX[act]}(z_i)`)}.`;
+    if(S===2)return `<b>Local slopes:</b> the orange tangents are ${kx(`${ACT_TEX[act]}'(z_i)`)}. For ${name}, ${act==='relu'?'the slope is 1 for positive inputs and exactly 0 for negative ones':'the slope is largest near 0 and flattens out far from 0'}.`;
+    if(S===3)return `<b>Backward:</b> the gradient ${kx('g')} from the next layer is multiplied position by position, ${kx("\\partial L/\\partial z_i = g_i\\,f'(z_i)")}. ${act==='relu'?'The two negative inputs get <b>exactly 0</b>: no gradient passes, so the weights feeding them learn nothing from this example.':'Positions far from 0 pass almost nothing back.'}`;
+    if(S===4)return `<b>Same rule, tanh.</b> Now look at ${kx('z = 3.0')} and ${kx('z = -2.5')}: tanh is nearly flat there (${kx("\\tanh'(3) \\approx 0.0099")}), so 99% of the gradient is lost in one step. That is <b>saturation</b>. Try sigmoid: its slope never exceeds 0.25.`;
+    return `<b>In matrix language</b> the activation's Jacobian is diagonal, so ${kx("J^{\\top} g = g \\odot f'(z)")}. Frameworks skip the matrix and multiply elementwise. Next: put the full neuron together and train it.`;
+  }
+  const D=makeDeck('v3',{n:5,render,animate,caption});
+  return D;
+}
+
+/* ================= MATRICES 1: y = xW ================= */
+function buildM1(){
+  const st=document.getElementById('m1-stage');
+  const x=[1,-2,0.5,3],W=[[0.2,-0.5,1.0],[0.4,0.1,-0.3],[-0.7,0.6,0.2],[0.3,-0.2,0.5]],g=[0.5,-1.0,0.25];
+  const N=4,M=3,y=[0,1,2].map(j=>x.reduce((s,xi,i)=>s+xi*W[i][j],0));
+  const gW=x.map(xi=>g.map(gj=>xi*gj)),gx=x.map((_,i)=>g.reduce((s,gj,j)=>s+W[i][j]*gj,0));
+  let P={};
+  const NL=['\\text{n}_1','\\text{n}_2','\\text{n}_3'];
+  function build(){
+    st.innerHTML='';P={};
+    const mk=(cls,title,sub)=>{const d=el('div','dlane');d.innerHTML=`<div class="dlh"><span class="dlt ${cls}">${title}</span><span class="dim">${sub}</span></div>`;
+      const sc=el('div','stage');const ln=el('div','lane');sc.appendChild(ln);d.appendChild(sc);st.appendChild(d);return ln;};
+    const f=mk('fwd','forward','column j of W is neuron j\'s weight vector');
+    P.x=kmat('x \\;(1{\\times}4)',1,N,{cl:lab('x',N,1)});P.W=kmat('W \\;(4{\\times}3)',N,M,{rl:lab('x',N,1),cl:NL,sub:'one column per neuron'});P.y=kmat('y = xW \\;(1{\\times}3)',1,M,{cl:lab('y',M,1)});
+    f.append(P.x,kop('\\cdot'),P.W,kop('='),P.y);
+    const b=mk('bwd','backward','g arrives from the next layer');
+    P.g=kmat('g = \\partial L/\\partial y',1,M,{cl:lab('g',M,1)});P.gW=kmat('\\partial L/\\partial W = x^{\\top} g',N,M,{rl:lab('x',N,1),cl:NL,sub:'(4×1)(1×3) = 4×3 ✓ same shape as W'});
+    P.gx=kmat('\\partial L/\\partial x = g\\,W^{\\top}',1,N,{cl:lab('x',N,1),sub:'(1×3)(3×4) = 1×4 ✓ same shape as x'});
+    b.append(P.g,kop('\\Rightarrow'),P.gW,kop('\\quad'),P.gx);
+    P.fb=el('div','fbox');P.fb.innerHTML=`<div class="fgrid"><span class="dim">one input</span>${kx('\\frac{\\partial L}{\\partial W} = x^{\\top} g')}
+      <span class="dim">a batch of B inputs</span>${kx('\\frac{\\partial L}{\\partial W} = \\sum_{b=1}^{B} x_b^{\\top} g_b = X^{\\top} G \\qquad (X: B{\\times}N \\text{ stacks the inputs as rows})')}
+      <span class="dim">bias</span>${kx('\\frac{\\partial L}{\\partial b} = \\sum_b g_b \\quad (\\text{one bias, used by every row: copies sum})')}</div>`;
+    st.appendChild(P.fb);
+  }
+  function render(S){
+    build();
+    x.forEach((v,i)=>setc(P.x.cells[0][i],fmt(v),'fwdv'));W.forEach((r,i)=>r.forEach((v,j)=>setc(P.W.cells[i][j],fmt(v),'fwdv')));
+    const yn=S>=2?M:S>=1?1:0;for(let j=0;j<yn;j++)setc(P.y.cells[0][j],fmt(y[j]),'fwdv');
+    if(S>=3)g.forEach((v,j)=>setc(P.g.cells[0][j],fmt(v),'gv'));
+    if(S>=4)gW.forEach((r,i)=>r.forEach((v,j)=>setc(P.gW.cells[i][j],fmt(v),'gv')));
+    if(S>=5)gx.forEach((v,i)=>setc(P.gx.cells[0][i],fmt(v),'gv'));
+    if(S>=6)P.fb.classList.add('on');
+  }
+  const hot=(cs,on)=>cs.forEach(c=>c.classList.toggle('hot',on));
+  async function fwdCol(j,ctx,run){for(let i=0;i<N;i++){const cs=[P.x.cells[0][i],P.W.cells[i][j]];hot(cs,true);await ctx.wait(300,run);hot(cs,false);}
+    setc(P.y.cells[0][j],fmt(y[j]),'newv',true);await ctx.wait(350,run);}
+  async function animate(S,ctx,run){
+    if(S===1)await fwdCol(0,ctx,run);
+    if(S===2){await fwdCol(1,ctx,run);await fwdCol(2,ctx,run);}
+    if(S===3){for(let j=0;j<M;j++){setc(P.g.cells[0][j],fmt(g[j]),'gv',true);await ctx.wait(250,run);}}
+    if(S===4){for(let j=0;j<M;j++){const cs=[P.g.cells[0][j],...x.map((_,i)=>P.x.cells[0][i])];hot(cs,true);
+      for(let i=0;i<N;i++){setc(P.gW.cells[i][j],fmt(gW[i][j]),'gv',true);await ctx.wait(170,run);}await ctx.wait(400,run);hot(cs,false);}}
+    if(S===5){for(let i=0;i<N;i++){const cs=[...g.map((_,j)=>P.W.cells[i][j]),...g.map((_,j)=>P.g.cells[0][j])];hot(cs,true);
+      await ctx.wait(450,run);setc(P.gx.cells[0][i],fmt(gx[i]),'gv',true);await ctx.wait(350,run);hot(cs,false);}}
+    if(S===6){P.fb.classList.add('on');await ctx.wait(900,run);}
+  }
+  const ex=j=>x.map((xi,i)=>`(${fmt(xi)})(${fmt(W[i][j])})`).join('+');
+  function caption(S){
+    if(S===0)return `One input row ${kx('x')} with 4 features, a layer with 3 neurons. Each neuron's weights are one <b>column</b> of ${kx('W')}. Press <b>Next step ▸</b>.`;
+    if(S===1)return `<b>Neuron 1 is a dot product:</b> ${kx(`y_1 = x\\cdot W_{:,1} = ${ex(0)} = ${fmt(y[0])}`)}. Exactly the previous group's rule.`;
+    if(S===2)return `<b>Neurons 2 and 3</b> do the same with their own columns: ${kx(`y = [${y.map(fmt).join(',\\;')}]`)}. Three dot products, written as one product ${kx('y = xW')}.`;
+    if(S===3)return `<b>Backward:</b> the next layer sends one gradient per neuron, ${kx(`g = [${g.map(fmt).join(',\\;')}]`)}.`;
+    if(S===4)return `<b>Each column's gradient is</b> ${kx('g_j\\, x')}, the dot-product rule once per neuron. Stacked side by side that is the <b>outer product</b> ${kx('x^{\\top} g')}: entry ${kx('(i,j)')} is just the multiply rule, ${kx('x_i\\, g_j')}.`;
+    if(S===5)return `<b>x feeds all three neurons,</b> so it receives three gradient copies that <b>sum</b> (add rule in reverse): ${kx(`\\partial L/\\partial x_1 = ${g.map((gj,j)=>`(${fmt(W[0][j])})(${fmt(gj)})`).join('+')} = ${fmt(gx[0])}`)}. In matrix form, ${kx('g\\,W^{\\top}')}.`;
+    return `<b>Now stack many inputs as the rows of</b> ${kx('X')}: every row adds its own outer product, and the sum of outer products is ${kx('X^{\\top}G')}. Next slide: the batch version, with the shape check doing the work.`;
+  }
+  return makeDeck('m1',{n:6,render,animate,caption});
+}
+
+/* ================= DATA 1: sampling ================= */
+function buildT1(){
+  const st=document.getElementById('t1-stage');
+  const NPOP=20000,R0=rng(2024),G0=gaussFrom(R0),pop=new Float64Array(NPOP);
+  for(let i=0;i<NPOP;i++)pop[i]=R0()<0.65?3+0.8*G0():6.5+1.2*G0();
+  const PS=statsOf(pop),LO=0,HI=10,NB=50,popBins=binsOf(pop,LO,HI,NB);
+  const SIZES=[0,1,10,100,1000];let seedOff=0,P={},means=null;
+  const sampleOf=n=>{const R=rng(500+n*7+seedOff*101),out=new Float64Array(n);for(let k=0;k<n;k++)out[k]=pop[Math.floor(R()*NPOP)];return out;};
+  function meansFor(n,reps){const R=rng(9000+n+seedOff),out=new Float64Array(reps);for(let r=0;r<reps;r++){let s=0;for(let k=0;k<n;k++)s+=pop[Math.floor(R()*NPOP)];out[r]=s/n;}return out;}
+  function build(){
+    st.innerHTML='';P={};const row=el('div','dpanels');st.appendChild(row);
+    P.main=cpanel('\\text{dataset (grey, } N = 20{,}000) \\text{ vs a random sample (orange)}',600,270);row.appendChild(P.main);
+    P.side=cpanel('\\text{where } \\bar{x} \\text{ lands, over 3,000 repeated samples}',330,270);row.appendChild(P.side);
+    const ctl=el('div','controls');const rb=el('button','','New sample ↻');rb.onclick=()=>{seedOff++;means=null;D.refresh();};ctl.appendChild(rb);
+    ctl.appendChild(el('span','status','draw a different random sample of the same size'));st.appendChild(ctl);
+  }
+  const X=(v,w)=>36+(v-LO)/(HI-LO)*(w-48);
+  function drawMain(n,k){ // k: animation progress 0..1 for the newest batch
+    const c=TC(),cv=P.main.cv,ctx=cctx(cv),W=cv.__w,H=cv.__h,rect={x:36,y:22,w:W-48,h:H-74};
+    const ymax=Math.max(...popBins)*1.25;
+    drawBins(ctx,popBins,rect,{ymax,col:c.mut,alpha:0.28});
+    axisX(ctx,rect,LO,HI,[0,2,4,6,8,10],c);
+    const S=sampleOf(n),have=k==null?n:Math.floor(n*k+1e-9);
+    const fall=n<=10?0.12:0.04,shown=[];
+    for(let i=0;i<n;i++){const a=i/n,p=k==null?1:Math.max(0,Math.min(1,(k-a)/fall));if(p<=0)continue;
+      const xx=X(S[i],W),yTop=rect.y,yEnd=H-30;const yy=yTop+(yEnd-yTop)*p;
+      ctx.strokeStyle=hexA(c.acc,n>200?0.25:0.8);ctx.lineWidth=n>200?1:2;ctx.beginPath();ctx.moveTo(xx,yy-7);ctx.lineTo(xx,yy+3);ctx.stroke();
+      if(p>=1)shown.push(S[i]);}
+    if(shown.length>=2){drawBins(ctx,binsOf(shown,LO,HI,NB),rect,{ymax,col:c.acc,alpha:0.95,outline:true});}
+    ctx.strokeStyle=c.fg;ctx.setLineDash([5,4]);ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(X(PS.m,W),rect.y);ctx.lineTo(X(PS.m,W),rect.y+rect.h);ctx.stroke();ctx.setLineDash([]);
+    ctx.font='11px ui-monospace,monospace';ctx.fillStyle=c.fg;ctx.fillText('μ = '+PS.m.toFixed(2),X(PS.m,W)+5,rect.y+10);
+    if(shown.length){const m=statsOf(shown).m;ctx.strokeStyle=c.acc;ctx.lineWidth=2.5;ctx.beginPath();ctx.moveTo(X(m,W),rect.y+16);ctx.lineTo(X(m,W),rect.y+rect.h);ctx.stroke();
+      ctx.fillStyle=c.acc;ctx.fillText('x̄ = '+m.toFixed(2),X(m,W)+5,rect.y+26);}
+    ctx.fillStyle=c.mut;ctx.fillText('sample points ↓',36,H-8);
+    const m=shown.length?statsOf(shown).m:NaN;
+    P.main.st.innerHTML=n?`${kx(`n = ${shown.length}`)} · ${kx(`\\bar x = ${isNaN(m)?'\\cdot':m.toFixed(2)}`)} · ${kx(`\\mu = ${PS.m.toFixed(2)}`)} · error ${kx(`|\\bar x - \\mu| = ${isNaN(m)?'\\cdot':Math.abs(m-PS.m).toFixed(2)}`)} · typical error ${kx(`\\sigma/\\sqrt{n} = ${(PS.sd/Math.sqrt(Math.max(1,n))).toFixed(2)}`)}`
+      :`${kx(`\\mu = ${PS.m.toFixed(2)}`)} · ${kx(`\\sigma = ${PS.sd.toFixed(2)}`)} · two bumps: a skewed, lumpy dataset, not a neat bell curve`;
+  }
+  function drawSide(k){
+    const c=TC(),cv=P.side.cv,ctx=cctx(cv),W=cv.__w,H=cv.__h,rect={x:30,y:22,w:W-42,h:H-56};
+    if(k==null||k<0){ctx.fillStyle=c.mut;ctx.font='12px ui-monospace,monospace';ctx.fillText('(step 5)',rect.x+rect.w/2-28,rect.y+rect.h/2);P.side.st.innerHTML='';return;}
+    if(!means)means={a:meansFor(10,3000),b:meansFor(100,3000)};
+    const lo=2.5,hi=6,nb=56,take=Math.max(2,Math.floor(3000*k));
+    const ba=binsOf(means.a.subarray(0,take),lo,hi,nb),bb=binsOf(means.b.subarray(0,take),lo,hi,nb);
+    const full=binsOf(means.b,lo,hi,nb),ymax=Math.max(...full)*1.15;
+    drawBins(ctx,ba,rect,{ymax,col:c.acc,alpha:0.55});drawBins(ctx,bb,rect,{ymax,col:c.blue,alpha:0.6});
+    axisX(ctx,rect,lo,hi,[3,4,5,6],c);
+    const xm=rect.x+(PS.m-lo)/(hi-lo)*rect.w;ctx.strokeStyle=c.fg;ctx.setLineDash([5,4]);ctx.beginPath();ctx.moveTo(xm,rect.y);ctx.lineTo(xm,rect.y+rect.h);ctx.stroke();ctx.setLineDash([]);
+    ctx.font='11px ui-monospace,monospace';ctx.fillStyle=c.acc;ctx.fillText('n = 10',rect.x+4,rect.y+10);ctx.fillStyle=c.blue;ctx.fillText('n = 100',rect.x+4,rect.y+24);
+    const sa=statsOf(means.a),sb=statsOf(means.b);
+    P.side.st.innerHTML=`n=10: spread ${kx(sa.sd.toFixed(3))} (theory ${kx(`\\sigma/\\sqrt{10} = ${(PS.sd/Math.sqrt(10)).toFixed(3)}`)})<br>n=100: spread ${kx(sb.sd.toFixed(3))} (theory ${kx(`\\sigma/\\sqrt{100} = ${(PS.sd/10).toFixed(3)}`)})`;
+  }
+  function render(S){build();drawMain(SIZES[Math.min(S,4)],null);drawSide(S>=5?1:null);}
+  async function animate(S,ctx,run){
+    if(S<=4){const n=SIZES[S],dur=[0,1500,2600,3200,3400][S];await ctx.tween(dur,(e,k)=>drawMain(n,k),run);}
+    if(S===5)await ctx.tween(2200,(e,k)=>drawSide(k),run);
+  }
+  function caption(S){
+    if(S===0)return `A dataset of 20,000 values (grey histogram). It has two bumps, so it is not a textbook bell curve. We will draw examples <b>uniformly at random</b> and watch the sample's shape. Press <b>Next step ▸</b>.`;
+    if(S===1)return `<b>n = 1:</b> one random example. Its value can land anywhere the data lives, so a single point says little about the whole.`;
+    if(S===2)return `<b>n = 10:</b> the orange histogram is lumpy, but the sample mean ${kx('\\bar x')} is already in the right neighbourhood of ${kx('\\mu')}.`;
+    if(S===3)return `<b>n = 100:</b> both bumps appear in the sample. The typical error of the mean is ${kx(`\\sigma/\\sqrt{100} = ${(PS.sd/10).toFixed(2)}`)}.`;
+    if(S===4)return `<b>n = 1000:</b> the sample's histogram traces the dataset's shape, from just 5% of the data. This is why training can look at a small random <b>batch</b> instead of all the data.`;
+    return `<b>Repeat the experiment 3,000 times.</b> Each sample's mean lands somewhere slightly different, but the landings are <b>centred on μ</b> (unbiased) and their spread shrinks like ${kx('1/\\sqrt{n}')}: ten times the data gives about ${kx('\\sqrt{10}\\approx 3.2\\times')} less noise. Batch gradients behave exactly the same way (next slide).`;
+  }
+  const D=makeDeck('t1',{n:5,render,animate,caption});return D;
+}
+
+/* ================= DATA 3: GD vs SGD ================= */
+function buildT2(){
+  const st=document.getElementById('t2-stage');
+  const R=rng(21),G=gaussFrom(R),N=2000,X=new Float64Array(N),Y=new Float64Array(N);
+  for(let i=0;i<N;i++){const x=G();X[i]=x;Y[i]=2*x-1+0.5*G();}
+  let Sx=0,Sy=0,Sxx=0,Sxy=0,Syy=0;for(let i=0;i<N;i++){Sx+=X[i];Sy+=Y[i];Sxx+=X[i]*X[i];Sxy+=X[i]*Y[i];Syy+=Y[i]*Y[i];}
+  Sx/=N;Sy/=N;Sxx/=N;Sxy/=N;Syy/=N;
+  const loss=(w,b)=>w*w*Sxx+2*w*b*Sx+b*b-2*w*Sxy-2*b*Sy+Syy;
+  const det=Sxx-Sx*Sx,wS=(Sxy-Sx*Sy)/det,bS=Sy-wS*Sx,Lmin=loss(wS,bS);
+  const th0=[-2,2.5],gd=[th0.slice()];
+  for(let ep=0;ep<3;ep++){const [w,b]=gd[gd.length-1];const gw=2*(w*Sxx+b*Sx-Sxy),gb=2*(w*Sx+b-Sy);gd.push([w-0.3*gw,b-0.3*gb]);}
+  const R2=rng(5),sgd=[th0.slice()],BS=32,SPE=Math.floor(N/BS);let th=th0.slice();
+  for(let ep=0;ep<3;ep++){const perm=[...Array(N).keys()];for(let i=N-1;i>0;i--){const j=Math.floor(R2()*(i+1));const t=perm[i];perm[i]=perm[j];perm[j]=t;}
+    for(let k=0;k<SPE;k++){let gw=0,gb=0;for(let q=k*BS;q<k*BS+BS;q++){const i=perm[q],e=th[0]*X[i]+th[1]-Y[i];gw+=2*e*X[i];gb+=2*e;}
+      th=[th[0]-0.05*gw/BS,th[1]-0.05*gb/BS];sgd.push(th.slice());}}
+  const gdL=gd.map(p=>loss(...p)),sgL=sgd.map(p=>loss(...p));
+  let P={};
+  function build(){st.innerHTML='';P={};const row=el('div','dpanels');st.appendChild(row);
+    P.c=cpanel('\\text{loss surface } L(w,b) \\text{ and the paths taken}',440,340);row.appendChild(P.c);
+    P.l=cpanel('\\text{loss vs. examples read (compute)}',440,340);row.appendChild(P.l);
+    P.t=el('div');st.appendChild(P.t);}
+  const hexRGB=h=>{h=(h||'#888').replace('#','');if(h.length===3)h=h.split('').map(c=>c+c).join('');const n=parseInt(h,16);return [(n>>16)&255,(n>>8)&255,n&255];};
+  function drawC(ng,ns,zoom){
+    const c=TC(),cv=P.c.cv,ctx=cctx(cv),W=cv.__w,H=cv.__h;
+    const V=zoom?{w0:1.55,w1:2.45,b0:-1.45,b1:-0.55}:{w0:-3,w1:3.6,b0:-2.2,b1:3.2};
+    const Xp=w=>30+(w-V.w0)/(V.w1-V.w0)*(W-40),Yp=b=>H-24-(b-V.b0)/(V.b1-V.b0)*(H-34);
+    const img=ctx.createImageData(Math.ceil(W*cv.__d),Math.ceil(H*cv.__d)),fg=hexRGB(c.fg),D=cv.__d,step=2;
+    for(let py=0;py<img.height;py+=step)for(let px=0;px<img.width;px+=step){
+      const w=V.w0+((px/D)-30)/(W-40)*(V.w1-V.w0),b=V.b0+((H-24)-(py/D))/(H-34)*(V.b1-V.b0);
+      const v=Math.log(loss(w,b)-Lmin+0.004),band=Math.floor(v/0.45);const a=band%2===0?22:0;
+      for(let dy=0;dy<step;dy++)for(let dx=0;dx<step;dx++){const q=((py+dy)*img.width+(px+dx))*4;if(q>=img.data.length)continue;img.data[q]=fg[0];img.data[q+1]=fg[1];img.data[q+2]=fg[2];img.data[q+3]=a;}}
+    ctx.putImageData(img,0,0);ctx.setTransform(D,0,0,D,0,0);
+    ctx.fillStyle=c.ok;ctx.font='16px ui-monospace,monospace';ctx.fillText('★',Xp(wS)-6,Yp(bS)+6);
+    ctx.font='10.5px ui-monospace,monospace';ctx.fillStyle=c.mut;ctx.fillText('w →',W-34,H-8);ctx.fillText('b ↑',4,14);
+    // SGD path
+    if(ns>0){ctx.strokeStyle=c.acc;ctx.lineWidth=1.3;ctx.beginPath();const m=Math.min(Math.floor(ns),sgd.length-1);
+      for(let k=0;k<=m;k++){const p=sgd[k];k?ctx.lineTo(Xp(p[0]),Yp(p[1])):ctx.moveTo(Xp(p[0]),Yp(p[1]));}
+      const fr=ns-Math.floor(ns);if(fr>0&&m+1<sgd.length){const a=sgd[m],b=sgd[m+1];ctx.lineTo(Xp(a[0]+(b[0]-a[0])*fr),Yp(a[1]+(b[1]-a[1])*fr));}
+      ctx.stroke();const e=sgd[Math.min(sgd.length-1,Math.round(ns))];ctx.fillStyle=c.acc;ctx.beginPath();ctx.arc(Xp(e[0]),Yp(e[1]),4,0,7);ctx.fill();}
+    // GD path
+    if(ng>0){ctx.strokeStyle=c.blue;ctx.lineWidth=2.6;ctx.beginPath();const m=Math.min(Math.floor(ng),gd.length-1);
+      for(let k=0;k<=m;k++){const p=gd[k];k?ctx.lineTo(Xp(p[0]),Yp(p[1])):ctx.moveTo(Xp(p[0]),Yp(p[1]));}
+      const fr=ng-Math.floor(ng);if(fr>0&&m+1<gd.length){const a=gd[m],b=gd[m+1];ctx.lineTo(Xp(a[0]+(b[0]-a[0])*fr),Yp(a[1]+(b[1]-a[1])*fr));}ctx.stroke();
+      ctx.fillStyle=c.blue;for(let k=0;k<=m;k++){ctx.beginPath();ctx.arc(Xp(gd[k][0]),Yp(gd[k][1]),5,0,7);ctx.fill();if(k)ctx.fillText('epoch '+k,Xp(gd[k][0])+7,Yp(gd[k][1])-6);}}
+    ctx.fillStyle=c.fg;ctx.beginPath();ctx.arc(Xp(th0[0]),Yp(th0[1]),4,0,7);ctx.fill();ctx.fillText('start',Xp(th0[0])+7,Yp(th0[1])+4);
+    ctx.fillStyle=c.blue;ctx.fillText('● GD: 1 step / epoch',W-170,16);ctx.fillStyle=c.acc;ctx.fillText('— SGD: 62 steps / epoch',W-170,30);
+    if(zoom){ctx.fillStyle=c.mut;ctx.fillText('zoomed in around the minimum ★',36,H-30);}
+  }
+  function drawL(ng,ns){
+    const c=TC(),cv=P.l.cv,ctx=cctx(cv),W=cv.__w,H=cv.__h,rect={x:44,y:20,w:W-58,h:H-50};
+    const lo=-0.8,hi=1.7,Ylg=v=>rect.y+rect.h-(Math.log10(Math.max(1e-3,v))-lo)/(hi-lo)*rect.h,Xe=e=>rect.x+e/(3*N)*rect.w;
+    ctx.strokeStyle=c.line;ctx.lineWidth=1;ctx.strokeRect(rect.x,rect.y,rect.w,rect.h);
+    ctx.font='10.5px ui-monospace,monospace';ctx.fillStyle=c.mut;
+    [0.2,1,10,40].forEach(v=>{ctx.fillText(String(v),6,Ylg(v)+4);});
+    ['0','1 epoch','2 epochs','3 epochs'].forEach((t,k)=>{ctx.textAlign=k===3?'right':'center';ctx.fillText(t,Xe(k*N)+(k===3?2:0),H-12);});ctx.textAlign='left';
+    ctx.strokeStyle=c.ok;ctx.setLineDash([3,3]);ctx.beginPath();ctx.moveTo(rect.x,Ylg(Lmin));ctx.lineTo(rect.x+rect.w,Ylg(Lmin));ctx.stroke();ctx.setLineDash([]);
+    ctx.fillStyle=c.ok;ctx.fillText('best possible '+Lmin.toFixed(3),rect.x+rect.w-150,Ylg(Lmin)-5);
+    if(ng>0){ctx.strokeStyle=c.blue;ctx.lineWidth=2.4;ctx.beginPath();ctx.moveTo(Xe(0),Ylg(gdL[0]));
+      const m=Math.floor(ng),fr=ng-m;for(let k=0;k<m;k++){ctx.lineTo(Xe((k+1)*N),Ylg(gdL[k]));ctx.lineTo(Xe((k+1)*N),Ylg(gdL[k+1]));}
+      if(fr>0&&m<3)ctx.lineTo(Xe((m+fr)*N),Ylg(gdL[m]));ctx.stroke();}
+    if(ns>0){ctx.strokeStyle=c.acc;ctx.lineWidth=1.6;ctx.beginPath();const m=Math.min(Math.floor(ns),sgd.length-1);
+      for(let k=0;k<=m;k++){const x=Xe(k*BS),y=Ylg(sgL[k]);k?ctx.lineTo(x,y):ctx.moveTo(x,y);}ctx.stroke();}
+    ctx.fillStyle=c.blue;ctx.fillText('GD',rect.x+8,rect.y+14);ctx.fillStyle=c.acc;ctx.fillText('SGD (batch 32)',rect.x+40,rect.y+14);
+  }
+  function table(ng,ns){
+    const ep=k=>Math.min(sgd.length-1,k*SPE);
+    const cell=(v,on)=>on?v.toFixed(3):'·';
+    P.t.innerHTML=`<table class="dtab" style="margin-top:10px"><tr><th></th><th>updates / epoch</th><th>examples per update</th><th>loss after epoch 1</th><th>epoch 2</th><th>epoch 3</th></tr>
+      <tr><td style="text-align:left">full-batch GD</td><td>1</td><td>2,000</td><td>${cell(gdL[1],ng>=1)}</td><td>${cell(gdL[2],ng>=2)}</td><td>${cell(gdL[3],ng>=3)}</td></tr>
+      <tr><td style="text-align:left">mini-batch SGD</td><td>${SPE}</td><td>32</td><td class="hl">${cell(sgL[ep(1)],ns>=SPE)}</td><td class="hl">${cell(sgL[ep(2)],ns>=2*SPE)}</td><td class="hl">${cell(sgL[ep(3)],ns>=3*SPE)}</td></tr></table>`;
+  }
+  const NG=[0,1,1,3,3],NS=[0,0,SPE,3*SPE,3*SPE];
+  function render(S){build();drawC(NG[S],NS[S],S>=4);drawL(NG[S],NS[S]);table(NG[S],NS[S]);}
+  async function animate(S,ctx,run){
+    const g0=NG[S-1],g1=NG[S],s0=NS[S-1],s1=NS[S];
+    if(S===4){await ctx.tween(1200,e=>{drawC(g1,s1,e>0.5);},run);return;}
+    await ctx.tween(S===3?4200:S===2?3400:1600,e=>{const ng=g0+(g1-g0)*e,ns=s0+(s1-s0)*e;drawC(ng,ns,false);drawL(ng,ns);},run);
+  }
+  function caption(S){
+    if(S===0)return `Each panel starts at ${kx('(w,b)=(-2,\\,2.5)')}; the best fit is the green ★ at ${kx(`(${wS.toFixed(2)},\\,${bS.toFixed(2)})`)}. The right panel counts <b>examples read</b>, which is the real cost of training. Press <b>Next step ▸</b>.`;
+    if(S===1)return `<b>Full-batch GD, epoch 1:</b> read all 2,000 examples, compute the exact gradient, take <b>one</b> step. Loss ${kx(`${gdL[0].toFixed(1)} \\to ${gdL[1].toFixed(2)}`)}. A precise step, but only one.`;
+    if(S===2)return `<b>Mini-batch SGD, epoch 1:</b> the same 2,000 examples, read 32 at a time, buy <b>${SPE} steps</b>. Each step is noisy, since it sees only a sample, but they all point roughly downhill. After one epoch SGD is already at ${kx(sgL[SPE].toFixed(3))}, nearly the best possible.`;
+    if(S===3)return `<b>Epochs 2 and 3:</b> GD needs several more full passes to reach ${kx(gdL[3].toFixed(3))}. SGD was done after the first epoch. Same compute, many more updates: that is why every modern model trains with mini-batches.`;
+    return `<b>Zoom in:</b> SGD does not settle exactly on ★. It jitters in a small cloud around it, because each step uses a random batch. Lowering the learning rate over time (a schedule) shrinks the cloud. Next: how we decide if a model is actually good.`;
+  }
+  return makeDeck('t2',{n:4,render,animate,caption});
+}
+
+/* ================= DATA 4: train / val / test ================= */
+function buildT3(){
+  const st=document.getElementById('t3-stage');
+  const R=rng(8),G=gaussFrom(R),N=60,xs=[],ys=[],f=x=>Math.sin(2*Math.PI*x);
+  for(let i=0;i<N;i++){const x=R();xs.push(x);ys.push(f(x)+0.3*G());}
+  const idx=[...Array(N).keys()];for(let i=N-1;i>0;i--){const j=Math.floor(R()*(i+1));const t=idx[i];idx[i]=idx[j];idx[j]=t;}
+  const tr=idx.slice(0,36),va=idx.slice(36,48),te=idx.slice(48),split=new Array(N);
+  tr.forEach(i=>split[i]='tr');va.forEach(i=>split[i]='va');te.forEach(i=>split[i]='te');
+  const FX=[],FY=[];for(let i=0;i<5000;i++){const x=R();FX.push(x);FY.push(f(x)+0.3*G());}
+  const phi=(x,d)=>{const t=2*x-1,r=[1];for(let k=1;k<=d;k++)r.push(r[k-1]*t);return r;};
+  const fit=d=>{const K=d+1,P=tr.map(i=>phi(xs[i],d));const A=[...Array(K)].map((_,a)=>[...Array(K)].map((_,b)=>P.reduce((s,r)=>s+r[a]*r[b],0)+(a===b?1e-8:0)));
+    const bb=[...Array(K)].map((_,a)=>P.reduce((s,r,m)=>s+r[a]*ys[tr[m]],0));return solveLin(A,bb);};
+  const pr=(w,x)=>phi(x,w.length-1).reduce((s,p,k)=>s+p*w[k],0);
+  const mse=(w,I)=>I.reduce((s,i)=>s+(pr(w,xs[i])-ys[i])**2,0)/I.length;
+  const real=w=>FX.reduce((s,x,i)=>s+(pr(w,x)-FY[i])**2,0)/FX.length;
+  const DEG=[...Array(13).keys()],WS=DEG.map(fit),ROWS=DEG.map(d=>({d,tr:mse(WS[d],tr),va:mse(WS[d],va),te:mse(WS[d],te),re:real(WS[d])}));
+  const BV=ROWS.reduce((a,b)=>b.va<a.va?b:a),BT=ROWS.reduce((a,b)=>b.te<a.te?b:a);
+  const ORD=[];{const R2=rng(77);const o=[...Array(N).keys()];for(let i=N-1;i>0;i--){const j=Math.floor(R2()*(i+1));const t=o[i];o[i]=o[j];o[j]=t;}o.forEach((v,k)=>ORD[v]=k);}
+  let P={},userDeg=null;
+  function build(){st.innerHTML='';P={};const row=el('div','dpanels');st.appendChild(row);
+    P.s=cpanel('\\text{the data and the fitted polynomial}',540,310);row.appendChild(P.s);
+    P.e=cpanel('\\text{error vs. polynomial degree } d \\text{ (log scale)}',400,310);row.appendChild(P.e);
+    const ctl=el('div','controls');const lb=el('label','ctl');lb.innerHTML='explore degree d <input type="range" min="0" max="12" step="1"><span></span>';ctl.appendChild(lb);st.appendChild(ctl);
+    P.rng=lb.querySelector('input');P.rv=lb.querySelector('span');P.rng.oninput=()=>{userDeg=+P.rng.value;D.refresh();};
+    P.bar=el('div');st.appendChild(P.bar);P.tab=el('div');st.appendChild(P.tab);}
+  function drawS(o){ // o:{colorK, deg, deg2, alt, testOpen}
+    const c=TC(),cv=P.s.cv,ctx=cctx(cv),W=cv.__w,H=cv.__h,X=x=>34+x*(W-46),Y=y=>H/2+6-y*(H-60)/4.4;
+    ctx.strokeStyle=c.line;ctx.beginPath();ctx.moveTo(X(0),Y(0));ctx.lineTo(X(1),Y(0));ctx.stroke();
+    ctx.strokeStyle=c.mut;ctx.setLineDash([5,4]);ctx.lineWidth=1.3;ctx.beginPath();for(let i=0;i<=200;i++){const x=i/200;i?ctx.lineTo(X(x),Y(f(x))):ctx.moveTo(X(x),Y(f(x)));}ctx.stroke();ctx.setLineDash([]);
+    const curve=(w,col,dash,lw)=>{ctx.save();ctx.beginPath();ctx.rect(X(0),20,X(1)-X(0),H-30);ctx.clip();ctx.strokeStyle=col;ctx.lineWidth=lw||2.4;if(dash)ctx.setLineDash(dash);
+      ctx.beginPath();for(let i=0;i<=400;i++){const x=i/400,y=Math.max(-5,Math.min(5,pr(w,x)));i?ctx.lineTo(X(x),Y(y)):ctx.moveTo(X(x),Y(y));}ctx.stroke();ctx.restore();};
+    if(o.deg!=null){if(o.mix&&o.mixFrom!=null){const a=WS[o.mixFrom],b=WS[o.deg];const K=Math.max(a.length,b.length);const w=[...Array(K)].map((_,k)=>(a[k]||0)*(1-o.mix)+(b[k]||0)*o.mix);curve(w,c.fg);}else curve(WS[o.deg],c.fg);}
+    if(o.alt!=null)curve(WS[o.alt],c.red,[6,4],2);
+    for(let i=0;i<N;i++){const s=o.colorK==null?'all':(ORD[i]/N<o.colorK?split[i]:'all');const px=X(xs[i]),py=Y(ys[i]);
+      if(s==='all'){ctx.fillStyle=hexA(c.mut,0.7);ctx.beginPath();ctx.arc(px,py,4,0,7);ctx.fill();}
+      else if(s==='tr'){ctx.fillStyle=c.acc;ctx.beginPath();ctx.arc(px,py,4.5,0,7);ctx.fill();}
+      else if(s==='va'){ctx.strokeStyle=c.blue;ctx.lineWidth=2;ctx.beginPath();ctx.arc(px,py,4.5,0,7);ctx.stroke();}
+      else{if(o.testOpen){ctx.fillStyle=c.fg;ctx.fillRect(px-4,py-4,8,8);}else{ctx.strokeStyle=hexA(c.mut,0.8);ctx.lineWidth=1.3;ctx.strokeRect(px-4,py-4,8,8);}}}
+    ctx.font='11px ui-monospace,monospace';ctx.fillStyle=c.acc;ctx.fillText('● train 36',36,14);ctx.fillStyle=c.blue;ctx.fillText('○ validation 12',130,14);
+    ctx.fillStyle=o.testOpen?c.fg:c.mut;ctx.fillText(o.testOpen?'■ test 12 (opened once)':'□ test 12 (locked)',265,14);ctx.fillStyle=c.mut;ctx.fillText('- - truth',W-80,14);
+    if(o.deg!=null&&!o.mix){ctx.fillStyle=c.fg;ctx.fillText('d = '+o.deg,W-60,H-10);}
+  }
+  function drawE(nTr,nVa,o){
+    o=o||{};const c=TC(),cv=P.e.cv,ctx=cctx(cv),W=cv.__w,H=cv.__h,rect={x:44,y:24,w:W-58,h:H-56};
+    const lo=Math.log10(0.03),hi=Math.log10(1.2),Ye=v=>rect.y+rect.h-(Math.log10(Math.max(0.03,Math.min(1.2,v)))-lo)/(hi-lo)*rect.h,Xd=d=>rect.x+d/12*rect.w;
+    ctx.strokeStyle=c.line;ctx.lineWidth=1;ctx.strokeRect(rect.x,rect.y,rect.w,rect.h);ctx.font='10.5px ui-monospace,monospace';ctx.fillStyle=c.mut;
+    [0.03,0.1,0.3,1].forEach(v=>ctx.fillText(String(v),6,Ye(v)+4));ctx.textAlign='center';[0,3,6,9,12].forEach(d=>ctx.fillText(String(d),Xd(d),H-14));ctx.fillText('degree d →',rect.x+rect.w/2,H-2);ctx.textAlign='left';
+    const line=(key,n,col)=>{if(n<=0)return;ctx.strokeStyle=col;ctx.lineWidth=2.2;ctx.beginPath();const m=Math.floor(n),fr=n-m;
+      for(let d=0;d<=Math.min(m,12);d++){d?ctx.lineTo(Xd(d),Ye(ROWS[d][key])):ctx.moveTo(Xd(d),Ye(ROWS[d][key]));}
+      if(fr>0&&m<12)ctx.lineTo(Xd(m+fr),Ye(ROWS[m][key]+(ROWS[m+1][key]-ROWS[m][key])*fr));ctx.stroke();
+      ctx.fillStyle=col;for(let d=0;d<=Math.min(m,12);d++){ctx.beginPath();ctx.arc(Xd(d),Ye(ROWS[d][key]),2.8,0,7);ctx.fill();}};
+    line('tr',nTr,c.acc);line('va',nVa,c.blue);
+    ctx.fillStyle=c.acc;ctx.fillText('train',rect.x+rect.w-120,rect.y+14);ctx.fillStyle=c.blue;ctx.fillText('validation',rect.x+rect.w-120,rect.y+28);
+    if(o.pick){ctx.strokeStyle=c.ok;ctx.lineWidth=2;ctx.beginPath();ctx.arc(Xd(BV.d),Ye(BV.va),8,0,7);ctx.stroke();ctx.fillStyle=c.ok;ctx.fillText('d* = '+BV.d,Xd(BV.d)-18,Ye(BV.va)+22);}
+    if(o.test){ctx.fillStyle=c.fg;ctx.fillRect(Xd(BV.d)-5,Ye(BV.te)-5,10,10);ctx.fillText('test',Xd(BV.d)+8,Ye(BV.te)+4);}
+    if(o.peek){ctx.fillStyle=c.red;ctx.fillRect(Xd(BT.d)-5,Ye(BT.te)-5,10,10);ctx.strokeStyle=c.red;ctx.setLineDash([3,3]);ctx.beginPath();ctx.moveTo(Xd(BT.d),Ye(BT.te));ctx.lineTo(Xd(BT.d),Ye(BT.re));ctx.stroke();ctx.setLineDash([]);
+      ctx.beginPath();ctx.arc(Xd(BT.d),Ye(BT.re),5,0,7);ctx.fill();ctx.fillText('reality',Xd(BT.d)-52,Ye(BT.re)+4);}
+    if(o.deg!=null){ctx.strokeStyle=hexA(c.fg,0.5);ctx.setLineDash([2,3]);ctx.beginPath();ctx.moveTo(Xd(o.deg),rect.y);ctx.lineTo(Xd(o.deg),rect.y+rect.h);ctx.stroke();ctx.setLineDash([]);}
+  }
+  function splitBar(k){const c=TC();P.bar.innerHTML=k>0?`<div class="splitbar"><i style="width:${60*k}%;background:${c.acc}"></i><i style="width:${20*k}%;background:${c.blue}"></i><i style="width:${20*k}%;background:${c.mut}"></i></div>
+    <div class="nstat">train 60% (fit the weights) · validation 20% (pick d) · test 20% (locked until the end)</div>`:'';}
+  function tableFor(S){if(S<5){P.tab.innerHTML='';return;}
+    const r=(t,R0,cls)=>`<tr${cls?` style="color:var(--${cls})"`:''}><td style="text-align:left">${t}</td><td>${R0.d}</td><td>${R0.tr.toFixed(3)}</td><td>${R0.va.toFixed(3)}</td><td>${R0.te.toFixed(3)}</td><td><b>${R0.re.toFixed(3)}</b></td></tr>`;
+    P.tab.innerHTML=`<table class="dtab" style="margin-top:10px"><tr><th></th><th>degree</th><th>train MSE</th><th>val MSE</th><th>test MSE</th><th>new data (5,000 fresh points)</th></tr>
+      ${r('picked by validation ✓',BV)}${S>=6?r('picked by peeking at test ✗',BT,'red'):''}</table>`;}
+  const DEF=[null,null,9,9,BV.d,BV.d,BV.d];
+  function render(S){build();const deg=userDeg!=null?userDeg:DEF[S];
+    P.rng.value=deg==null?BV.d:deg;P.rv.textContent=deg==null?'':' d = '+deg;
+    drawS({colorK:S>=1?1:null,deg:S>=2?deg:(userDeg!=null?deg:null),alt:S>=6?BT.d:null,testOpen:S>=5});
+    drawE(S>=3?12:0,S>=4?12:0,{pick:S>=4,test:S>=5,peek:S>=6,deg:userDeg!=null?userDeg:null});splitBar(S>=1?1:0);tableFor(S);
+    if(S>=2&&deg!=null)P.s.st.innerHTML=`${kx(`d = ${deg}`)} · train ${kx(ROWS[deg].tr.toFixed(3))} · validation ${kx(ROWS[deg].va.toFixed(3))}${S>=5?` · test ${kx(ROWS[deg].te.toFixed(3))}`:''}`;}
+  async function animate(S,ctx,run){
+    userDeg=null;
+    if(S===1){await ctx.tween(2600,(e,k)=>{drawS({colorK:k});splitBar(k);},run);}
+    if(S===2){const seq=[1,3,9];let prev=null;for(const d of seq){if(prev==null){drawS({colorK:1,deg:d});P.s.st.innerHTML=`${kx(`d = ${d}`)} · train ${kx(ROWS[d].tr.toFixed(3))}`;await ctx.wait(1300,run);}
+        else{await ctx.tween(1300,e=>drawS({colorK:1,deg:d,mix:e,mixFrom:prev}),run);drawS({colorK:1,deg:d});P.s.st.innerHTML=`${kx(`d = ${d}`)} · train ${kx(ROWS[d].tr.toFixed(3))}`;await ctx.wait(1100,run);}prev=d;}}
+    if(S===3)await ctx.tween(2600,e=>drawE(12*e,0),run);
+    if(S===4){await ctx.tween(2600,e=>drawE(12,12*e),run);drawE(12,12,{pick:true});await ctx.tween(1200,e=>drawS({colorK:1,deg:BV.d,mix:e,mixFrom:9}),run);}
+    if(S===5){drawS({colorK:1,deg:BV.d,testOpen:true});drawE(12,12,{pick:true,test:true});tableFor(5);await ctx.wait(900,run);}
+    if(S===6){drawS({colorK:1,deg:BV.d,alt:BT.d,testOpen:true});drawE(12,12,{pick:true,test:true,peek:true});tableFor(6);await ctx.wait(900,run);}
+  }
+  function caption(S){
+    if(S===0)return `60 noisy points from a curve (dashed). The model is a polynomial, and its <b>degree d</b> is a hyperparameter: we pick it, gradient descent does not. Press <b>Next step ▸</b>.`;
+    if(S===1)return `<b>Shuffle once, split three ways:</b> 36 training points (●), 12 validation (○), 12 test (□). The test points are locked away: no peeking until the very end.`;
+    if(S===2)return `<b>Fit on the training set only</b> for d = 1, 3, 9. Training error keeps falling (${kx(ROWS[1].tr.toFixed(2)+' \\to '+ROWS[3].tr.toFixed(2)+' \\to '+ROWS[9].tr.toFixed(3))}) because more degrees means more freedom to bend through the points.`;
+    if(S===3)return `<b>Training error vs degree</b> only goes down. Judged by training error alone, d = 12 "wins". That is exactly the trap: it rewards memorizing noise.`;
+    if(S===4)return `<b>Validation error</b> (data the fit never saw) falls, then rises again as the polynomial starts chasing noise. Pick the bottom: ${kx(`d^{*} = ${BV.d}`)}. This is <b>hyperparameter tuning</b>.`;
+    if(S===5)return `<b>Open the test set once.</b> Test MSE for ${kx(`d^{*}=${BV.d}`)} is ${kx(BV.te.toFixed(3))}; on 5,000 brand-new points it is ${kx(BV.re.toFixed(3))}. With only 12 test points the estimate is noisy, but it is <b>honest</b>, because nothing was chosen using it.`;
+    return `<b>Why the test set stays locked:</b> had we picked d by the lowest <i>test</i> error we would choose ${kx(`d = ${BT.d}`)}, report a flattering ${kx(BT.te.toFixed(3))}, and ship a model whose real error is ${kx(BT.re.toFixed(3))}. Once you tune on a set, its score is no longer an honest estimate. Next: regularization, the main tool against overfitting.`;
+  }
+  const D=makeDeck('t3',{n:6,render,animate,caption});return D;
+}
+
+/* ================= DEEP 2: activations reshape distributions ================= */
+function buildN1(){
+  const st=document.getElementById('n1-stage');
+  const muEl=document.getElementById('n1-mu'),sdEl=document.getElementById('n1-sd'),muV=document.getElementById('n1-muv'),sdV=document.getElementById('n1-sdv');
+  const R=rng(31),G=gaussFrom(R),EPS=new Float64Array(5000);for(let i=0;i<5000;i++)EPS[i]=G();
+  const E8=[-1.6,-0.9,-0.4,-0.1,0.2,0.5,1.1,1.8];
+  const PRE=[{a:'relu',m:0,s:1,show:0},{a:'relu',m:0,s:1,show:1},{a:'relu',m:0,s:1,show:2},{a:'gelu',m:0,s:1,show:2},{a:'sigmoid',m:0,s:1,show:2},{a:'tanh',m:3,s:3,show:2}];
+  let cur={...PRE[0]},user=false,P={};
+  const mark=segInto(document.getElementById('n1-act'),[['relu','ReLU'],['gelu','GELU'],['tanh','tanh'],['sigmoid','sigmoid']],cur.a,v=>{cur.a=v;user=true;cur.show=2;mark(v);D.refresh();});
+  muEl.oninput=()=>{cur.m=+muEl.value;user=true;cur.show=2;D.refresh();};sdEl.oninput=()=>{cur.s=+sdEl.value;user=true;cur.show=2;D.refresh();};
+  function build(){st.innerHTML='';P={};const row=el('div','dpanels');st.appendChild(row);
+    P.i=cpanel('\\text{input } z \\sim \\mathcal{N}(\\mu, \\sigma^2)',310,200);P.o=cpanel('\\text{output}',310,200);P.d=cpanel('\\text{slope}',310,200);
+    row.append(P.i,P.o,P.d);P.tab=el('div');st.appendChild(P.tab);}
+  function data(){const A=ACT[cur.a],z=new Float64Array(5000),h=new Float64Array(5000),d=new Float64Array(5000);
+    for(let i=0;i<5000;i++){z[i]=cur.m+cur.s*EPS[i];h[i]=A.f(z[i]);d[i]=A.d(z[i]);}return {z,h,d};}
+  function draw(show,grow){
+    const c=TC(),A=ACT[cur.a],T=ACT_TEX[cur.a],{z,h,d}=data();
+    P.o.tt.innerHTML=kx(`\\text{output } h = ${T}(z)`);P.d.tt.innerHTML=kx(`\\text{slope } ${T}'(z) \\text{ (multiplies the gradient)}`);
+    const zl=Math.min(-4,cur.m-3.5*cur.s),zh=Math.max(4,cur.m+3.5*cur.s);
+    const panel=(p,arr,lo,hi,col,ticks,g)=>{const cv=p.cv,ctx=cctx(cv),W=cv.__w,H=cv.__h,rect={x:12,y:12,w:W-24,h:H-34};
+      const b=binsOf(arr,lo,hi,44),ymax=Math.max(...b)*1.12||1;drawBins(ctx,b,rect,{ymax,col,alpha:0.8,grow:g});axisX(ctx,rect,lo,hi,ticks,c,t=>(+t.toFixed(1)).toString());return {ctx,rect};};
+    const ti=[zl,(zl+zh)/2,zh].map(v=>+v.toFixed(1));
+    const I=panel(P.i,z,zl,zh,c.blue,[...new Set([ti[0],0,ti[2]])],1);
+    // overlay f on the input panel
+    {const {ctx,rect}=I;const xs=[];for(let k=0;k<=120;k++)xs.push(zl+(zh-zl)*k/120);const ys=xs.map(A.f),lo=Math.min(...ys),hi=Math.max(...ys);
+      ctx.strokeStyle=c.fg;ctx.lineWidth=1.6;ctx.beginPath();xs.forEach((x,k)=>{const px=rect.x+(x-zl)/(zh-zl)*rect.w,py=rect.y+rect.h-(ys[k]-lo)/((hi-lo)||1)*rect.h*0.9;k?ctx.lineTo(px,py):ctx.moveTo(px,py);});ctx.stroke();
+      ctx.fillStyle=c.fg;ctx.font='10.5px ui-monospace,monospace';ctx.fillText('— '+A.n+'(z)',rect.x+4,rect.y+10);}
+    const si=statsOf(z);P.i.st.innerHTML=`mean ${kx(si.m.toFixed(2))} · spread ${kx(si.sd.toFixed(2))}`;
+    if(show>=1){let lo,hi;if(cur.a==='tanh'){lo=-1.1;hi=1.1;}else if(cur.a==='sigmoid'){lo=-0.05;hi=1.05;}else{lo=-0.4;hi=Math.max(1.5,cur.m+3.5*cur.s);}
+      panel(P.o,h,lo,hi,c.acc,cur.a==='tanh'?[-1,0,1]:cur.a==='sigmoid'?[0,0.5,1]:[0,+(hi/2).toFixed(1),+hi.toFixed(1)],grow);
+      const so=statsOf(h);let z0=0;for(const v of h)if(Math.abs(v)<1e-9)z0++;
+      P.o.st.innerHTML=`mean ${kx(so.m.toFixed(2))} · spread ${kx(so.sd.toFixed(2))}${cur.a==='relu'?` · exactly 0: <b>${(100*z0/5000).toFixed(0)}%</b>`:''}${cur.a==='tanh'||cur.a==='sigmoid'?` · near the rails: <b>${(100*h.filter(v=>cur.a==='tanh'?Math.abs(v)>0.95:(v<0.05||v>0.95)).length/5000).toFixed(0)}%</b>`:''}`;}
+    else{cctx(P.o.cv);P.o.st.innerHTML='';}
+    if(show>=2){panel(P.d,d,-0.15,1.15,c.red,[0,0.5,1],grow);const small=d.filter(v=>Math.abs(v)<0.05).length/5000;const sd=statsOf(d);
+      P.d.st.innerHTML=`avg slope ${kx(sd.m.toFixed(2))} · slope < 0.05: <b style="color:var(--red)">${(100*small).toFixed(0)}%</b> of units`;}
+    else{cctx(P.d.cv);P.d.st.innerHTML='';}
+    // worked sample: 8 values
+    const zz=E8.map(e=>cur.m+cur.s*e),hh=zz.map(A.f),dd=zz.map(A.d),sz=statsOf(zz),sh=statsOf(hh),sdd=statsOf(dd);
+    const cell=(v,on)=>on?f2(v):'·';
+    P.tab.innerHTML=`<div class="nstat" style="margin-top:12px">worked sample: 8 of the inputs, by hand</div><table class="dtab"><tr><th></th>${zz.map((_,k)=>`<th>${k+1}</th>`).join('')}<th>mean</th><th>spread</th></tr>
+      <tr><td style="text-align:left">${kx('z')}</td>${zz.map(v=>`<td>${f2(v)}</td>`).join('')}<td class="hl">${f2(sz.m)}</td><td class="hl">${f2(sz.sd)}</td></tr>
+      <tr><td style="text-align:left">${kx(`${T}(z)`)}</td>${hh.map(v=>`<td>${cell(v,show>=1)}</td>`).join('')}<td class="hl">${cell(sh.m,show>=1)}</td><td class="hl">${cell(sh.sd,show>=1)}</td></tr>
+      <tr><td style="text-align:left">${kx(`${T}'(z)`)}</td>${dd.map(v=>`<td>${cell(v,show>=2)}</td>`).join('')}<td class="hl">${cell(sdd.m,show>=2)}</td><td class="hl">${cell(sdd.sd,show>=2)}</td></tr></table>`;
+    muEl.value=cur.m;sdEl.value=cur.s;muV.textContent=cur.m.toFixed(1);sdV.textContent=cur.s.toFixed(1);mark(cur.a);
+  }
+  function render(S){if(!user)cur={...PRE[S]};else cur.show=Math.max(cur.show,PRE[S].show);build();draw(cur.show,1);}
+  async function animate(S,ctx,run){user=false;cur={...PRE[S]};build();
+    if(S===1){draw(1,0);await ctx.tween(1500,e=>draw(1,e),run);}
+    else if(S===2){draw(2,0);await ctx.tween(1500,e=>draw(2,e),run);}
+    else{draw(2,0);await ctx.tween(1600,e=>draw(2,e),run);}}
+  function caption(S){
+    if(S===0)return `5,000 inputs drawn from a bell curve: mean 0, spread 1. The black line is the activation we are about to apply. Press <b>Next step ▸</b>.`;
+    if(S===1)return `<b>ReLU</b> sends every negative input to exactly 0: half the batch piles into one spike. The mean jumps from 0 to ${kx('1/\\sqrt{2\\pi}\\approx 0.40')} and the spread shrinks to ${kx('\\approx 0.58')}. Check the 8-value worked sample below by hand.`;
+    if(S===2)return `<b>ReLU's slope</b> is 0 or 1, nothing in between. For any one example, <b>half the units pass no gradient back</b> (v3's rule). If a unit's input is negative for every example, it never learns again: a "dead" ReLU.`;
+    if(S===3)return `<b>GELU</b> (used in GPT and BERT) is a smooth ReLU. Small negatives leak through slightly, the mean is ${kx('\\approx 0.28')}, and the slope varies smoothly from ≈ −0.1 to ≈ 1.1, so fewer units are completely shut off.`;
+    if(S===4)return `<b>Sigmoid</b> squashes everything into (0, 1), centred on <b>0.5, not 0</b>, so the next layer's input is shifted. And its slope is at most 0.25: every sigmoid layer cuts the gradient to a quarter or less.`;
+    return `<b>Shift the input to the extreme</b> (μ = 3, σ = 3) and apply tanh: most outputs pin to ±1 and the slope histogram collapses onto 0. That is <b>saturation</b>. These units pass almost no gradient. Without normalization, a deep network's layers drift into exactly this state. Drag μ and σ to explore.`;
+  }
+  const D=makeDeck('n1',{n:5,render,animate,caption});return D;
+}
+
+/* ================= DEEP 3: vanishing gradient in a chain ================= */
+function buildN2(){
+  const st=document.getElementById('n2-stage');
+  const wEl=document.getElementById('n2-w'),wV=document.getElementById('n2-wv');
+  const PRE=[{a:'tanh',w:1},{a:'tanh',w:1},{a:'tanh',w:1},{a:'tanh',w:3},{a:'tanh',w:0.4},{a:'sigmoid',w:1}];
+  let cur={...PRE[0]},user=false,P={};const DEP=10,X0=0.8;
+  const mark=segInto(document.getElementById('n2-act'),[['tanh','tanh'],['sigmoid','sigmoid']],cur.a,v=>{cur.a=v;user=true;mark(v);D.refresh();});
+  wEl.oninput=()=>{cur.w=+wEl.value;user=true;D.refresh();};
+  function sim(a,w){const A=ACT[a],h=[X0],z=[null],d=[null];for(let l=1;l<=DEP;l++){z.push(w*h[l-1]);h.push(A.f(z[l]));d.push(A.d(z[l]));}
+    const g=new Array(DEP+1);g[DEP]=1;for(let l=DEP;l>=1;l--)g[l-1]=g[l]*d[l]*w;const gw=[null];for(let l=1;l<=DEP;l++)gw.push(g[l]*d[l]*h[l-1]);return {h,z,d,g,gw};}
+  function build(){st.innerHTML='';P={};const row=el('div','chainrow');st.appendChild(row);P.n=[];
+    for(let l=0;l<=DEP;l++){if(l){const a=el('div','carrow');a.innerHTML=kx('\\to');row.appendChild(a);}
+      const n=el('div','cnode');n.innerHTML=`<div class="cn">${kx('h_{'+l+'}')}</div><div class="cv"></div><div class="cz"></div><div class="cg"></div>`;row.appendChild(n);P.n.push(n);}
+    P.b=cpanel('\\big|\\partial L / \\partial h_\\ell\\big| \\text{ by layer (log scale)}',940,200);st.appendChild(P.b);}
+  const sci=v=>{const a=Math.abs(v);return a===0?'0':a>=0.01&&a<1000?v.toFixed(3):v.toExponential(1);};
+  const tn=v=>{const a=Math.abs(v);if(a===0)return '0';if(a>=0.01&&a<1000)return v.toFixed(3);const e=Math.floor(Math.log10(a)),m=v/Math.pow(10,e);return `${m.toFixed(1)}\\times 10^{${e}}`;};
+  function fillNodes(S0,s,upto,gfrom){
+    for(let l=0;l<=DEP;l++){const n=P.n[l];const fw=l<=upto;n.querySelector('.cv').textContent=fw?f2(s.h[l]):'';
+      n.querySelector('.cz').innerHTML=fw&&l?`${kx("f'")}=${sci(s.d[l])}`:(l?'':'input');
+      n.querySelector('.cg').textContent=gfrom!=null&&l>=gfrom?sci(s.g[l]):'';}}
+  function bars(g,k,from){ // k in 0..1 morph, from: previous g
+    const c=TC(),cv=P.b.cv,ctx=cctx(cv),W=cv.__w,H=cv.__h,rect={x:60,y:16,w:W-76,h:H-46};
+    const lo=-16,hi=1,Y=v=>rect.y+rect.h-(Math.max(lo,Math.min(hi,v))-lo)/(hi-lo)*rect.h;
+    ctx.font='10.5px ui-monospace,monospace';ctx.fillStyle=c.mut;
+    [0,-4,-8,-12,-16].forEach(e=>{ctx.fillText('1e'+e,8,Y(e)+4);ctx.strokeStyle=hexA(c.mut,0.15);ctx.beginPath();ctx.moveTo(rect.x,Y(e));ctx.lineTo(rect.x+rect.w,Y(e));ctx.stroke();});
+    const bw=rect.w/(DEP+1);
+    for(let l=0;l<=DEP;l++){if(g[l]==null)continue;const v=Math.log10(Math.max(1e-30,Math.abs(g[l])));const v0=from&&from[l]!=null?Math.log10(Math.max(1e-30,Math.abs(from[l]))):lo;
+      const vv=v0+(v-v0)*(k==null?1:k);const x=rect.x+l*bw+bw*0.18,y=Y(vv);
+      ctx.fillStyle=hexA(c.acc,0.25+0.6*Math.max(0,(vv-lo)/(hi-lo)));ctx.fillRect(x,y,bw*0.64,rect.y+rect.h-y);
+      ctx.fillStyle=c.fg;ctx.textAlign='center';ctx.fillText(sci(Math.pow(10,vv)*Math.sign(g[l]||1)),x+bw*0.32,y-4);ctx.fillStyle=c.mut;ctx.fillText('h'+l,x+bw*0.32,H-10);ctx.textAlign='left';}
+  }
+  let lastG=null;
+  function render(S){if(!user)cur={...PRE[S]};build();const s=sim(cur.a,cur.w);
+    wEl.value=cur.w;wV.textContent=cur.w.toFixed(2);mark(cur.a);
+    fillNodes(S,s,S>=1||user?DEP:0,S>=2||user?0:null);bars(S>=2||user?s.g:s.g.map(()=>null),null,null);lastG=S>=2||user?s.g:null;
+    P.b.st.innerHTML=(S>=2||user)?`gradient reaching the input: ${kx(tn(s.g[0]))} · update size, layer 1 vs layer 10: ${kx(`\\big|\\tfrac{\\partial L}{\\partial w_1}\\big| / \\big|\\tfrac{\\partial L}{\\partial w_{10}}\\big| = ${tn(Math.abs(s.gw[1]/s.gw[DEP]))}`)}`:'';}
+  async function animate(S,ctx,run){user=false;const prev=lastG;cur={...PRE[S]};build();const s=sim(cur.a,cur.w);wEl.value=cur.w;wV.textContent=cur.w.toFixed(2);mark(cur.a);
+    const hot=(l,on)=>P.n[l].classList.toggle('hot',on);
+    if(S===1){fillNodes(S,s,0,null);bars(s.g.map(()=>null));for(let l=1;l<=DEP;l++){hot(l,true);fillNodes(S,s,l,null);await ctx.wait(330,run);hot(l,false);}return;}
+    if(S===2){fillNodes(S,s,DEP,null);bars(s.g.map(()=>null));const g=s.g.map(()=>null);
+      for(let l=DEP;l>=0;l--){hot(l,true);g[l]=s.g[l];fillNodes(S,s,DEP,l);bars(g);await ctx.wait(380,run);hot(l,false);}return;}
+    // presets 3..5: forward quickly, then morph bars from the previous run
+    fillNodes(S,s,0,null);for(let l=1;l<=DEP;l++){fillNodes(S,s,l,null);await ctx.wait(140,run);}
+    await ctx.tween(1500,e=>bars(s.g,e,prev),run);fillNodes(S,s,DEP,0);
+  }
+  function caption(S){
+    const s=sim(PRE[Math.max(1,S)].a,PRE[Math.max(1,S)].w);
+    if(S===0)return `Ten layers, one neuron each, input ${kx('h_0 = 0.8')}, the same weight ${kx('w')} everywhere. Press <b>Next step ▸</b> to run it forward.`;
+    if(S===1)return `<b>Forward with w = 1, tanh:</b> the signal shrinks slowly (tanh pulls values toward 0) but stays in tanh's steep middle, where ${kx("f' \\approx 0.6\\text{–}0.9")}.`;
+    if(S===2)return `<b>Backward:</b> starting from ${kx('\\partial L/\\partial h_{10} = 1')}, each layer multiplies by ${kx("w\\,f'(z_\\ell)")} (slope × weight, the chain rule of slide 4). Ten factors near 0.7–0.9 leave ${kx(tn(s.g[0]))} at the input: weakened, but alive.`;
+    if(S===3)return `<b>w = 3:</b> every ${kx('z_\\ell')} lands far out on tanh's flat tail, where ${kx("f'\\approx 0.01")}. The factors ${kx("3\\times 0.01")} multiply to ${kx(tn(s.g[0]))}: the gradient has <b>vanished</b>. The first layers get no learning signal.`;
+    if(S===4)return `<b>w = 0.4:</b> now the signal itself shrinks toward 0. The slopes are fine (≈1), but each layer multiplies the gradient by 0.4: ${kx(`0.4^{10}\\approx ${tn(Math.pow(0.4,10))}`)}. Too small a scale also vanishes.`;
+    return `<b>Sigmoid, w = 1:</b> its slope is never above 0.25, so even the best case is ${kx('0.25^{10} \\approx 10^{-6}')}. Layer 1's weights get updates about ${kx(tn(Math.abs(s.gw[DEP]/s.gw[1])))} times smaller than layer 10's: it would take far longer to train. Drag w to find the narrow healthy band, then see what a real 30-layer network does.`;
+  }
+  const D=makeDeck('n2',{n:5,render,animate,caption});return D;
+}
+
+/* ================= DEEP 4: 30-layer net with / without normalization ================= */
+function buildN3(){
+  const st=document.getElementById('n3-stage'),status=document.getElementById('n3-status');
+  const H=32,L=30,B=64,STEPS=300,LR=0.01,EVERY=10;
+  const GAINL=[['0.5','small (0.5)'],['1','careful (1.0)'],['2.5','large (2.5)']],GAINS=Object.fromEntries(GAINL),NORMS={none:'none',batch:'BatchNorm',layer:'LayerNorm'};
+  const PRE=[{g:'0.5',n:'none'},{g:'0.5',n:'none'},{g:'0.5',n:'none'},{g:'0.5',n:'none'},{g:'2.5',n:'none'},{g:'2.5',n:'layer'},{g:'2.5',n:'batch'}];
+  const SHOW=[[],[],[],['0.5|none'],['0.5|none','2.5|none'],['0.5|none','2.5|none','0.5|layer','2.5|layer'],['0.5|none','2.5|none','0.5|layer','2.5|layer','0.5|batch','2.5|batch']];
+  let cur={...PRE[0]},user=false,P={},shownS=0;const extra=new Set();
+  const markG=segInto(document.getElementById('n3-gain'),GAINL,cur.g,v=>{cur.g=v;user=true;markG(v);D.refresh();});
+  const markN=segInto(document.getElementById('n3-norm'),Object.entries(NORMS),cur.n,v=>{cur.n=v;user=true;markN(v);D.refresh();});
+  document.getElementById('n3-train').onclick=()=>{const k=cur.g+'|'+cur.n;extra.add(k);ensure(k);D.refresh();};
+  const EVAL=mlpData(11,256),RUNS={},STATS={};
+  function statsFor(k){if(STATS[k])return STATS[k];const [g,n]=k.split('|');const net=mlpMake(7,{gain:+g,norm:n,H,L});
+    const F=mlpForward(net,EVAL.X,256),{gr}=mlpBackward(net,F,EVAL.Y);
+    const acts=[0,9,19,29].map(l=>F.cache[l].a),gn=gr.layers.map(q=>Math.sqrt(q.W.reduce((s,v)=>s+v*v,0)));return STATS[k]={acts,gn};}
+  function ensure(k){if(RUNS[k])return RUNS[k].p;const [g,n]=k.split('|');const run=RUNS[k]={hist:[],done:false};
+    const net=mlpMake(7,{gain:+g,norm:n,H,L}),Dt=mlpData(11,512),R=rng(99),Xb=new Float64Array(B*2),Yb=new Float64Array(B);
+    const ev=()=>{const F=mlpForward(net,EVAL.X,256);let s=0;for(let i=0;i<256;i++)s+=(F.yh[i]-EVAL.Y[i])**2;return s/256;};
+    run.hist.push(ev());let t=0;
+    run.p=new Promise(res=>{(function chunk(){const t0=performance.now();
+      while(t<STEPS&&performance.now()-t0<28){for(let q=0;q<B;q++){const i=Math.floor(R()*Dt.N);Xb[2*q]=Dt.X[2*i];Xb[2*q+1]=Dt.X[2*i+1];Yb[q]=Dt.Y[i];}
+        const F=mlpForward(net,Xb,B),{gr}=mlpBackward(net,F,Yb);mlpStep(net,gr,LR*0.5*(1+Math.cos(Math.PI*t/STEPS)));t++;if(t%EVERY===0)run.hist.push(ev());}
+      if(P.c)drawCurves();
+      if(t<STEPS)setTimeout(chunk,0);else{run.done=true;if(P.c){drawCurves();const cp=document.getElementById('n3-cap');if(cp&&D)cp.innerHTML=caption(D.state().i);}res();}})();});
+    return run.p;}
+  function build(){st.innerHTML='';P={};
+    const row=el('div','dpanels');st.appendChild(row);P.h=[];
+    [1,10,20,30].forEach(l=>{const p=cpanel(`\\text{layer } ${l}: \\; h = \\tanh(u)`,214,130);row.appendChild(p);P.h.push(p);});
+    P.g=cpanel('\\big\\|\\partial L/\\partial W_\\ell\\big\\| \\text{ at initialization, layer 1} \\to 30 \\text{ (log scale)}',940,170);st.appendChild(P.g);
+    P.c=cpanel(`\\text{training loss, ${STEPS} SGD steps, same schedule for all: } \\eta_t = ${LR}\\cdot\\tfrac12\\big(1+\\cos\\tfrac{\\pi t}{${STEPS}}\\big)`,940,250);st.appendChild(P.c);}
+  function drawHist(k,grow,layersShown){const c=TC(),S=statsFor(k);
+    P.h.forEach((p,j)=>{const ctx=cctx(p.cv),W=p.cv.__w,H2=p.cv.__h,rect={x:8,y:8,w:W-16,h:H2-26};
+      if(j>=layersShown){p.st.innerHTML='';return;}
+      const a=S.acts[j],b=binsOf(a,-1,1,40);const ymax=Math.max(4,Math.max(...b)*0.6);
+      drawBins(ctx,b,rect,{ymax,col:c.blue,alpha:0.8,grow:j===layersShown-1?grow:1});axisX(ctx,rect,-1,1,[-1,0,1],c);
+      let rms=0,sat=0;for(const v of a){rms+=v*v;if(Math.abs(v)>0.95)sat++;}rms=Math.sqrt(rms/a.length);
+      p.st.innerHTML=`spread ${kx(rms<0.001?rms.toExponential(0):rms.toFixed(2))} · at ±1: <b>${(100*sat/a.length).toFixed(0)}%</b>`;});}
+  function drawGrad(k,upto){const c=TC(),S=statsFor(k),cv=P.g.cv,ctx=cctx(cv),W=cv.__w,H2=cv.__h,rect={x:52,y:12,w:W-64,h:H2-36};
+    const lo=-12,hi=3,Y=v=>rect.y+rect.h-(Math.max(lo,Math.min(hi,v))-lo)/(hi-lo)*rect.h;
+    ctx.font='10.5px ui-monospace,monospace';ctx.fillStyle=c.mut;[3,0,-4,-8,-12].forEach(e=>{ctx.fillText('1e'+e,8,Y(e)+4);ctx.strokeStyle=hexA(c.mut,0.15);ctx.beginPath();ctx.moveTo(rect.x,Y(e));ctx.lineTo(rect.x+rect.w,Y(e));ctx.stroke();});
+    const bw=rect.w/L;for(let l=0;l<L;l++){if(upto!=null&&l<upto)continue;const v=Math.log10(Math.max(1e-30,S.gn[l])),y=Y(v);
+      ctx.fillStyle=hexA(c.acc,0.75);ctx.fillRect(rect.x+l*bw+1,y,bw-2,rect.y+rect.h-y);
+      if((l===0||l===L-1)){ctx.fillStyle=c.fg;ctx.textAlign='center';ctx.fillText(S.gn[l]<0.01?S.gn[l].toExponential(0):S.gn[l].toFixed(2),rect.x+l*bw+bw/2,y-4);ctx.textAlign='left';}}
+    ctx.fillStyle=c.mut;ctx.fillText('layer 1',rect.x,H2-8);ctx.fillText('layer 30',rect.x+rect.w-52,H2-8);
+    P.g.st.innerHTML=`setup: init ${GAINS[k.split('|')[0]]}, ${NORMS[k.split('|')[1]]} · layer 1 gets ${kx(S.gn[0]<0.01?S.gn[0].toExponential(1):S.gn[0].toFixed(2))}, layer 30 gets ${kx(S.gn[L-1]<0.01?S.gn[L-1].toExponential(1):S.gn[L-1].toFixed(2))}`;}
+  const COL=(c,n)=>n==='none'?c.red:n==='batch'?c.blue:c.ok;
+  let showKeys=[];
+  function drawCurves(){const c=TC(),cv=P.c.cv,ctx=cctx(cv),W=cv.__w,H2=cv.__h,rect={x:52,y:14,w:W-250,h:H2-40};
+    const lo=Math.log10(0.008),hi=Math.log10(3),Y=v=>rect.y+rect.h-(Math.log10(Math.max(0.008,Math.min(3,v)))-lo)/(hi-lo)*rect.h,Xs=t=>rect.x+t/STEPS*rect.w;
+    ctx.strokeStyle=c.line;ctx.strokeRect(rect.x,rect.y,rect.w,rect.h);ctx.font='10.5px ui-monospace,monospace';ctx.fillStyle=c.mut;
+    [0.01,0.03,0.1,0.3,1,3].forEach(v=>ctx.fillText(String(v),8,Y(v)+4));ctx.textAlign='center';[0,100,200,300].forEach(t=>ctx.fillText(String(t),Xs(t),H2-10));ctx.textAlign='left';
+    ctx.strokeStyle=hexA(c.mut,0.6);ctx.setLineDash([3,3]);ctx.beginPath();ctx.moveTo(rect.x,Y(0.203));ctx.lineTo(rect.x+rect.w,Y(0.203));ctx.stroke();ctx.setLineDash([]);
+    ctx.fillStyle=c.mut;ctx.textAlign='right';ctx.fillText('0.203 = just predicting the average',rect.x+rect.w-6,Y(0.203)-6);ctx.textAlign='left';
+    const keys=[...new Set([...showKeys,...extra])];let ly=rect.y+6;
+    keys.forEach(k=>{const r=RUNS[k];if(!r)return;const [g,n]=k.split('|');const col=COL(c,n);ctx.strokeStyle=col;ctx.lineWidth=2.2;ctx.setLineDash(g==='0.5'?[]:g==='2.5'?[7,4]:[2,3]);
+      ctx.beginPath();r.hist.forEach((v,q)=>{const x=Xs(q*EVERY),y=Y(v);q?ctx.lineTo(x,y):ctx.moveTo(x,y);});ctx.stroke();ctx.setLineDash([]);
+      const last=r.hist[r.hist.length-1];ctx.fillStyle=col;ctx.fillText(`${NORMS[n].padEnd(9)} init ${g.padEnd(3)} ${r.done?last.toFixed(3):'training…'}`,rect.x+rect.w+16,ly+8);
+      ctx.strokeStyle=col;ctx.setLineDash(g==='0.5'?[]:g==='2.5'?[7,4]:[2,3]);ctx.beginPath();ctx.moveTo(rect.x+rect.w+16,ly+14);ctx.lineTo(rect.x+rect.w+60,ly+14);ctx.stroke();ctx.setLineDash([]);ly+=30;});
+    const busyN=keys.filter(k=>RUNS[k]&&!RUNS[k].done).length;status.textContent=busyN?`training ${busyN} network${busyN>1?'s':''} in your browser…`:'';
+    P.c.st.innerHTML='solid = small init, dashed = large init · <span style="color:var(--red)">red: no normalization</span> · <span style="color:var(--ok)">green: LayerNorm</span> · <span style="color:var(--blue)">blue: BatchNorm</span>';}
+  function render(S){shownS=S;if(!user)cur={...PRE[S]};markG(cur.g);markN(cur.n);build();const k=cur.g+'|'+cur.n;
+    drawHist(k,1,S>=1||user?4:0);if(S>=2||user)drawGrad(k);else{cctx(P.g.cv);P.g.st.innerHTML='';}
+    showKeys=SHOW[S];showKeys.forEach(ensure);drawCurves();}
+  async function animate(S,ctx,run){user=false;cur={...PRE[S]};markG(cur.g);markN(cur.n);build();const k=cur.g+'|'+cur.n;showKeys=SHOW[S-1];drawCurves();
+    if(S===1){cctx(P.g.cv);for(let j=1;j<=4;j++){await ctx.tween(800,e=>drawHist(k,e,j),run);await ctx.wait(250,run);}return;}
+    drawHist(k,1,4);
+    if(S===2){for(let u=L-1;u>=0;u--){drawGrad(k,u);await ctx.wait(70,run);}return;}
+    drawGrad(k);showKeys=SHOW[S];showKeys.forEach(ensure);drawCurves();
+    await Promise.race([Promise.all(showKeys.map(q=>RUNS[q].p)),new Promise((_,rej)=>{const t=setInterval(()=>{if(!ctx.live(run)){clearInterval(t);rej(DECK_ABORT);}},200);})]);
+    drawCurves();await ctx.wait(400,run);}
+  function fin(k){const r=RUNS[k];return r&&r.done?r.hist[r.hist.length-1].toFixed(3):'…';}
+  function caption(S){
+    if(S===0)return `A 30-layer tanh network, 32 units per layer, input = 2 numbers, output = 1 number. We start with weights drawn a little too <b>small</b> and no normalization. Press <b>Next step ▸</b>.`;
+    if(S===1)return `<b>Forward, small init:</b> each layer shrinks the signal a bit more. By layer 10 the spread is ≈ 0.001 and by layer 30 every unit outputs ≈ 0: the network's output no longer depends on its input.`;
+    if(S===2)return `<b>Backward:</b> gradients for every layer are around ${kx('10^{-10}')}. With a learning rate of 0.01, a weight changes by roughly ${kx('10^{-12}')} per step: effectively nothing.`;
+    if(S===3)return `<b>Train it:</b> the red line sits on 0.203, which is the loss of just predicting the average. The network cannot learn at all.`;
+    if(S===4)return `<b>Large init (2.5), still no normalization:</b> now the opposite failure. About a third of all units are pinned at ±1 (saturated, slope ≈ 0) and the gradients are erratic, 50× larger at layer 1 than at layer 30. Training stalls around ${kx(fin('2.5|none'))}.`;
+    if(S===5)return `<b>Add LayerNorm</b> before every tanh: each layer's pre-activations are re-centred to mean 0, spread 1. The histograms stay healthy at every depth, gradients are similar across layers, and <b>both</b> bad inits now train (green: ${kx(fin('0.5|layer'))} and ${kx(fin('2.5|layer'))}).`;
+    return `<b>BatchNorm helps too</b> (blue: ${kx(fin('0.5|batch'))}, ${kx(fin('2.5|batch'))}), though in this small network LayerNorm does better. Both stop the drift; they differ only in <b>which numbers</b> μ and σ are averaged over. Try "careful (1.0)" with no normalization: it also trains, but only because the init is just right. Normalization removes that knife-edge.`;
+  }
+  const D=makeDeck('n3',{n:6,render,animate,caption});return D;
+}
+
+/* ================= DEEP 5: BatchNorm ================= */
+function buildN4(){
+  const st=document.getElementById('n4-stage');
+  const X0=[[52,-0.42,1.0],[31,-0.61,4.5],[45,-0.55,2.2],[38,-0.38,6.1],[60,-0.47,0.4],[29,-0.66,3.3]];
+  const OUT=[200,3.0,40],GAM=[1.5,1,0.5],BET=[0,2,-1],Bn=6,F=3;
+  const stats=X=>{const mu=[],sd=[];for(let j=0;j<F;j++){let m=0;for(let b=0;b<Bn;b++)m+=X[b][j];m/=Bn;let v=0;for(let b=0;b<Bn;b++)v+=(X[b][j]-m)**2;v/=Bn;mu.push(m);sd.push(Math.sqrt(v+1e-5));}return {mu,sd};};
+  const norm=(X,s)=>X.map(r=>r.map((v,j)=>(v-s.mu[j])/s.sd[j]));
+  const XB=X0.map((r,b)=>b===5?OUT.slice():r.slice());
+  const S0=stats(X0),N0=norm(X0,S0),Y0=N0.map(r=>r.map((v,j)=>GAM[j]*v+BET[j])),S1=stats(XB),N1=norm(XB,S1);
+  const fmtv=v=>Math.abs(v)>=10?v.toFixed(0):Math.abs(v)>=1?v.toFixed(1):v.toFixed(2);
+  let P={};const FL=['\\text{feat}_1','\\text{feat}_2','\\text{feat}_3'],RL=lab('x',Bn,1);
+  function build(out){st.innerHTML='';P={};
+    const d=el('div','dlane');d.innerHTML='<div class="dlh"><span class="dlt fwd">one batch</span><span class="dim">rows = examples, columns = features; BatchNorm works down each column</span></div>';
+    const sc=el('div','stage');const ln=el('div','lane');sc.appendChild(ln);d.appendChild(sc);st.appendChild(d);
+    P.X=kmat('X',Bn,F,{rl:RL,cl:FL});P.mu=kmat('\\mu_j',1,F,{cl:FL});P.sd=kmat('\\sigma_j',1,F,{cl:FL});
+    const ms=el('div');ms.style.display='flex';ms.style.flexDirection='column';ms.style.gap='8px';ms.append(P.mu,P.sd);
+    P.N=kmat('\\hat{x} = (x - \\mu_j)/\\sigma_j',Bn,F,{rl:RL,cl:FL});P.Y=kmat('y = \\gamma_j \\hat{x} + \\beta_j',Bn,F,{cl:FL,sub:`γ = [${GAM.join(', ')}] · β = [${BET.join(', ')}]`});
+    ln.append(P.X,kop('\\to'),ms,kop('\\to'),P.N,kop('\\to'),P.Y);
+    [P.X,P.N,P.Y].forEach(p=>p.classList.add('nmat'));
+    P.dots=cpanel('\\text{each feature on its own number line}',520,190);st.appendChild(P.dots);}
+  function fillX(X,cls){X.forEach((r,b)=>r.forEach((v,j)=>setc(P.X.cells[b][j],fmtv(v),cls&&cls(b,j)||'fwdv')));}
+  function dots(X,Nm,mask,k){ // mask[j]: 0 raw, 1 normalized; k: morph for the animating column
+    const c=TC(),cv=P.dots.cv,ctx=cctx(cv),W=cv.__w,H2=cv.__h;
+    for(let j=0;j<F;j++){const y=34+j*56;const col=X.map(r=>r[j]),lo=Math.min(...col),hi=Math.max(...col),pad=(hi-lo)*0.12||1;
+      const m=mask[j]===true?1:mask[j]===false?0:mask[j];
+      ctx.strokeStyle=c.line;ctx.beginPath();ctx.moveTo(40,y);ctx.lineTo(W-14,y);ctx.stroke();
+      ctx.fillStyle=c.mut;ctx.font='10.5px ui-monospace,monospace';ctx.fillText('f'+(j+1),8,y+4);
+      const rawX=v=>40+(v-(lo-pad))/((hi+pad)-(lo-pad))*(W-54),nX=v=>40+(v+2.6)/5.2*(W-54);
+      ctx.fillText(m<0.5?fmtv(lo-pad):'-2.6',40,y+18);ctx.textAlign='right';ctx.fillText(m<0.5?fmtv(hi+pad):'2.6',W-14,y+18);ctx.textAlign='left';
+      if(m>=0.5){ctx.strokeStyle=hexA(c.ok,0.7);ctx.beginPath();ctx.moveTo(nX(0),y-10);ctx.lineTo(nX(0),y+10);ctx.stroke();}
+      col.forEach((v,b)=>{const px=rawX(v)+(nX(Nm[b][j])-rawX(v))*m;ctx.fillStyle=b===5&&X===XB?c.red:c.blue;ctx.beginPath();ctx.arc(px,y,5,0,7);ctx.fill();});}
+  }
+  function render(S){const out=S===5;build(out);const X=out?XB:X0,St=out?S1:S0,Nm=out?N1:N0;
+    fillX(X,(b,j)=>out&&b===5?'newv':'fwdv');
+    const nc=S>=3?3:S>=1?1:0;
+    for(let j=0;j<nc;j++){setc(P.mu.cells[0][j],fmtv(St.mu[j]),'newv');setc(P.sd.cells[0][j],fmtv(St.sd[j]),'newv');}
+    const nn=S>=3?3:S>=2?1:0;for(let j=0;j<nn;j++)for(let b=0;b<Bn;b++){const ch=out&&b<5&&Math.abs(N1[b][j]-N0[b][j])>0.005;setc(P.N.cells[b][j],fmt(Nm[b][j]),out?(b===5?'gv':ch?'chg':'gv'):'gv');}
+    if(S>=4&&!out)Y0.forEach((r,b)=>r.forEach((v,j)=>setc(P.Y.cells[b][j],fmt(v),'gv')));
+    dots(X,Nm,[nn>=1,nn>=2,nn>=3]);
+    P.dots.st.innerHTML=nn===3?'after: all three features share one scale, centred on 0 (green tick)':'before: wildly different centres and spreads';}
+  async function animate(S,ctx,run){
+    const hot=(cs,on)=>cs.forEach(c=>c.classList.toggle('hot',on));
+    const colStats=async j=>{const cs=X0.map((_,b)=>P.X.cells[b][j]);hot(cs,true);await ctx.wait(700,run);setc(P.mu.cells[0][j],fmtv(S0.mu[j]),'newv',true);await ctx.wait(500,run);
+      setc(P.sd.cells[0][j],fmtv(S0.sd[j]),'newv',true);await ctx.wait(500,run);hot(cs,false);};
+    const colNorm=async j=>{for(let b=0;b<Bn;b++){setc(P.N.cells[b][j],fmt(N0[b][j]),'gv',true);await ctx.wait(110,run);}
+      const mask=[0,1,2].map(q=>q<j?1:0);await ctx.tween(1100,e=>{mask[j]=e;dots(X0,N0,mask);},run);};
+    if(S===1){render(0);await colStats(0);}
+    if(S===2){render(1);await colNorm(0);}
+    if(S===3){render(2);await colStats(1);await colNorm(1);await colStats(2);await colNorm(2);}
+    if(S===4){render(3);for(let b=0;b<Bn;b++){for(let j=0;j<F;j++)setc(P.Y.cells[b][j],fmt(Y0[b][j]),'gv',true);await ctx.wait(160,run);}}
+    if(S===5){render(4);await ctx.wait(400,run);render(5);await ctx.wait(800,run);}
+    if(S===6)await ctx.wait(300,run);
+  }
+  const col0=X0.map(r=>r[0]);
+  function caption(S){
+    if(S===0)return `A batch of 6 examples with 3 features on wildly different scales (≈40, ≈−0.5, ≈3). Without normalization, the next layer's weights would have to cope with all three scales at once. Press <b>Next step ▸</b>.`;
+    if(S===1)return `<b>Feature 1, statistics over the batch:</b> ${kx(`\\mu_1 = \\tfrac{${col0.join('+')}}{6} = ${fmtv(S0.mu[0])}`)} and ${kx(`\\sigma_1 = ${fmtv(S0.sd[0])}`)}. Note that these numbers come from <b>all six examples</b>.`;
+    if(S===2)return `<b>Normalize feature 1:</b> ${kx(`\\hat{x}_{b1} = (x_{b1} - ${fmtv(S0.mu[0])})/${fmtv(S0.sd[0])}`)}. Example 1: ${kx(`(52 - ${fmtv(S0.mu[0])})/${fmtv(S0.sd[0])} = ${fmt(N0[0][0])}`)}. The column now has mean 0 and spread 1.`;
+    if(S===3)return `<b>Same for features 2 and 3,</b> each with its own ${kx('\\mu_j, \\sigma_j')}. On the number lines, all three features now share one scale.`;
+    if(S===4)return `<b>Learned scale and shift</b> ${kx('\\gamma_j, \\beta_j')}: trained by backprop like any weight. If the raw scale was useful, the network can learn it back. Normalization only sets a sane default.`;
+    if(S===5)return `<b>The catch: swap one batchmate.</b> Example 6 is replaced by an outlier (red). Examples 1–5 did not change, yet <b>every</b> one of their normalized values did (red cells), because ${kx('\\mu_j')} and ${kx('\\sigma_j')} moved. An example's output depends on who else is in the batch.`;
+    return `<b>At inference</b> there may be just one example, so BatchNorm uses running averages of μ and σ collected during training: training and inference compute different things. Batch of 1 → ${kx('\\sigma = 0')}. And a bias before BN is useless: the mean subtraction cancels it (its gradient is exactly 0). Next: LayerNorm avoids all of this.`;
+  }
+  return makeDeck('n4',{n:6,render,animate,caption});
+}
+
+/* ================= DEEP 6: BatchNorm vs LayerNorm ================= */
+function buildN5(){
+  const st=document.getElementById('n5-stage');
+  const XA=[[2.0,-1.0,0.5,3.0,1.5],[0.0,4.0,-2.0,1.0,2.0],[1.0,1.0,1.0,5.0,-1.0],[-3.0,0.5,2.5,0.0,1.0]],OUT=[30,-20,15,40,-10],Bn=4,F=5;
+  const XO=XA.map((r,b)=>b===3?OUT.slice():r.slice());
+  const bn=X=>{const o=X.map(r=>r.slice()),mu=[],sd=[];for(let j=0;j<F;j++){let m=0;for(let b=0;b<Bn;b++)m+=X[b][j];m/=Bn;let v=0;for(let b=0;b<Bn;b++)v+=(X[b][j]-m)**2;v/=Bn;const s=Math.sqrt(v+1e-5);mu.push(m);sd.push(s);for(let b=0;b<Bn;b++)o[b][j]=(X[b][j]-m)/s;}return {o,mu,sd};};
+  const ln=X=>{const mu=[],sd=[];const o=X.map(r=>{let m=r.reduce((a,c)=>a+c,0)/F;let v=r.reduce((a,c)=>a+(c-m)**2,0)/F;const s=Math.sqrt(v+1e-5);mu.push(m);sd.push(s);return r.map(x=>(x-m)/s);});return {o,mu,sd};};
+  const BA=bn(XA),LA=ln(XA),BO=bn(XO),LO=ln(XO);
+  const rms=XA[0].reduce((a,c)=>a+c*c,0)/F,RMS=Math.sqrt(rms),RN=XA[0].map(v=>v/RMS);
+  let P={};const FL=lab('f',F,1),RL=lab('x',Bn,1);
+  function build(){st.innerHTML='';P={};
+    const d=el('div','dlane');d.innerHTML='<div class="dlh"><span class="dlt fwd">same input, two normalizations</span><span class="dim">rows = examples, columns = features</span></div>';
+    const sc=el('div','stage');const l1=el('div','lane');sc.appendChild(l1);d.appendChild(sc);st.appendChild(d);
+    const xw=el('div');xw.style.display='flex';xw.style.flexDirection='column';xw.style.gap='8px';
+    P.X=kmat('X',Bn,F,{rl:RL,cl:FL,cw:'54px'});P.bm=kmat('\\text{BN: } \\mu_j / \\sigma_j \\text{ (per column)}',2,F,{cw:'54px'});xw.append(P.X,P.bm);
+    P.lm=kmat('\\text{LN: } \\mu_b,\\ \\sigma_b',Bn,2,{cl:['\\mu_b','\\sigma_b'],sub:'per row',cw:'54px'});
+    P.B=kmat('\\mathrm{BatchNorm}(X)',Bn,F,{rl:RL,cl:FL,sub:'each column: mean 0, spread 1',cw:'54px'});P.L=kmat('\\mathrm{LayerNorm}(X)',Bn,F,{cl:FL,sub:'each row: mean 0, spread 1',cw:'54px'});
+    l1.append(xw,P.lm,kop('\\Rightarrow'),P.B,P.L);
+    P.extra=el('div');st.appendChild(P.extra);}
+  const fill=(p,M,cls,rows)=>M.forEach((r,b)=>{if(rows&&!rows.includes(b))return;r.forEach((v,j)=>setc(p.cells[b][j],fmt(v),typeof cls==='function'?cls(b,j):cls));});
+  function table(){P.extra.innerHTML=`<table class="rtab wide"><tr><th></th><th>BatchNorm</th><th>LayerNorm</th></tr>
+    <tr><td>averages over</td><td>the batch, per feature (a column)</td><td>the features, per example (a row)</td></tr>
+    <tr><td>depends on other examples?</td><td class="chg">yes: change a batchmate, your output changes</td><td>no: each example on its own</td></tr>
+    <tr><td>batch of 1</td><td class="chg">breaks (σ = 0)</td><td>fine</td></tr>
+    <tr><td>training vs inference</td><td class="chg">different (running averages at inference)</td><td>identical</td></tr>
+    <tr><td>variable-length sequences, padding</td><td class="chg">padding pollutes the statistics</td><td>each token normalized alone</td></tr>
+    <tr><td>where it is used</td><td>CNNs for images (ResNet)</td><td>transformers, RNNs, every LLM</td></tr></table>`;}
+  function rmsBox(){const d=el('div','fbox on');d.innerHTML=`<div class="fgrid"><span class="dim">example 1</span>${kx(`x = [${XA[0].join(',\\;')}]`)}
+    <span class="dim">RMS</span>${kx(`\\sqrt{\\tfrac{1}{5}(${XA[0].map(v=>v+'^2').join('+')})} = ${RMS.toFixed(3)}`)}
+    <span class="dim">RMSNorm</span>${kx(`x / \\mathrm{RMS} = [${RN.map(v=>v.toFixed(2)).join(',\\;')}]`)}
+    <span class="dim">vs LayerNorm</span>${kx(`[${LA.o[0].map(v=>v.toFixed(2)).join(',\\;')}]`)}</div>`;P.extra.appendChild(d);}
+  function render(S){build();const out=S>=3,X=out?XO:XA,Bm=out?BO:BA,Lm=out?LO:LA;
+    fill(P.X,X,(b,j)=>out&&b===3?'newv':'fwdv');
+    if(S>=1){Bm.mu.forEach((v,j)=>{setc(P.bm.cells[0][j],fmt(v),'newv');setc(P.bm.cells[1][j],fmt(Bm.sd[j]),'newv');});
+      fill(P.B,Bm.o,(b,j)=>out?(b===3?'gv':Math.abs(BO.o[b][j]-BA.o[b][j])>0.005?'chg':'same'):'gv');}
+    if(S>=2){Lm.mu.forEach((v,b)=>{setc(P.lm.cells[b][0],fmt(v),'newv');setc(P.lm.cells[b][1],fmt(Lm.sd[b]),'newv');});
+      fill(P.L,Lm.o,(b,j)=>out?(b===3?'gv':'same'):'gv');}
+    if(S===4)table();if(S>=5){table();rmsBox();}}
+  async function animate(S,ctx,run){const hot=(cs,on)=>cs.forEach(c=>c.classList.toggle('hot',on));
+    if(S===1){render(0);for(let j=0;j<F;j++){const cs=XA.map((_,b)=>P.X.cells[b][j]);hot(cs,true);setc(P.bm.cells[0][j],fmt(BA.mu[j]),'newv',true);setc(P.bm.cells[1][j],fmt(BA.sd[j]),'newv',true);
+      await ctx.wait(450,run);for(let b=0;b<Bn;b++)setc(P.B.cells[b][j],fmt(BA.o[b][j]),'gv',true);await ctx.wait(450,run);hot(cs,false);}}
+    if(S===2){render(1);for(let b=0;b<Bn;b++){const cs=P.X.cells[b];hot(cs,true);setc(P.lm.cells[b][0],fmt(LA.mu[b]),'newv',true);setc(P.lm.cells[b][1],fmt(LA.sd[b]),'newv',true);
+      await ctx.wait(500,run);for(let j=0;j<F;j++)setc(P.L.cells[b][j],fmt(LA.o[b][j]),'gv',true);await ctx.wait(500,run);hot(cs,false);}}
+    if(S===3){render(2);await ctx.wait(500,run);render(3);await ctx.wait(900,run);}
+    if(S>=4)await ctx.wait(500,run);}
+  function caption(S){
+    if(S===0)return `4 examples × 5 features. We will normalize the same matrix two ways. Press <b>Next step ▸</b>.`;
+    if(S===1)return `<b>BatchNorm sweeps the columns:</b> each feature gets its own ${kx('\\mu_j, \\sigma_j')}, computed from all 4 examples. Every column of the result has mean 0.`;
+    if(S===2)return `<b>LayerNorm sweeps the rows:</b> each example gets its own ${kx('\\mu_b, \\sigma_b')}, computed from <b>its own</b> 5 features. Every row of the result has mean 0 and no example looks at another.`;
+    if(S===3)return `<b>Replace example 4 with an outlier.</b> BatchNorm: examples 1–3 are unchanged, yet all their outputs moved (red). LayerNorm: examples 1–3 are <b>identical</b> to before (green). Their statistics never involved example 4.`;
+    if(S===4)return `<b>The practical differences</b> all follow from that one choice of axis. For language models (variable-length sequences, batch size 1 when generating, padding tokens) LayerNorm is the natural fit.`;
+    return `<b>RMSNorm</b> (LLaMA, Mistral, most recent LLMs) is LayerNorm without the mean subtraction: divide by the root-mean-square only. It is cheaper and works just as well in practice. Next: LayerNorm's forward and backward pass in detail.`;
+  }
+  return makeDeck('n5',{n:5,render,animate,caption});
+}
+
 /* ================= boot ================= */
 const GROUPS=[
-  {roman:'I',name:'The four rules',short:'Four rules',ids:[['s1','the multiply rule'],['s2','add distributes'],['s3','subtract & square'],['s4','the chain']]},
-  {roman:'II',name:'Vectors, matrices & LoRA',short:'Matrices & LoRA',ids:[['s5','→ vectors'],['s6','→ matrices'],['s7','bias & LoRA']]},
-  {roman:'III',name:'Build a mini-LLM',short:'Mini-LLM',ids:[['s8','sampling & batching'],['s9','embeddings'],['s10','the FFN'],['s11','attention'],['s12','layernorm'],['s15','residual networks'],['s13','the full block'],['s14','KV cache & GQA']]},
-  {roman:'IV',name:'Regularization',short:'Regularization',ids:[['r1','why regularize'],['r2','regularization in backprop'],['r3','L2 · weight decay'],['r4','L1 · constant pull'],['r5','L1 vs L2 · the picture'],['r6','dropout'],['r7','in practice']]},
+  {roman:'I',name:'Backprop on one number',short:'One number',ids:[['s1','the multiply rule'],['s2','add distributes'],['s3','subtract & square'],['s4','the chain']]},
+  {roman:'II',name:'Vectors: same rules, per position',short:'Vectors',ids:[['v1','elementwise ops'],['v2','sum & dot product'],['v3','activations: g \u2299 f\u2032'],['s5','a full neuron']]},
+  {roman:'III',name:'Matrices: same rules, with shapes',short:'Matrices',ids:[['m1','a layer: y = xW'],['s6','a batch: X\u1d40G'],['s7','bias & LoRA']]},
+  {roman:'IV',name:'Learning from data',short:'Data & batches',ids:[['t1','sampling'],['s8','batch gradients'],['t2','SGD: more steps'],['t3','train / val / test']]},
+  {roman:'V',name:'Regularization',short:'Regularization',ids:[['r1','why regularize'],['r2','regularization in backprop'],['r3','L2 · weight decay'],['r4','L1 · constant pull'],['r5','L1 vs L2 · the picture'],['r6','dropout'],['r7','in practice']]},
+  {roman:'VI',name:'Going deep: residuals & normalization',short:'Going deep',ids:[['s15','residual networks'],['n1','activations & distributions'],['n2','vanishing gradients'],['n3','30 layers \u00b1 normalization'],['n4','batch norm'],['n5','batch vs layer norm'],['s12','layer norm in detail']]},
+  {roman:'VII',name:'Build a mini-LLM',short:'Mini-LLM',ids:[['s9','embeddings'],['s10','the FFN'],['s11','attention'],['s13','the full block'],['s14','KV cache & GQA']]},
 ];
 function boot(){
   document.querySelectorAll('.tex[data-tex]').forEach(e=>{
     e.innerHTML=kx(e.dataset.tex,true);
   });
+  document.querySelectorAll('.tex-i[data-tex]').forEach(e=>{e.innerHTML=kx(e.dataset.tex,false);});
+  const NEW={v1:buildV1(),v2:buildV2(),v3:buildV3(),m1:buildM1(),t1:buildT1(),t2:buildT2(),t3:buildT3(),
+    n1:buildN1(),n2:buildN2(),n3:buildN3(),n4:buildN4(),n5:buildN5()};
+  window.__decks=NEW;
   const s2=buildSlide2();
   const s3=buildSlide3();
   const ssub=buildSlideSub();
@@ -3175,7 +4524,7 @@ function boot(){
   const PLAY={s1:s2.play,s2:s3.play,s3:ssub.play,s4:s4.play,s7:s7.play,s8:s8.play,s9:s9.play,s10:s10.play,
     s11:s11.play,s12:s12.play,s13:s13.play,s15:s15.play};
   const STOP={s5:()=>l2.stopPlay(),s6:()=>sim3.stopPlay(),s7:()=>sim4.stopPlay()};
-  const SPACE={s14:()=>s14.next(),s5:()=>l2.stepOnce(),s6:()=>sim3.step(),s7:()=>sim4.step(),
+  const SPACE={s14:()=>s14.next(),...Object.fromEntries(Object.entries(NEW).map(([k,d])=>[k,()=>d.next()])),s5:()=>l2.stepOnce(),s6:()=>sim3.step(),s7:()=>sim4.step(),
     r2:()=>r2.next(),r3:()=>r3.next(),r4:()=>r4.next(),r6:()=>r6.next()};
 
   const ORDER=[],META={};
