@@ -396,6 +396,34 @@ body.light .bbox.cur{background:rgba(214,60,20,.1)}
 .bbox .bg{color:var(--acc);font-size:10px;min-height:14px;white-space:nowrap}
 .barr{align-self:center;color:var(--mut);padding:0 2px;font-size:12px}
 
+/* ---- full block: vertical diagram ---- */
+.blkwrap{display:flex;gap:18px;align-items:flex-start;margin-top:10px}
+.blkpipe{flex:0 0 238px;position:sticky;top:var(--s13bar,150px);max-height:calc(100vh - var(--s13bar,150px) - 10px);overflow-y:auto;overflow-x:hidden}
+.blkmain{flex:1;min-width:0}
+.vpipe{padding:2px 4px 10px 30px}
+.vphase{font-size:11px;color:var(--mut);margin:0 0 8px;letter-spacing:.04em}
+.vbox{display:flex;align-items:center;justify-content:space-between;gap:8px;border:1px solid var(--line);background:#101013;padding:4px 10px;min-height:40px;cursor:pointer;transition:box-shadow .3s,background .3s}
+body.light .vbox{background:#fffdf8}
+.vbox:hover{border-color:var(--fg)}
+.vbox.tr{border-left:4px solid var(--acc)}
+.vbox.cur{box-shadow:0 0 0 2px var(--acc) inset;background:rgba(255,92,57,.13)}
+body.light .vbox.cur{background:rgba(214,60,20,.1)}
+.vbox .vn{font-size:15px;white-space:nowrap}
+.vbox .vm{text-align:right;font-size:10.5px;color:var(--mut);line-height:1.35;white-space:nowrap}
+.vbox .vg{color:var(--acc)}
+.vbox.done .vs{color:var(--ok)}
+.varr{text-align:center;color:var(--mut);font-size:11px;line-height:12px;height:13px}
+.vbranch{position:relative}
+.vbranch::before{content:'';position:absolute;left:-19px;top:-6px;bottom:-21px;width:13px;border:2px dashed var(--ok);border-right:none}
+.vskl{position:absolute;left:-31px;top:50%;transform:translateY(-50%) rotate(180deg);writing-mode:vertical-rl;font-size:9.5px;color:var(--ok);letter-spacing:.05em;white-space:nowrap}
+.vlegend{font-size:10.5px;color:var(--mut);margin-top:10px;line-height:1.5}
+@media (max-width:1100px){.blkwrap{flex-direction:column}.blkpipe{position:static;max-height:none;flex-basis:auto;width:100%}}
+#s13 .cell{font-size:10.5px;white-space:nowrap}
+#s13 .narrow .cell{font-size:9.5px;letter-spacing:-.2px}
+#s13 .blkmain .dlane{padding-left:10px;padding-right:10px}
+#s13 .blkmain .lane{gap:7px}
+#s13 .blkmain .op{font-size:15px}
+
 footer{margin-top:26px;color:var(--mut);font-size:12px;border-top:1px solid var(--line);padding-top:12px}
 </style>
 </head>
@@ -734,30 +762,126 @@ footer{margin-top:26px;color:var(--mut);font-size:12px;border-top:1px solid var(
   <button class="nextlesson" data-go="15">Next: regularization ▸</button>
 </section>
 
+<!-- ============ POSITIONS 1: attention is blind to order ============ -->
+<section class="slide" id="pe1">
+  <div class="kick">Slide</div>
+  <h2>Positions: attention cannot see word order</h2>
+  <p class="prose">Attention compares every word with every other word, but nothing in
+  <span class="tex-i" data-tex="QK^{\top}"></span> says where a word sits. Shuffle the sentence and the scores are
+  shuffled with it: to attention, “dog bites man” and “man bites dog” are the same. The <b>goal of a
+  positional encoding is distance</b>: the score between two words should depend on what they are <i>and</i> on
+  how far apart they are.</p>
+  <div class="dbar"><div class="stepbar" id="pe1-bar"></div><div class="scap" id="pe1-cap"></div></div>
+  <div id="pe1-stage"></div>
+  <div class="rulebox"><b>ORDER-BLIND</b>
+  <div class="tex" data-tex="X' = \Pi X \;\Rightarrow\; S' = \Pi\, S\, \Pi^{\top},\quad O' = \Pi\, O \qquad (\Pi = \text{a reordering of the rows})"></div>
+  Reorder the words and every score and output is reordered with them, nothing else changes. (A decoder’s
+  causal mask leaks a little order, since a word can count how many words it sees, but not who sits next to whom.)
+  Three ways to fix it follow: add sin/cos waves (Vaswani et al., 2017), rotate q and k (RoPE, Su et al., 2021),
+  or learn a table of positions (BERT, GPT-2).</div>
+</section>
+
+<!-- ============ POSITIONS 2: sinusoidal ============ -->
+<section class="slide" id="pe2">
+  <div class="kick">Slide</div>
+  <h2>Sinusoidal encoding: one clock hand per frequency</h2>
+  <p class="prose">The original Transformer paper (“Attention Is All You Need”, Vaswani et al., 2017) adds a fixed
+  vector to each token: pairs of numbers, <span class="tex-i" data-tex="\sin(t\omega_i)"></span> and
+  <span class="tex-i" data-tex="\cos(t\omega_i)"></span>, at frequencies that run from fast to very slow. Picture each
+  pair as a clock hand turning at its own speed: fast hands tell neighbours apart, slow hands keep far-apart
+  positions distinct, and together they give every position its own pattern.</p>
+  <div class="dbar"><div class="stepbar" id="pe2-bar"></div><div class="scap" id="pe2-cap"></div></div>
+  <div class="controls" style="margin-top:12px"><label class="ctl">position <span class="nt">t</span> <input type="range" id="pe2-t" min="0" max="63" step="1" value="0"><span id="pe2-tv">0</span></label></div>
+  <div id="pe2-stage"></div>
+  <div class="rulebox"><b>SINUSOIDAL POSITIONAL ENCODING</b>
+  <div class="tex" data-tex="\mathrm{PE}(t, 2i) = \sin(t\,\omega_i),\qquad \mathrm{PE}(t, 2i{+}1) = \cos(t\,\omega_i),\qquad \omega_i = \frac{1}{10000^{2i/d}}"></div>
+  <div class="tex" data-tex="\big[\sin\big((t{+}k)\omega\big),\ \cos\big((t{+}k)\omega\big)\big] = \big[\sin(t\omega),\ \cos(t\omega)\big]\begin{bmatrix}\cos k\omega & -\sin k\omega\\ \sin k\omega & \cos k\omega\end{bmatrix}"></div>
+  The paper’s reason: “for any fixed offset k, PE<sub>pos+k</sub> can be represented as a linear function of
+  PE<sub>pos</sub>”, so attention can learn to look a fixed distance away. That linear function is a rotation, and it
+  needs both coordinates of the point on the circle: sin alone is not enough.</div>
+</section>
+
+<!-- ============ POSITIONS 3: dot product = distance ============ -->
+<section class="slide" id="pe3">
+  <div class="kick">Slide</div>
+  <h2>Multiplying encodings measures distance</h2>
+  <p class="prose">Attention scores are dot products. Take the dot product of two sinusoidal position vectors and the
+  absolute positions cancel: <span class="tex-i" data-tex="\mathrm{PE}(m)\cdot\mathrm{PE}(n) = \sum_i \cos\big((m-n)\,\omega_i\big)"></span>.
+  Two words 2 apart at the start of a sentence get the same number as two words 2 apart at the end. Then we look at
+  what happens to this property inside a real attention score.</p>
+  <div class="dbar"><div class="stepbar" id="pe3-bar"></div><div class="scap" id="pe3-cap"></div></div>
+  <div id="pe3-stage"></div>
+  <div class="rulebox"><b>WHY IT IS DISTANCE</b>
+  <div class="tex" data-tex="\sin(m\omega)\sin(n\omega) + \cos(m\omega)\cos(n\omega) = \cos\big((m-n)\,\omega\big)"></div>
+  <div class="tex" data-tex="(e_m + p_m)\,W_QW_K^{\top}(e_n + p_n)^{\top} = \underbrace{e_mWe_n^{\top}}_{\text{content}} + \underbrace{e_mWp_n^{\top} + p_mWe_n^{\top}}_{\text{content}\times\text{position}} + \underbrace{p_mWp_n^{\top}}_{\text{position}}"></div>
+  Added positions give attention a distance signal, but mixed with absolute positions and filtered through
+  <span class="tex-i" data-tex="W = W_QW_K^{\top}"></span>. RoPE puts the rotation inside the score so only the distance survives.</div>
+</section>
+
+<!-- ============ POSITIONS 4: RoPE ============ -->
+<section class="slide" id="pe4">
+  <div class="kick">Slide</div>
+  <h2>RoPE: rotate the queries and keys</h2>
+  <p class="prose">RoPE (rotary position embedding) comes from the RoFormer paper (Su et al., 2021), not the 2017
+  Transformer paper, but it grows directly out of that paper’s observation that a shift in position is a rotation.
+  Instead of adding a position vector to the word, RoPE rotates each query and key, feature pair by feature pair,
+  by an angle proportional to its position, using the same frequencies <span class="tex-i" data-tex="\omega_i"></span>.
+  When a query at <span class="tex-i" data-tex="m"></span> meets a key at <span class="tex-i" data-tex="n"></span>, the two
+  rotations combine into one rotation by <span class="tex-i" data-tex="(n-m)\omega"></span>: the score depends on content
+  and on relative distance, exactly.</p>
+  <div class="dbar"><div class="stepbar" id="pe4-bar"></div><div class="scap" id="pe4-cap"></div></div>
+  <div id="pe4-stage"></div>
+  <div class="rulebox"><b>ROTARY POSITION EMBEDDING</b>
+  <div class="tex" data-tex="\tilde q_m = R(m\omega)\,W_Qx_m,\quad \tilde k_n = R(n\omega)\,W_Kx_n \quad\Rightarrow\quad \tilde q_m^{\top}\tilde k_n = (W_Qx_m)^{\top}\,R\big((n-m)\omega\big)\,(W_Kx_n)"></div>
+  <div class="tex" data-tex="R(\theta) \text{ on each pair: } \begin{bmatrix}x\\y\end{bmatrix} \mapsto \begin{bmatrix}\cos\theta & -\sin\theta\\ \sin\theta & \cos\theta\end{bmatrix}\begin{bmatrix}x\\y\end{bmatrix},\qquad \omega_i = 10000^{-2i/d}"></div>
+  No parameters, applied inside every attention layer to q and k only (values are not rotated). Used by LLaMA,
+  Mistral, Qwen, Gemma and GPT-NeoX. Running far past the training length still needs extra tricks (position
+  interpolation, NTK scaling), because the slow pairs never turned that far during training.</div>
+</section>
+
+<!-- ============ POSITIONS 5: learned ============ -->
+<section class="slide" id="pe5">
+  <div class="kick">Slide</div>
+  <h2>Learned positional embeddings: let training find distance</h2>
+  <p class="prose">The simplest option: a trainable table <span class="tex-i" data-tex="P"></span> with one row per
+  position, added like a second embedding, <span class="tex-i" data-tex="x_t = E[w_t] + P_t"></span>. BERT (512
+  positions) and GPT-2 (1,024) work this way. Nothing about distance is built in, so here we train a one-layer
+  attention model on a task that can only be solved with distance, output the letter from two places back, and
+  look at what the table learned. Then the same task with the other three options.</p>
+  <div class="dbar"><div class="stepbar" id="pe5-bar"></div><div class="scap" id="pe5-cap"></div></div>
+  <div class="controls" style="margin-top:12px"><label class="ctl">inspect</label><div class="seg" id="pe5-mode"></div><button id="pe5-train">Train this method ▸</button><span class="status" id="pe5-status"></span></div>
+  <div id="pe5-stage"></div>
+  <div class="rulebox"><b>LEARNED POSITIONS</b>
+  <div class="tex" data-tex="x_t = E[w_t] + P_t \qquad \frac{\partial L}{\partial P_t} = \frac{\partial L}{\partial x_t} \quad(\text{like an embedding lookup, indexed by position})"></div>
+  Each row is learned separately, so the same distance has to be learned again at every position, and there is no
+  row for positions past the table. Vaswani et al. (2017) tried a learned table and sin/cos and reported nearly
+  identical results; they kept sin/cos because a formula may extrapolate to longer sequences.</div>
+</section>
+
 <!-- ============ SLIDE 13: full block, real numbers ============ -->
 <section class="slide" id="s13">
   <div class="kick">Slide 13</div>
   <h2>The full block: every matrix, every number, forward and backward</h2>
-  <p class="prose">One real transformer block, small enough to show every number: 4 features per token,
-  an 8-wide FFN and a 6-word vocabulary. It has <b>212 trainable numbers</b> in 16 tensors. It reads
-  “the cat sat” and predicts the next word at each position (cat, sat, on). Step through all 11
-  forward stages, 13 backward stages and the update. Each stage shows its formula, the actual matrices,
-  and one entry worked out by hand. Then train it and watch the loss fall. Nothing is faked: every
-  gradient here matches a finite-difference check.</p>
+  <p class="prose">One real transformer block, small enough to show every number: 4 features per token, an 8-wide
+  FFN and a 6-word vocabulary, <b>212 trainable numbers</b> (224 with a learned position table). It reads “the cat
+  sat” and predicts the next word at each position (cat, sat, on). Choose how positions enter (slides 33–37),
+  then step through 11 forward stages, 13 backward stages and the update. The block diagram on the left shows where
+  you are; click any block to jump to it. Every gradient matches a finite-difference check.</p>
   <div class="dbar"><div class="stepbar" id="s13-bar"></div><div class="scap" id="s13-cap"></div></div>
-  <div id="s13-pipe"></div>
-  <div id="s13-stage"></div>
+  <div class="controls" style="margin-top:12px"><label class="ctl">positions</label><div class="seg" id="s13-pos"></div><span class="status">changing it resets the weights</span></div>
+  <div class="blkwrap"><div id="s13-pipe" class="blkpipe"></div><div class="blkmain"><div id="s13-stage"></div></div></div>
   <div class="dpanels" style="align-items:flex-start;margin-top:16px">
     <div id="s13-loss"></div>
     <div><div class="controls" id="s13-train"></div><div id="s13-pred"></div>
       <div class="nstat" style="margin-top:6px">each update runs forward → backward → update on the sentence; the step deck above always shows the current weights</div></div>
   </div>
   <div class="rulebox"><b>THE BLOCK</b>
-  <div class="tex" data-tex="X = E[\text{tokens}] \quad A_1 = \mathrm{LN}_1(X) \quad H_1 = X + \mathrm{softmax}\!\Big(\frac{(A_1W_Q)(A_1W_K)^{\top}}{\sqrt d} + M\Big)(A_1W_V)\,W_O"></div>
+  <div class="tex" data-tex="X = E[\text{tokens}] + \mathrm{PE} \quad A_1 = \mathrm{LN}_1(X) \quad H_1 = X + \mathrm{softmax}\!\Big(\frac{(A_1W_Q)(A_1W_K)^{\top}}{\sqrt d} + M\Big)(A_1W_V)\,W_O"></div>
   <div class="tex" data-tex="H_2 = H_1 + \mathrm{GELU}\big(\mathrm{LN}_2(H_1)W_1 + b_1\big)W_2 + b_2 \qquad P = \mathrm{softmax}\big(\mathrm{LN}_f(H_2)\,U\big) \qquad L = -\tfrac1T\textstyle\sum_t \log P_{t,\,y_t}"></div>
-  Backward uses only the rules from the first groups: the multiply rule for every matrix product
-  (inputᵀ × upstream, upstream × weightsᵀ), the add rule at the residuals (copy forward, sum backward),
-  elementwise slopes for GELU, and the LayerNorm and softmax projections.</div>
+  With RoPE the <span class="tex-i" data-tex="+\,\mathrm{PE}"></span> is dropped and <span class="tex-i" data-tex="A_1W_Q,\ A_1W_K"></span> are
+  rotated by position instead. Backward uses only the rules from the first groups: the multiply rule for every matrix
+  product (inputᵀ × upstream, upstream × weightsᵀ), the add rule at the residuals (copy forward, sum
+  backward), elementwise slopes for GELU, the LayerNorm and softmax projections, and the reverse rotation for RoPE.</div>
 </section>
 
 
@@ -2405,6 +2529,9 @@ function buildSlide11(){
 /* ---------- tiny transformer block: real forward / backward / SGD ---------- */
 const BLK_VOCAB=['the','cat','sat','on','mat','.'],BLK_T=3,BLK_D=4,BLK_F=8,BLK_V=6,BLK_EPS=1e-5;
 const BLK_TOK=[0,1,2],BLK_TGT=[1,2,3];
+const BLK_W=i=>Math.pow(10000,-2*i/BLK_D);            // frequency of feature pair i (Vaswani et al. 2017)
+const BLK_SIN=Array.from({length:BLK_T},(_,t)=>Array.from({length:BLK_D},(_,j)=>{const w=BLK_W(j>>1);return j%2?Math.cos(t*w):Math.sin(t*w);}));
+const blkRot=(M,sgn)=>M.map((r,t)=>{const o=r.slice();for(let i=0;i<BLK_D/2;i++){const a=sgn*t*BLK_W(i),c=Math.cos(a),s=Math.sin(a),x=r[2*i],y=r[2*i+1];o[2*i]=x*c-y*s;o[2*i+1]=x*s+y*c;}return o;});
 const bMz=(r,c)=>Array.from({length:r},()=>new Array(c).fill(0));
 const bMm=(A,B)=>{const r=A.length,k=B.length,c=B[0].length,O=bMz(r,c);for(let i=0;i<r;i++)for(let p=0;p<k;p++){const a=A[i][p];if(!a)continue;for(let j=0;j<c;j++)O[i][j]+=a*B[p][j];}return O;};
 const bT=A=>A[0].map((_,j)=>A.map(r=>r[j]));
@@ -2413,23 +2540,27 @@ const bMadd=(A,B)=>A.map((r,i)=>r.map((v,j)=>v+B[i][j]));
 const bColSum=A=>A[0].map((_,j)=>A.reduce((s,r)=>s+r[j],0));
 const bGelu=z=>0.5*z*(1+Math.tanh(0.7978845608*(z+0.044715*z*z*z)));
 const bGeluD=z=>{const k=0.7978845608,u=k*(z+0.044715*z*z*z),t=Math.tanh(u);return 0.5*(1+t)+0.5*z*(1-t*t)*k*(1+3*0.044715*z*z);};
-function blkInit(seed){const R=rng(seed),G=gaussFrom(R),D=BLK_D,F=BLK_F,V=BLK_V;
+function blkInit(seed,mode){const R=rng(seed),G=gaussFrom(R),D=BLK_D,F=BLK_F,V=BLK_V;
   const M=(r,c,s)=>Array.from({length:r},()=>Array.from({length:c},()=>G()*s));
   return {E:M(V,D,1),g1:new Array(D).fill(1),b1n:new Array(D).fill(0),Wq:M(D,D,1/Math.sqrt(D)),Wk:M(D,D,1/Math.sqrt(D)),Wv:M(D,D,1/Math.sqrt(D)),Wo:M(D,D,1/Math.sqrt(D)),
     g2:new Array(D).fill(1),b2n:new Array(D).fill(0),W1:M(D,F,1/Math.sqrt(D)),b1:new Array(F).fill(0),W2:M(F,D,1/Math.sqrt(F)),b2:new Array(D).fill(0),
-    gf:new Array(D).fill(1),bfn:new Array(D).fill(0),U:M(D,V,0.5/Math.sqrt(D))};}
-const BLK_PARAMS=[['E','E','embeddings'],['g1','\\gamma_1','LN 1 scale'],['b1n','\\beta_1','LN 1 shift'],['Wq','W_Q','query'],['Wk','W_K','key'],['Wv','W_V','value'],['Wo','W_O','attention out'],
+    gf:new Array(D).fill(1),bfn:new Array(D).fill(0),U:M(D,V,0.5/Math.sqrt(D)),Pp:M(BLK_T,D,0.3),mode:mode||'sin'};}
+const BLK_PARAMS_ALL=[['E','E','embeddings'],['Pp','P','learned positions'],['g1','\\gamma_1','LN 1 scale'],['b1n','\\beta_1','LN 1 shift'],['Wq','W_Q','query'],['Wk','W_K','key'],['Wv','W_V','value'],['Wo','W_O','attention out'],
   ['g2','\\gamma_2','LN 2 scale'],['b2n','\\beta_2','LN 2 shift'],['W1','W_1','FFN up'],['b1','b_1','FFN up bias'],['W2','W_2','FFN down'],['b2','b_2','FFN down bias'],['gf','\\gamma_f','final LN scale'],['bfn','\\beta_f','final LN shift'],['U','U','unembed']];
+const blkParams=P=>BLK_PARAMS_ALL.filter(([k])=>k!=='Pp'||P.mode==='learned');
 function lnF(X,g,b){const out={xh:[],mu:[],sd:[],y:[]};X.forEach(r=>{const d=r.length,m=r.reduce((a,c)=>a+c,0)/d,v=r.reduce((a,c)=>a+(c-m)**2,0)/d,s=Math.sqrt(v+BLK_EPS);
   const xh=r.map(x=>(x-m)/s);out.mu.push(m);out.sd.push(s);out.xh.push(xh);out.y.push(xh.map((x,j)=>g[j]*x+b[j]));});return out;}
 function lnB(dY,c,g){const dg=new Array(g.length).fill(0),db=new Array(g.length).fill(0);
   const dX=dY.map((r,i)=>{const d=r.length,xh=c.xh[i],dxh=r.map((v,j)=>{dg[j]+=v*xh[j];db[j]+=v;return v*g[j];});
     const m1=dxh.reduce((a,v)=>a+v,0)/d,m2=dxh.reduce((a,v,j)=>a+v*xh[j],0)/d;return dxh.map((v,j)=>(v-m1-xh[j]*m2)/c.sd[i]);});return {dX,dg,db};}
 function blkForward(P){const T=BLK_T,D=BLK_D,sc=1/Math.sqrt(D),C={};
-  C.X=BLK_TOK.map(t=>P.E[t].slice());
+  C.Xe=BLK_TOK.map(t=>P.E[t].slice());
+  C.PE=P.mode==='sin'?BLK_SIN:P.mode==='learned'?P.Pp:bMz(T,D);
+  C.X=bMadd(C.Xe,C.PE);
   C.ln1=lnF(C.X,P.g1,P.b1n);C.A1=C.ln1.y;
   C.Q=bMm(C.A1,P.Wq);C.K=bMm(C.A1,P.Wk);C.Vv=bMm(C.A1,P.Wv);
-  C.S=bMm(C.Q,bT(C.K)).map(r=>r.map(v=>v*sc));
+  C.Qr=P.mode==='rope'?blkRot(C.Q,1):C.Q;C.Kr=P.mode==='rope'?blkRot(C.K,1):C.K;
+  C.S=bMm(C.Qr,bT(C.Kr)).map(r=>r.map(v=>v*sc));
   C.Pa=C.S.map((r,i)=>{const vis=r.slice(0,i+1),m=Math.max(...vis),e=r.map((v,j)=>j<=i?Math.exp(v-m):0),z=e.reduce((a,c)=>a+c,0);return e.map(v=>v/z);});
   C.O=bMm(C.Pa,C.Vv);C.Oa=bMm(C.O,P.Wo);C.H1=bMadd(C.X,C.Oa);
   C.ln2=lnF(C.H1,P.g2,P.b2n);C.A2=C.ln2.y;
@@ -2451,21 +2582,23 @@ function blkBackward(P,C){const T=BLK_T,D=BLK_D,sc=1/Math.sqrt(D),G={};
   G.dOa=G.dH1;G.Wo=bMm(bT(C.O),G.dOa);G.dO=bMm(G.dOa,bT(P.Wo));
   G.dPa=bMm(G.dO,bT(C.Vv));G.dV=bMm(bT(C.Pa),G.dO);
   G.dS=C.Pa.map((row,i)=>{const s=row.reduce((a,p,j)=>a+p*G.dPa[i][j],0);return row.map((p,j)=>j<=i?p*(G.dPa[i][j]-s):0);});
-  G.dQ=bMm(G.dS,C.K).map(rw=>rw.map(v=>v*sc));G.dK=bMm(bT(G.dS),C.Q).map(rw=>rw.map(v=>v*sc));
+  G.dQr=bMm(G.dS,C.Kr).map(rw=>rw.map(v=>v*sc));G.dKr=bMm(bT(G.dS),C.Qr).map(rw=>rw.map(v=>v*sc));
+  G.dQ=P.mode==='rope'?blkRot(G.dQr,-1):G.dQr;G.dK=P.mode==='rope'?blkRot(G.dKr,-1):G.dKr;
   G.Wq=bMm(bT(C.A1),G.dQ);G.Wk=bMm(bT(C.A1),G.dK);G.Wv=bMm(bT(C.A1),G.dV);
   G.dA1=bMadd(bMadd(bMm(G.dQ,bT(P.Wq)),bMm(G.dK,bT(P.Wk))),bMm(G.dV,bT(P.Wv)));
   r=lnB(G.dA1,C.ln1,P.g1);G.g1=r.dg;G.b1n=r.db;G.dXln=r.dX;
   G.dX=bMadd(G.dH1,G.dXln);
   G.E=bMz(BLK_V,D);BLK_TOK.forEach((t,i)=>G.dX[i].forEach((v,j)=>G.E[t][j]+=v));
+  G.Pp=P.mode==='learned'?G.dX.map(r=>r.slice()):bMz(T,D);
   return G;}
-function blkStep(P,G,lr){const N={};BLK_PARAMS.forEach(([k])=>{const p=P[k],g=G[k];N[k]=Array.isArray(p[0])?p.map((r,i)=>r.map((v,j)=>v-lr*g[i][j])):p.map((v,j)=>v-lr*g[j]);});return N;}
+function blkStep(P,G,lr){const N={mode:P.mode,Pp:P.Pp};blkParams(P).forEach(([k])=>{const p=P[k],g=G[k];N[k]=Array.isArray(p[0])?p.map((r,i)=>r.map((v,j)=>v-lr*g[i][j])):p.map((v,j)=>v-lr*g[j]);});return N;}
 const blkNorm=a=>Math.sqrt((Array.isArray(a[0])?a.flat():a).reduce((s,v)=>s+v*v,0));
 const blkCount=a=>Array.isArray(a[0])?a.length*a[0].length:a.length;
-
 /* ================= SLIDE: the full block, real numbers ================= */
 function buildSlide13(){
   const st=document.getElementById('s13-stage'),pipe=document.getElementById('s13-pipe');
-  const SEED=11;let P=blkInit(SEED),lr=0.1,hist=[],updates=0;
+  const SEED=11;let PEM='sin',P=blkInit(SEED,PEM),lr=0.1,hist=[],updates=0;
+  const NPARAM=()=>blkParams(P).reduce((a,[k])=>a+blkCount(P[k]),0),POSL=['t{=}0','t{=}1','t{=}2'];
   let C,G;const recompute=()=>{C=blkForward(P);G=blkBackward(P,C);};recompute();
   const TOKL=BLK_TOK.map(t=>`\\text{${BLK_VOCAB[t]}}`),VL=BLK_VOCAB.map(w=>`\\text{${w}}`);
   const dl=n=>Array.from({length:n},(_,k)=>String(k+1));
@@ -2473,7 +2606,7 @@ function buildSlide13(){
   const tg=v=>{const a=Math.abs(v);if(a<1e-12)return '0';if(a>=0.01)return fmt(v);const e=Math.floor(Math.log10(a)),m=v/Math.pow(10,e);return `${m.toFixed(1)}\\times 10^{${e}}`;};
   const col=(M,j)=>M.map(r=>r[j]);
   const dotT=(a,b,fa,fb)=>a.map((x,k)=>`(${(fa||fmt)(x)})(${(fb||fmt)(b[k])})`).join('+');
-  const CW='42px',CW8='36px';
+  const CW='40px',CW8='30px';
   // ---------- matrix panel ----------
   function MP(title,A,o){o=o||{};const M=Array.isArray(A[0])?A:[A];
     const p=kmat(title,M.length,M[0].length,{rl:o.rl,cl:o.cl,cw:o.cw||(M[0].length>6?CW8:CW),sub:o.sub});
@@ -2495,7 +2628,8 @@ function buildSlide13(){
     const xh=MP('\\hat x = (x-\\mu)/\\sigma',c.xh,{cl:dl(4),cls:'newv',blank});
     const gb=MP(nm.gb,[g,b],{rl:[nm.g,nm.b],cl:dl(4),sub:'trainable'});
     const A=MP(nm.a,Aout,{rl:TOKL,cl:dl(4),cls:'newv',blank});
-    l.append(X,kop('\\xrightarrow{\\text{per row}}'),ms,kop('\\to'),xh,kop(`\\odot ${nm.g} + ${nm.b}`),gb,kop('='),A);
+    l.append(X,kop('\\xrightarrow{\\text{per row}}'),ms,kop('\\to'),xh);
+    const l2=L('fwd','','then scale and shift, feature by feature');const xh2=MP('\\hat x',c.xh,{rl:TOKL,cl:dl(4)});l2.append(xh2,kop(`\\odot ${nm.g} + ${nm.b}`),gb,kop('='),A);
     return {outs:[ms,xh,A],hot:[...X.cells[1],...ms.cells[1],...xh.cells[1],...A.cells[1]]};}
   // LayerNorm lanes (backward)
   function lnBack(dA,c,g,dg,db,dX,nm,blank){
@@ -2508,7 +2642,7 @@ function buildSlide13(){
     const a2=MP(`\\partial L/\\partial ${nm.a}`,dA,{rl:TOKL,cl:dl(4),cls:'gv',f:fg});
     const d1=MP('\\partial L/\\partial \\hat x',dxh,{cl:dl(4),cls:'gv',f:fg,blank});
     const o=MP(`\\partial L/\\partial ${nm.x}`,dX,{rl:TOKL,cl:dl(4),cls:'gv',f:fg,blank});
-    l2.append(a2,kop(`\\odot ${nm.g}`),d1,kop('\\xrightarrow{\\;-\\,\\text{mean}\\;-\\;\\hat x\\cdot\\text{mean}(\\cdot\\odot\\hat x),\\ \\div\\sigma\\;}'),o);
+    l2.append(a2,kop(`\\odot ${nm.g}`),d1,kop('\\xrightarrow{\\text{project},\\ \\div\\sigma}'),o);
     return {outs:[p,d1,o],hot:[...a2.cells[1],...d1.cells[1],...o.cells[1]]};}
   const dWlane=(title,Xin,dOut,dW,nm,blank,o)=>{o=o||{};const l=L('bwd',title,o.sub||'multiply rule: input\u1d40 \u00d7 upstream gradient');
     const a=MP(`${nm.x}^{\\top}`,T_(Xin),{cl:TOKL,rl:o.rl});const g=MP(`\\partial L/\\partial ${nm.y}`,dOut,{rl:TOKL,cl:o.cl,cls:'gv',f:fg});
@@ -2520,86 +2654,101 @@ function buildSlide13(){
     l.append(g,kop('\\cdot'),w,kop('='),x);return {l,g,w,x};};
   // ---------- stages ----------
   const S=[
-  {ph:'f',box:[0,1],tex:'X_t = E[\\,\\text{token}_t\\,]',
+  {ph:'f',box:['tok','E','pos'],tex:()=>({sin:'X_t = E[\\text{token}_t] + \\mathrm{PE}_t,\\qquad \\mathrm{PE}_{t,2i} = \\sin(t\\,\\omega_i),\\ \\mathrm{PE}_{t,2i+1} = \\cos(t\\,\\omega_i),\\quad \\omega = 1,\\ 0.01',learned:'X_t = E[\\text{token}_t] + P_t \\qquad (P:\\ 3{\\times}4\\ \\text{trainable table, one row per position})',none:'X_t = E[\\text{token}_t] \\qquad (\\text{no position information})',rope:'X_t = E[\\text{token}_t] \\qquad (\\text{positions are applied later, by rotating } Q \\text{ and } K)'})[P.mode],
    lanes(b){const l=L('fwd','embedding lookup','each token copies its own row of the trainable table E');
      const tk=MP('\\text{token id}',BLK_TOK.map(t=>[t]),{rl:TOKL,f:v=>String(v)});
      const E=MP('E\\;(6{\\times}4)',P.E,{rl:VL,cl:dl(4),dim:i=>!BLK_TOK.includes(i),sub:'trainable'});
-     const X=MP('X\\;(3{\\times}4)',C.X,{rl:TOKL,cl:dl(4),cls:'newv',blank:b});
-     l.append(tk,kop('\\xrightarrow{\\text{look up row}}'),E,kop('\\to'),X);return {outs:[X],hot:[...E.cells[1],...X.cells[1]]};},
-   cap:()=>`<b>Embedding lookup.</b> The sentence is \u201cthe cat sat\u201d and each word has an id. Each id picks one row of the trainable table ${kx('E')}: \u201ccat\u201d is id 1, so ${kx(`X_{\\text{cat}} = E_1 = [${C.X[1].map(fmt).join(',\\,')}]`)}. Rows on, mat and \u201c.\u201d are not used by this sentence.`},
-  {ph:'f',box:[2],tex:'\\hat x = \\frac{x-\\mu}{\\sigma},\\quad A_1 = \\gamma_1\\odot\\hat x + \\beta_1 \\quad(\\text{per row})',
+     const add=P.mode==='sin'||P.mode==='learned';
+     const Xe=MP(add?'E[\\text{token}]':'X = E[\\text{token}]',C.Xe,{rl:TOKL,cl:dl(4),cls:'newv',blank:b});
+     l.append(tk,kop('\\xrightarrow{\\text{look up row}}'),E,kop('\\to'),Xe);const outs=[Xe],hot=[...E.cells[1],...Xe.cells[1]];
+     if(add){const sn=P.mode==='sin';const l2=L('fwd',sn?'add the sinusoidal position vectors':'add the learned position vectors',sn?'fixed numbers (slide 34): pair 1 turns 1 rad per position, pair 2 only 0.01':'a trainable table, one row per position (slide 37)');
+       const xe=MP('E[\\text{token}]',C.Xe,{rl:TOKL,cl:dl(4)}),pe=MP(sn?'\\mathrm{PE}\\;(\\text{fixed})':'P\\;(3{\\times}4)',C.PE,{rl:POSL,cl:dl(4),sub:sn?'sin, cos, sin, cos':'trainable'});
+       const X=MP('X',C.X,{rl:TOKL,cl:dl(4),cls:'newv',blank:b});l2.append(xe,kop('+'),pe,kop('='),X);outs.push(X);hot.push(...pe.cells[1],...X.cells[1]);}
+     return {outs,hot};},
+   cap:()=>{const base=`<b>Embedding lookup.</b> The sentence is \u201cthe cat sat\u201d; each id picks one row of the trainable table ${kx('E')}: \u201ccat\u201d is id 1, so ${kx(`E_1 = [${C.Xe[1].map(fmt).join(',\\,')}]`)}. Rows on, mat and \u201c.\u201d are not used.`;
+     if(P.mode==='sin')return base+` Then the fixed position vector is added. \u201ccat\u201d sits at ${kx('t = 1')}: ${kx(`\\mathrm{PE}_1 = [\\sin 1,\\ \\cos 1,\\ \\sin 0.01,\\ \\cos 0.01] = [${C.PE[1].map(fmt).join(',\\,')}]`)}, so ${kx(`X_{\\text{cat}} = [${C.X[1].map(fmt).join(',\\,')}]`)}.`;
+     if(P.mode==='learned')return base+` Then row ${kx('t = 1')} of the trainable position table is added: ${kx(`X_{\\text{cat}} = E_1 + P_1 = [${C.X[1].map(fmt).join(',\\,')}]`)}.`;
+     if(P.mode==='rope')return base+` With <b>RoPE</b> nothing is added here: positions are applied inside attention, by rotating each query and key (stage 3).`;
+     return base+` <b>No positions:</b> attention will not know the word order (slide 33).`;}},
+  {ph:'f',box:['ln1'],tex:'\\hat x = \\frac{x-\\mu}{\\sigma},\\quad A_1 = \\gamma_1\\odot\\hat x + \\beta_1 \\quad(\\text{per row})',
    lanes(b){return lnLane(L('fwd','LayerNorm 1','normalize each token\u2019s 4 numbers, then scale and shift'),C.X,C.ln1,P.g1,P.b1n,C.A1,{x:'X',a:'A_1',g:'\\gamma_1',b:'\\beta_1',gb:'\\gamma_1,\\ \\beta_1'},b);},
    cap:()=>{const c=C.ln1;return `<b>LayerNorm 1</b>, one row at a time. \u201ccat\u201d: ${kx(`\\mu = ${fmt(c.mu[1])},\\ \\sigma = ${fmt(c.sd[1])}`)}, so ${kx(`\\hat x_1 = (${fmt(C.X[1][0])} - ${fmt(c.mu[1])})/${fmt(c.sd[1])} = ${fmt(c.xh[1][0])}`)} and ${kx(`a_1 = (${fmt(P.g1[0])})(${fmt(c.xh[1][0])}) + ${fmt(P.b1n[0])} = ${fmt(C.A1[1][0])}`)}.${updates?'':' At the start \u03b3 = 1 and \u03b2 = 0, so A\u2081 = x\u0302; training will move them.'}`;}},
-  {ph:'f',box:[3],tex:'Q = A_1 W_Q,\\qquad K = A_1 W_K,\\qquad V = A_1 W_V',
+  {ph:'f',box:['qkv'],tex:()=>'Q = A_1 W_Q,\\qquad K = A_1 W_K,\\qquad V = A_1 W_V'+(P.mode==='rope'?',\\qquad \\tilde Q_t = R(t\\omega)\\,Q_t,\\ \\tilde K_t = R(t\\omega)\\,K_t':''),
    lanes(b){const out=[],hot=[];[['Q','W_Q',P.Wq,C.Q],['K','W_K',P.Wk,C.K],['V','W_V',P.Wv,C.Vv]].forEach(([n,w,W,R],k)=>{
        const l=L('fwd',`${n} = A\u2081 \u00b7 ${w.replace('W_','W')}`,k?'':'three matrix multiplies, same input');
        const a=MP('A_1',C.A1,{rl:TOKL,cl:dl(4)}),m=MP(`${w}\\;(4{\\times}4)`,W,{rl:dl(4),cl:dl(4),sub:'trainable'}),o=MP(n,R,{rl:TOKL,cl:dl(4),cls:'newv',blank:b});
-       l.append(a,kop('\\cdot'),m,kop('='),o);out.push(o);if(!k)hot.push(...a.cells[1],...col(m.cells,0),o.cells[1][0]);});return {outs:out,hot};},
-   cap:()=>`<b>Queries, keys and values</b> are three matrix multiplies of the same input. One entry, by hand: ${kx(`Q_{\\text{cat},1} = ${dotT(C.A1[1],col(P.Wq,0))} = ${fmt(C.Q[1][0])}`)}.`},
-  {ph:'f',box:[4],tex:'S = \\frac{QK^{\\top}}{\\sqrt{4}},\\quad S_{ij} = -\\infty \\text{ for } j>i,\\quad A = \\mathrm{softmax}_{\\text{row}}(S)',
+       l.append(a,kop('\\cdot'),m,kop('='),o);out.push(o);if(!k)hot.push(...a.cells[1],...col(m.cells,0),o.cells[1][0]);});
+     if(P.mode==='rope'){const l=L('fwd','RoPE: rotate each row of Q and K by its position t','features (1,2) and (3,4) are pairs; pair i turns by t\u00b7\u03c9\u1d62; V is not rotated');
+       const q=MP('Q',C.Q,{rl:TOKL,cl:dl(4)}),qr=MP('\\tilde Q',C.Qr,{rl:TOKL,cl:dl(4),cls:'newv',blank:b}),ang=MP('\\text{angle } t\\,\\omega_i',BLK_TOK.map((_,t)=>[t*BLK_W(0),t*BLK_W(1)]),{rl:POSL,cl:['\\text{pair 1}','\\text{pair 2}']});
+       const k=MP('K',C.K,{rl:TOKL,cl:dl(4)}),kr=MP('\\tilde K',C.Kr,{rl:TOKL,cl:dl(4),cls:'newv',blank:b});
+       l.append(ang,kop('\\quad'),q,kop('\\xrightarrow{\\text{rotate}}'),qr);const l2=L('fwd','','the same rotation for the keys');l2.append(k,kop('\\xrightarrow{\\text{rotate}}'),kr);out.push(qr,kr);hot.push(...qr.cells[2]);}
+     return {outs:out,hot};},
+   cap:()=>`<b>Queries, keys and values</b> are three matrix multiplies of the same input. One entry, by hand: ${kx(`Q_{\\text{cat},1} = ${dotT(C.A1[1],col(P.Wq,0))} = ${fmt(C.Q[1][0])}`)}.`+(P.mode==='rope'?` <b>RoPE</b> then rotates Q and K: \u201csat\u201d sits at ${kx('t = 2')}, so its first pair turns by 2 rad, ${kx(`(${fmt(C.Q[2][0])},\\ ${fmt(C.Q[2][1])}) \\to (${fmt(C.Qr[2][0])},\\ ${fmt(C.Qr[2][1])})`)}; \u201cthe\u201d (${kx('t = 0')}) is not rotated.`:'')},
+  {ph:'f',box:['sc'],tex:()=>(P.mode==='rope'?'S = \\frac{\\tilde Q\\tilde K^{\\top}}{\\sqrt{4}}':'S = \\frac{QK^{\\top}}{\\sqrt{4}}')+',\\quad S_{ij} = -\\infty \\text{ for } j>i,\\quad A = \\mathrm{softmax}_{\\text{row}}(S)',
    lanes(b){const l=L('fwd','attention scores','every query dotted with every key, future hidden, softmax per row');
-     const q=MP('Q',C.Q,{rl:TOKL,cl:dl(4)}),k=MP('K^{\\top}',T_(C.K),{rl:dl(4),cl:TOKL}),s=MP('S',C.S,{rl:TOKL,cl:TOKL,cls:'newv',mask:causal,blank:b});
+     const rp=P.mode==='rope',q=MP(rp?'\\tilde Q':'Q',C.Qr,{rl:TOKL,cl:dl(4)}),k=MP(rp?'\\tilde K^{\\top}':'K^{\\top}',T_(C.Kr),{rl:dl(4),cl:TOKL}),s=MP('S',C.S,{rl:TOKL,cl:TOKL,cls:'newv',mask:causal,blank:b});
      const a=MP('A = \\mathrm{softmax}(S)',C.Pa,{rl:TOKL,cl:TOKL,cls:'newv',dim:causal,blank:b,sub:'each row sums to 1'});
      l.append(q,kop('\\cdot'),k,kop('\\times\\tfrac12 ='),s,kop('\\xrightarrow{\\text{softmax}}'),a);return {outs:[s,a],hot:[...q.cells[2],...col(k.cells,1),s.cells[2][1]]};},
-   cap:()=>`<b>Scores:</b> ${kx(`S_{\\text{sat},\\text{cat}} = q_{\\text{sat}}\\cdot k_{\\text{cat}}/\\sqrt 4 = (${dotT(C.Q[2],C.K[1])})/2 = ${fmt(C.S[2][1])}`)}. Future positions are masked to \u2212\u221e, then softmax turns each row into weights: \u201csat\u201d attends ${kx(C.Pa[2].map(fmt).join(',\\;'))} to the, cat, sat. \u201cthe\u201d can only see itself, so its row is [1, 0, 0].`},
-  {ph:'f',box:[5],tex:'O = A\\,V,\\qquad O\\,W_O',
+   cap:()=>`<b>Scores:</b> ${kx(`S_{\\text{sat},\\text{cat}} = ${P.mode==='rope'?'\\tilde q_{\\text{sat}}\\cdot \\tilde k_{\\text{cat}}':'q_{\\text{sat}}\\cdot k_{\\text{cat}}'}/\\sqrt 4 = (${dotT(C.Qr[2],C.Kr[1])})/2 = ${fmt(C.S[2][1])}`)}.${P.mode==='rope'?' Because both vectors were rotated by their positions, this score depends on their distance, 1 position.':''} Future positions are masked to \u2212\u221e, then softmax turns each row into weights: \u201csat\u201d attends ${kx(C.Pa[2].map(fmt).join(',\\;'))} to the, cat, sat. \u201cthe\u201d can only see itself, so its row is [1, 0, 0].`},
+  {ph:'f',box:['av'],tex:'O = A\\,V,\\qquad O\\,W_O',
    lanes(b){const l=L('fwd','mix the values, then project','each row of O is a weighted average of the rows of V');
      const a=MP('A',C.Pa,{rl:TOKL,cl:TOKL,dim:causal}),v=MP('V',C.Vv,{rl:TOKL,cl:dl(4)}),o=MP('O',C.O,{cl:dl(4),cls:'newv',blank:b});
      const w=MP('W_O\\;(4{\\times}4)',P.Wo,{rl:dl(4),cl:dl(4),sub:'trainable'}),oa=MP('O\\,W_O',C.Oa,{rl:TOKL,cl:dl(4),cls:'newv',blank:b});
-     l.append(a,kop('\\cdot'),v,kop('='),o,kop('\\cdot'),w,kop('='),oa);return {outs:[o,oa],hot:[...a.cells[2],...col(v.cells,0),o.cells[2][0]]};},
+     l.append(a,kop('\\cdot'),v,kop('='),o);const l2=L('fwd','','then W_O maps the mix back into the 4-number stream');const o2=MP('O',C.O,{rl:TOKL,cl:dl(4)});
+     l2.append(o2,kop('\\cdot'),w,kop('='),oa);return {outs:[o,oa],hot:[...a.cells[2],...col(v.cells,0),o.cells[2][0]]};},
    cap:()=>`<b>Mix the values:</b> ${kx(`O_{\\text{sat},1} = ${dotT(C.Pa[2],col(C.Vv,0))} = ${fmt(C.O[2][0])}`)}: ${C.Pa[2].map((v,j)=>`${Math.round(100*v)}% of ${BLK_VOCAB[j]}\u2019s value`).join(', ')} (the weights from the last step). ${kx('W_O')} then maps the mix back into the 4-number stream.`},
-  {ph:'f',box:[6],tex:'H_1 = X + O\\,W_O',
+  {ph:'f',box:['r1'],tex:'H_1 = X + O\\,W_O',
    lanes(b){const l=L('fwd','residual add','the original embedding passes straight through; attention adds a correction');
      const x=MP('X',C.X,{rl:TOKL,cl:dl(4)}),oa=MP('O\\,W_O',C.Oa,{cl:dl(4)}),h=MP('H_1',C.H1,{rl:TOKL,cl:dl(4),cls:'newv',blank:b});
      l.append(x,kop('+'),oa,kop('='),h);return {outs:[h],hot:[x.cells[1][0],oa.cells[1][0],h.cells[1][0]]};},
    cap:()=>`<b>Residual add</b>, entry by entry: \u201ccat\u201d, feature 1: ${kx(`${fmt(C.X[1][0])} + ${fmt(C.Oa[1][0])} = ${fmt(C.H1[1][0])}`)}. Backward, this + gate will copy the gradient to both inputs (slide 23).`},
-  {ph:'f',box:[7],tex:'A_2 = \\gamma_2\\odot\\frac{H_1-\\mu}{\\sigma} + \\beta_2',
+  {ph:'f',box:['ln2'],tex:'A_2 = \\gamma_2\\odot\\frac{H_1-\\mu}{\\sigma} + \\beta_2',
    lanes(b){return lnLane(L('fwd','LayerNorm 2','same recipe, its own \u03b3\u2082 and \u03b2\u2082'),C.H1,C.ln2,P.g2,P.b2n,C.A2,{x:'H_1',a:'A_2',g:'\\gamma_2',b:'\\beta_2',gb:'\\gamma_2,\\ \\beta_2'},b);},
    cap:()=>{const c=C.ln2;return `<b>LayerNorm 2.</b> \u201ccat\u201d: ${kx(`\\mu = ${fmt(c.mu[1])},\\ \\sigma = ${fmt(c.sd[1])}`)}, ${kx(`\\hat x_1 = (${fmt(C.H1[1][0])} - ${fmt(c.mu[1])})/${fmt(c.sd[1])} = ${fmt(c.xh[1][0])}`)}. Every row comes out with mean 0 and spread 1 before the FFN sees it.`;}},
-  {ph:'f',box:[8],tex:'Z = A_2 W_1 + b_1,\\qquad G = \\mathrm{GELU}(Z)',
+  {ph:'f',box:['f1'],tex:'Z = A_2 W_1 + b_1,\\qquad G = \\mathrm{GELU}(Z)',
    lanes(b){const l=L('fwd','FFN up: 4 \u2192 8','the dashed row is the bias b\u2081, added to every row');
      const a=MP('A_2',C.A2,{rl:TOKL,cl:dl(4)}),w=MP('W_1\\;(4{\\times}8),\\ b_1',withBias(P.W1,P.b1),{rl:[...dl(4),'b_1'],cl:dl(8),brow:4,sub:'trainable'});
-     const z=MP('Z',C.Z,{rl:TOKL,cl:dl(8),cls:'newv',blank:b});l.append(a,kop('\\cdot W_1 + b_1'),w,kop('='),z);
+     const z=MP('Z',C.Z,{cl:dl(8),cls:'newv',blank:b});l.append(a,kop('\\cdot W_1 + b_1'),w,kop('='),z);
      const l2=L('fwd','GELU, elementwise','');const z2=MP('Z',C.Z,{rl:TOKL,cl:dl(8)}),g=MP('G = \\mathrm{GELU}(Z)',C.Gl,{rl:TOKL,cl:dl(8),cls:'newv',blank:b});
      l2.append(z2,kop('\\xrightarrow{\\mathrm{GELU}}'),g);return {outs:[z,g],hot:[...a.cells[1],...col(w.cells,0),z.cells[1][0]]};},
    cap:()=>`<b>FFN up + GELU:</b> widen to 8 features. ${kx(`Z_{\\text{cat},1} = ${dotT(C.A2[1],col(P.W1,0))} + ${fmt(P.b1[0])} = ${fmt(C.Z[1][0])}`)}, then ${kx(`\\mathrm{GELU}(${fmt(C.Z[1][0])}) = ${fmt(C.Gl[1][0])}`)}. GELU keeps positives and squashes negatives toward 0.`},
-  {ph:'f',box:[9,10],tex:'F = G\\,W_2 + b_2,\\qquad H_2 = H_1 + F',
+  {ph:'f',box:['f2','r2'],tex:'F = G\\,W_2 + b_2,\\qquad H_2 = H_1 + F',
    lanes(b){const l=L('fwd','FFN down: 8 \u2192 4','dashed row = bias b\u2082');
      const g=MP('G',C.Gl,{rl:TOKL,cl:dl(8)}),w=MP('W_2\\;(8{\\times}4),\\ b_2',withBias(P.W2,P.b2),{rl:[...dl(8),'b_2'],cl:dl(4),brow:8,sub:'trainable'});
      const f=MP('F',C.Fo,{rl:TOKL,cl:dl(4),cls:'newv',blank:b});l.append(g,kop('\\cdot W_2 + b_2'),w,kop('='),f);
      const l2=L('fwd','residual add','');const h1=MP('H_1',C.H1,{rl:TOKL,cl:dl(4)}),f2=MP('F',C.Fo,{cl:dl(4)}),h2=MP('H_2',C.H2,{rl:TOKL,cl:dl(4),cls:'newv',blank:b});
      l2.append(h1,kop('+'),f2,kop('='),h2);return {outs:[f,h2],hot:[...g.cells[1],...col(w.cells,0),f.cells[1][0]]};},
    cap:()=>`<b>FFN down, then residual:</b> ${kx(`F_{\\text{cat},1} = \\textstyle\\sum_{k=1}^{8} G_{\\text{cat},k}\\,W_{2,k1} + b_{2,1} = ${fmt(C.Fo[1][0])}`)}, and ${kx(`H_2 = H_1 + F`)}: ${kx(`${fmt(C.H1[1][0])} + ${fmt(C.Fo[1][0])} = ${fmt(C.H2[1][0])}`)}.`},
-  {ph:'f',box:[11],tex:'A_3 = \\gamma_f\\odot\\frac{H_2-\\mu}{\\sigma} + \\beta_f',
+  {ph:'f',box:['lnf'],tex:'A_3 = \\gamma_f\\odot\\frac{H_2-\\mu}{\\sigma} + \\beta_f',
    lanes(b){return lnLane(L('fwd','final LayerNorm','normalize once more before predicting'),C.H2,C.lnf,P.gf,P.bfn,C.A3,{x:'H_2',a:'A_3',g:'\\gamma_f',b:'\\beta_f',gb:'\\gamma_f,\\ \\beta_f'},b);},
    cap:()=>`<b>Final LayerNorm</b>, same recipe with its own ${kx('\\gamma_f, \\beta_f')}. Its output ${kx('A_3')} is the block\u2019s final 4-number summary of each position.`},
-  {ph:'f',box:[12,13],tex:'\\text{logits} = A_3 U,\\quad P = \\mathrm{softmax}_{\\text{row}},\\quad L = -\\tfrac13\\textstyle\\sum_t \\log P_{t,\\,\\text{target}_t}',
+  {ph:'f',box:['un','L'],tex:'\\text{logits} = A_3 U,\\quad P = \\mathrm{softmax}_{\\text{row}},\\quad L = -\\tfrac13\\textstyle\\sum_t \\log P_{t,\\,\\text{target}_t}',
    lanes(b){const tgt=(i,j)=>j===BLK_TGT[i];const l=L('fwd','scores for every word','U maps each position\u2019s 4 numbers to 6 scores, one per vocabulary word');
      const a=MP('A_3',C.A3,{rl:TOKL,cl:dl(4)}),u=MP('U\\;(4{\\times}6)',P.U,{rl:dl(4),cl:VL,sub:'trainable'}),lg=MP('\\text{logits}',C.Lg,{rl:TOKL,cl:VL,cls:'newv',blank:b});
      l.append(a,kop('\\cdot'),u,kop('='),lg);
-     const l2=L('fwd','softmax, then the loss','green outline = the true next word');const lg2=MP('\\text{logits}',C.Lg,{rl:TOKL,cl:VL});
-     const p=MP('P = \\mathrm{softmax}',C.Pr,{cl:VL,cls:'newv',tgt:tgt,blank:b});
-     const pt=MP('P_{\\text{target}}',C.Pr.map((r,t)=>[r[BLK_TGT[t]]]),{cl:['\\text{'+'tgt'+'}'],cls:'newv',blank:b,sub:'cat, sat, on'});
+     const l2=L('fwd','softmax per row','green outline = the true next word');const lg2=MP('\\text{logits}',C.Lg,{rl:TOKL,cl:VL});
+     const p=MP('P = \\mathrm{softmax}',C.Pr,{cl:VL,cls:'newv',tgt:tgt,blank:b});const l3=L('fwd','the loss','pick each row\u2019s green probability, take \u2212log, average');
+     const pt=MP('P_{\\text{target}}',C.Pr.map((r,t)=>[r[BLK_TGT[t]]]),{rl:BLK_TGT.map((y,t)=>`\\text{${BLK_VOCAB[BLK_TOK[t]]}}\\to\\text{${BLK_VOCAB[y]}}`),cls:'newv',blank:b});
      const nl=MP('-\\log P',C.nll.map(v=>[v]),{cls:'newv',blank:b}),Lp=MP('L',[[C.L]],{cls:'newv',f:f3,blank:b});
-     l2.append(lg2,kop('\\xrightarrow{\\text{softmax}}'),p,kop('\\xrightarrow{\\text{pick}}'),pt,kop('\\xrightarrow{-\\log}'),nl,kop('\\xrightarrow{\\text{mean}}'),Lp);
+     l2.append(lg2,kop('\\xrightarrow{\\text{softmax}}'),p);l3.append(pt,kop('\\xrightarrow{-\\log}'),nl,kop('\\xrightarrow{\\text{mean}}'),Lp);
      return {outs:[lg,p,pt,nl,Lp],hot:[...a.cells[2],...col(u.cells,3),lg.cells[2][3]]};},
    cap:()=>{const top=C.Pr.map(r=>BLK_VOCAB[r.indexOf(Math.max(...r))]);return `<b>Logits, softmax, loss.</b> ${kx('U')} turns each position\u2019s 4 numbers into 6 scores, one per word; softmax makes them probabilities. Targets: the\u2192cat, cat\u2192sat, sat\u2192on. Top guesses right now: ${top.join(', ')}. ${kx(`L = \\tfrac13(${C.nll.map(fmt).join('+')}) = ${f3(C.L)}`)}${updates?'':`, close to ${kx('\\ln 6 = 1.79')}, the loss of guessing uniformly: the random weights know nothing yet`}.`;}},
   // ---------- backward ----------
-  {ph:'b',box:[13,12],tex:'\\frac{\\partial L}{\\partial\\,\\text{logits}} = \\frac{P - Y}{T}',
+  {ph:'b',box:['L','un'],tex:'\\frac{\\partial L}{\\partial\\,\\text{logits}} = \\frac{P - Y}{T}',
    lanes(b){const tg=(i,j)=>j===BLK_TGT[i];const l=L('bwd','softmax + cross-entropy','prediction minus the one-hot target, divided by T = 3 positions');
      const p=MP('P',C.Pr,{rl:TOKL,cl:VL,tgt:tg}),y=MP('Y\\;(\\text{one-hot})',C.Pr.map((r,t)=>r.map((_,v)=>v===BLK_TGT[t]?1:0)),{cl:VL,f:v=>String(v),tgt:tg});
-     const g=MP('\\partial L/\\partial\\,\\text{logits}',G.dLg,{rl:TOKL,cl:VL,cls:'gv',f:fg,tgt:tg,blank:b});
+     const g=MP('\\partial L/\\partial\\,\\text{logits}',G.dLg,{cl:VL,cls:'gv',f:fg,tgt:tg,blank:b});
      l.append(p,kop('-'),y,kop('\\div 3 ='),g);return {outs:[g],hot:[p.cells[2][3],y.cells[2][3],g.cells[2][3]]};},
    cap:()=>`<b>Backward starts at the loss.</b> For softmax followed by \u2212log, the gradient of the logits is just ${kx('(P - Y)/3')}. Row \u201csat\u201d, target \u201con\u201d: ${kx(`(${fmt(C.Pr[2][3])} - 1)/3 = ${tg(G.dLg[2][3])}`)}, negative, so gradient descent will push that score <b>up</b>; every other word gets ${kx('p/3 > 0')} and is pushed down.`},
-  {ph:'b',box:[12],tex:'\\frac{\\partial L}{\\partial U} = A_3^{\\top}\\frac{\\partial L}{\\partial\\,\\text{logits}},\\qquad \\frac{\\partial L}{\\partial A_3} = \\frac{\\partial L}{\\partial\\,\\text{logits}}\\,U^{\\top}',
+  {ph:'b',box:['un'],tex:'\\frac{\\partial L}{\\partial U} = A_3^{\\top}\\frac{\\partial L}{\\partial\\,\\text{logits}},\\qquad \\frac{\\partial L}{\\partial A_3} = \\frac{\\partial L}{\\partial\\,\\text{logits}}\\,U^{\\top}',
    lanes(b){const r1=dWlane('gradient of U',C.A3,G.dLg,G.U,{x:'A_3',y:'\\,\\text{logits}',w:'U'},b,{rl:dl(4),cl:VL,wrl:dl(4)});
      const r2=dXlane('gradient into A\u2083',G.dLg,P.U,G.dA3,{y:'\\,\\text{logits}',w:'U',x:'A_3'},b,{cl:VL,wcl:dl(4),xcl:dl(4)});
      return {outs:[r1.w,r2.x],hot:[...r1.a.cells[0],...col(r1.g.cells,3),r1.w.cells[0][3]]};},
    cap:()=>`<b>Through the unembedding</b>, the matrix multiply rule from slide 10: input\u1d40 \u00d7 upstream for the weights, upstream \u00d7 weights\u1d40 for the input. One entry: ${kx(`\\partial L/\\partial U_{1,\\text{on}} = ${dotT(col(C.A3,0),col(G.dLg,3),fmt,tg)} = ${tg(G.U[0][3])}`)}.`},
-  {ph:'b',box:[11],tex:'\\frac{\\partial L}{\\partial\\gamma_f} = \\sum_t g\\odot\\hat x,\\quad \\frac{\\partial L}{\\partial\\beta_f} = \\sum_t g,\\quad \\frac{\\partial L}{\\partial H_2} = \\frac{1}{\\sigma}\\big(d - \\bar d - \\hat x\\,\\overline{d\\odot\\hat x}\\big),\\ d = \\gamma_f\\odot g',
+  {ph:'b',box:['lnf'],tex:'\\frac{\\partial L}{\\partial\\gamma_f} = \\sum_t g\\odot\\hat x,\\quad \\frac{\\partial L}{\\partial\\beta_f} = \\sum_t g,\\quad \\frac{\\partial L}{\\partial H_2} = \\frac{1}{\\sigma}\\big(d - \\bar d - \\hat x\\,\\overline{d\\odot\\hat x}\\big),\\ d = \\gamma_f\\odot g',
    lanes(b){return lnBack(G.dA3,C.lnf,P.gf,G.gf,G.bfn,G.dH2,{name:'final LayerNorm',a:'A_3',x:'H_2',g:'\\gamma_f',b:'\\beta_f'},b);},
    cap:()=>{const s=G.dH2[1].reduce((a,c)=>a+c,0);return `<b>Back through the final LayerNorm</b> (slide 29). \u03b3 and \u03b2 get their gradients summed over the 3 positions; the input gets the projected gradient. Each row of ${kx('\\partial L/\\partial H_2')} sums to zero (row \u201ccat\u201d: ${kx(Math.abs(s)<1e-9?'\\approx 0':tg(s))}): LayerNorm ignores any change that only shifts a whole row.`;}},
-  {ph:'b',box:[10,9],tex:'\\frac{\\partial L}{\\partial F} = \\frac{\\partial L}{\\partial H_2}\\ (\\text{copy}),\\quad \\frac{\\partial L}{\\partial W_2} = G^{\\top}\\frac{\\partial L}{\\partial F},\\quad \\frac{\\partial L}{\\partial b_2} = \\sum_t \\frac{\\partial L}{\\partial F},\\quad \\frac{\\partial L}{\\partial G} = \\frac{\\partial L}{\\partial F}W_2^{\\top}',
+  {ph:'b',box:['r2','f2'],tex:'\\frac{\\partial L}{\\partial F} = \\frac{\\partial L}{\\partial H_2}\\ (\\text{copy}),\\quad \\frac{\\partial L}{\\partial W_2} = G^{\\top}\\frac{\\partial L}{\\partial F},\\quad \\frac{\\partial L}{\\partial b_2} = \\sum_t \\frac{\\partial L}{\\partial F},\\quad \\frac{\\partial L}{\\partial G} = \\frac{\\partial L}{\\partial F}W_2^{\\top}',
    lanes(b){const l=L('bwd','residual 2 copies the gradient','one copy into the FFN, one straight down the skip path to H\u2081');
      const d=MP('\\partial L/\\partial H_2',G.dH2,{rl:TOKL,cl:dl(4),cls:'gv',f:fg}),f=MP('\\partial L/\\partial F',G.dFo,{cl:dl(4),cls:'gv',f:fg,blank:b}),s=MP('\\text{skip copy to } H_1',G.dH2,{cl:dl(4),cls:'gv',f:fg,blank:b});
      l.append(d,kop('\\xrightarrow{\\text{copy}}'),f,kop('\\text{and}'),s);
@@ -2607,26 +2756,26 @@ function buildSlide13(){
      const r2=dXlane('gradient into G',G.dFo,P.W2,G.dGl,{y:'F',w:'W_2',x:'G'},b,{cl:dl(4),wcl:dl(8),xcl:dl(8)});
      return {outs:[f,s,r1.w,r2.x],hot:[...d.cells[1],...f.cells[1],...s.cells[1]]};},
    cap:()=>`<b>Residual 2 is a + gate</b>, so it copies ${kx('\\partial L/\\partial H_2')} unchanged into both branches (slide 2). Then FFN-down: ${kx('\\partial L/\\partial W_2 = G^{\\top}\\,\\partial L/\\partial F')}, the bias gets the column sums ${kx('\\sum_t \\partial L/\\partial F')} (it was added to every row), and ${kx('\\partial L/\\partial G = \\partial L/\\partial F\\,W_2^{\\top}')}.`},
-  {ph:'b',box:[8],tex:'\\frac{\\partial L}{\\partial Z} = \\frac{\\partial L}{\\partial G}\\odot\\mathrm{GELU}\'(Z),\\quad \\frac{\\partial L}{\\partial W_1} = A_2^{\\top}\\frac{\\partial L}{\\partial Z},\\quad \\frac{\\partial L}{\\partial b_1} = \\sum_t\\frac{\\partial L}{\\partial Z},\\quad \\frac{\\partial L}{\\partial A_2} = \\frac{\\partial L}{\\partial Z}W_1^{\\top}',
+  {ph:'b',box:['f1'],tex:'\\frac{\\partial L}{\\partial Z} = \\frac{\\partial L}{\\partial G}\\odot\\mathrm{GELU}\'(Z),\\quad \\frac{\\partial L}{\\partial W_1} = A_2^{\\top}\\frac{\\partial L}{\\partial Z},\\quad \\frac{\\partial L}{\\partial b_1} = \\sum_t\\frac{\\partial L}{\\partial Z},\\quad \\frac{\\partial L}{\\partial A_2} = \\frac{\\partial L}{\\partial Z}W_1^{\\top}',
    lanes(b){const l=L('bwd','through GELU, elementwise','each unit multiplies by its own slope');
-     const dg=MP('\\partial L/\\partial G',G.dGl,{rl:TOKL,cl:dl(8),cls:'gv',f:fg}),sl=MP("\\mathrm{GELU}'(Z)",C.Z.map(r=>r.map(bGeluD)),{cl:dl(8)}),dz=MP('\\partial L/\\partial Z',G.dZ,{rl:TOKL,cl:dl(8),cls:'gv',f:fg,blank:b});
+     const dg=MP('\\partial L/\\partial G',G.dGl,{rl:TOKL,cl:dl(8),cls:'gv',f:fg}),sl=MP("\\mathrm{GELU}'(Z)",C.Z.map(r=>r.map(bGeluD)),{cl:dl(8)}),dz=MP('\\partial L/\\partial Z',G.dZ,{cl:dl(8),cls:'gv',f:fg,blank:b});
      l.append(dg,kop('\\odot'),sl,kop('='),dz);
      const r1=dWlane('gradient of W\u2081 and b\u2081 (dashed row: b\u2081)',C.A2,G.dZ,withBias(G.W1,G.b1),{x:'A_2',y:'Z',w:'W_1,\\ b_1'},b,{rl:dl(4),cl:dl(8),wrl:[...dl(4),'b_1'],brow:4});
      const r2=dXlane('gradient into A\u2082',G.dZ,P.W1,G.dA2,{y:'Z',w:'W_1',x:'A_2'},b,{cl:dl(8),wcl:dl(4),xcl:dl(4)});
      return {outs:[dz,r1.w,r2.x],hot:[dg.cells[1][0],sl.cells[1][0],dz.cells[1][0]]};},
    cap:()=>`<b>Through GELU and FFN-up.</b> GELU is elementwise, so each unit multiplies by its own slope: \u201ccat\u201d, unit 1: ${kx(`${tg(G.dGl[1][0])}\\times ${fmt(bGeluD(C.Z[1][0]))} = ${tg(G.dZ[1][0])}`)}. Units with a very negative ${kx('Z')} have slope \u2248 0 and pass almost nothing back. Then the same multiply rule for ${kx('W_1')}, ${kx('b_1')} and the input.`},
-  {ph:'b',box:[7,6],tex:'\\frac{\\partial L}{\\partial H_1} = \\underbrace{\\frac{\\partial L}{\\partial H_2}}_{\\text{skip}} + \\underbrace{\\mathrm{LN}_2^{\\text{back}}\\Big(\\frac{\\partial L}{\\partial A_2}\\Big)}_{\\text{through the FFN}}',
+  {ph:'b',box:['ln2','r1'],tex:'\\frac{\\partial L}{\\partial H_1} = \\underbrace{\\frac{\\partial L}{\\partial H_2}}_{\\text{skip}} + \\underbrace{\\mathrm{LN}_2^{\\text{back}}\\Big(\\frac{\\partial L}{\\partial A_2}\\Big)}_{\\text{through the FFN}}',
    lanes(b){const r=lnBack(G.dA2,C.ln2,P.g2,G.g2,G.b2n,G.dH1ln,{name:'LayerNorm 2',a:'A_2',x:'H_1',g:'\\gamma_2',b:'\\beta_2'},b);
      const l=L('bwd','merge the two paths','the skip copy and the FFN path add up (add rule in reverse)');
      const s=MP('\\text{skip: }\\partial L/\\partial H_2',G.dH2,{rl:TOKL,cl:dl(4),cls:'gv',f:fg}),f=MP('\\text{via FFN}',G.dH1ln,{cl:dl(4),cls:'gv',f:fg}),h=MP('\\partial L/\\partial H_1',G.dH1,{rl:TOKL,cl:dl(4),cls:'gv',f:fg,blank:b});
      l.append(s,kop('+'),f,kop('='),h);return {outs:[...r.outs,h],hot:[s.cells[1][0],f.cells[1][0],h.cells[1][0]]};},
    cap:()=>`<b>LayerNorm 2, then merge.</b> The gradient that went through the FFN comes back out of LN 2 and is <b>added</b> to the copy that took the skip path: \u201ccat\u201d, feature 1: ${kx(`${tg(G.dH2[1][0])} + ${tg(G.dH1ln[1][0])} = ${tg(G.dH1[1][0])}`)}. The skip copy arrives untouched, which is why deep stacks still get a gradient (slide 23).`},
-  {ph:'b',box:[6,5],tex:'\\frac{\\partial L}{\\partial (O W_O)} = \\frac{\\partial L}{\\partial H_1}\\ (\\text{copy}),\\quad \\frac{\\partial L}{\\partial W_O} = O^{\\top}\\frac{\\partial L}{\\partial H_1},\\quad \\frac{\\partial L}{\\partial O} = \\frac{\\partial L}{\\partial H_1}W_O^{\\top}',
+  {ph:'b',box:['r1','av'],tex:'\\frac{\\partial L}{\\partial (O W_O)} = \\frac{\\partial L}{\\partial H_1}\\ (\\text{copy}),\\quad \\frac{\\partial L}{\\partial W_O} = O^{\\top}\\frac{\\partial L}{\\partial H_1},\\quad \\frac{\\partial L}{\\partial O} = \\frac{\\partial L}{\\partial H_1}W_O^{\\top}',
    lanes(b){const r1=dWlane('gradient of W_O (residual 1 copied \u2202L/\u2202H\u2081 here and down to X)',C.O,G.dOa,G.Wo,{x:'O',y:'H_1',w:'W_O'},b,{rl:dl(4),cl:dl(4),wrl:dl(4)});
      const r2=dXlane('gradient into O',G.dOa,P.Wo,G.dO,{y:'H_1',w:'W_O',x:'O'},b,{cl:dl(4),wcl:dl(4),xcl:dl(4)});
      return {outs:[r1.w,r2.x],hot:[...r1.a.cells[0],...col(r1.g.cells,0),r1.w.cells[0][0]]};},
    cap:()=>`<b>Residual 1 copies again</b>: one copy of ${kx('\\partial L/\\partial H_1')} goes into attention, one down the skip path to ${kx('X')}. Attention\u2019s output weights: ${kx(`\\partial L/\\partial W_{O,11} = ${dotT(col(C.O,0),col(G.dOa,0),fmt,tg)} = ${tg(G.Wo[0][0])}`)}.`},
-  {ph:'b',box:[5,4],tex:'\\frac{\\partial L}{\\partial A} = \\frac{\\partial L}{\\partial O}V^{\\top},\\quad \\frac{\\partial L}{\\partial V} = A^{\\top}\\frac{\\partial L}{\\partial O},\\quad \\frac{\\partial L}{\\partial S} = A\\odot\\Big(\\frac{\\partial L}{\\partial A} - \\mathrm{rowsum}\\big(A\\odot\\frac{\\partial L}{\\partial A}\\big)\\Big)',
+  {ph:'b',box:['av','sc'],tex:'\\frac{\\partial L}{\\partial A} = \\frac{\\partial L}{\\partial O}V^{\\top},\\quad \\frac{\\partial L}{\\partial V} = A^{\\top}\\frac{\\partial L}{\\partial O},\\quad \\frac{\\partial L}{\\partial S} = A\\odot\\Big(\\frac{\\partial L}{\\partial A} - \\mathrm{rowsum}\\big(A\\odot\\frac{\\partial L}{\\partial A}\\big)\\Big)',
    lanes(b){const l1=L('bwd','O = A\u00b7V, gradient into the weights A','');const go=MP('\\partial L/\\partial O',G.dO,{rl:TOKL,cl:dl(4),cls:'gv',f:fg}),vt=MP('V^{\\top}',T_(C.Vv),{rl:dl(4),cl:TOKL}),da=MP('\\partial L/\\partial A',G.dPa,{rl:TOKL,cl:TOKL,cls:'gv',f:fg,blank:b});
      l1.append(go,kop('\\cdot'),vt,kop('='),da);
      const l2=L('bwd','gradient into V','');const at=MP('A^{\\top}',T_(C.Pa),{rl:TOKL,cl:TOKL}),go2=MP('\\partial L/\\partial O',G.dO,{cl:dl(4),cls:'gv',f:fg}),dv=MP('\\partial L/\\partial V',G.dV,{rl:TOKL,cl:dl(4),cls:'gv',f:fg,blank:b});
@@ -2634,69 +2783,105 @@ function buildSlide13(){
      const l3=L('bwd','softmax backward, row by row','masked entries were a constant \u2212\u221e, so they get exactly 0');const a=MP('A',C.Pa,{rl:TOKL,cl:TOKL,dim:causal}),da2=MP('\\partial L/\\partial A',G.dPa,{cl:TOKL,cls:'gv',f:fg}),ds=MP('\\partial L/\\partial S',G.dS,{rl:TOKL,cl:TOKL,cls:'gv',f:fg,dim:causal,blank:b});
      l3.append(a,kop('\\text{and}'),da2,kop('\\to'),ds);return {outs:[da,dv,ds],hot:[...a.cells[2],...da2.cells[2],...ds.cells[2]]};},
    cap:()=>{const s=G.dS[2].reduce((x,c)=>x+c,0);return `<b>Back through the attention mix.</b> ${kx('O = AV')} is a matrix multiply, so the usual rule gives ${kx('\\partial L/\\partial A')} and ${kx('\\partial L/\\partial V')}. Softmax backward subtracts each row\u2019s weighted average, so every row of ${kx('\\partial L/\\partial S')} sums to 0 (row \u201csat\u201d: ${kx(Math.abs(s)<1e-9?'\\approx 0':tg(s))}). Row \u201cthe\u201d is all zeros: with one visible token its weight is always 1, whatever its score.`;}},
-  {ph:'b',box:[4,3],tex:'\\frac{\\partial L}{\\partial Q} = \\frac{\\partial L}{\\partial S}\\,\\frac{K}{\\sqrt 4},\\qquad \\frac{\\partial L}{\\partial K} = \\Big(\\frac{\\partial L}{\\partial S}\\Big)^{\\top}\\frac{Q}{\\sqrt 4}',
-   lanes(b){const l1=L('bwd','gradient into Q','');const ds=MP('\\partial L/\\partial S',G.dS,{rl:TOKL,cl:TOKL,cls:'gv',f:fg,dim:causal}),k=MP('K',C.K,{rl:TOKL,cl:dl(4)}),dq=MP('\\partial L/\\partial Q',G.dQ,{rl:TOKL,cl:dl(4),cls:'gv',f:fg,blank:b});
+  {ph:'b',box:['sc','qkv'],tex:()=>P.mode==='rope'?'\\frac{\\partial L}{\\partial \\tilde Q} = \\frac{\\partial L}{\\partial S}\\,\\frac{\\tilde K}{\\sqrt 4},\\quad \\frac{\\partial L}{\\partial \\tilde K} = \\Big(\\frac{\\partial L}{\\partial S}\\Big)^{\\top}\\frac{\\tilde Q}{\\sqrt 4},\\quad \\frac{\\partial L}{\\partial Q_t} = R(t\\omega)^{\\top}\\frac{\\partial L}{\\partial \\tilde Q_t},\\ \\frac{\\partial L}{\\partial K_t} = R(t\\omega)^{\\top}\\frac{\\partial L}{\\partial \\tilde K_t}':'\\frac{\\partial L}{\\partial Q} = \\frac{\\partial L}{\\partial S}\\,\\frac{K}{\\sqrt 4},\\qquad \\frac{\\partial L}{\\partial K} = \\Big(\\frac{\\partial L}{\\partial S}\\Big)^{\\top}\\frac{Q}{\\sqrt 4}',
+   lanes(b){const rp=P.mode==='rope',QN=rp?'\\tilde Q':'Q',KN=rp?'\\tilde K':'K';
+     const l1=L('bwd',`gradient into ${rp?'Q\u0303':'Q'}`,'');const ds=MP('\\partial L/\\partial S',G.dS,{rl:TOKL,cl:TOKL,cls:'gv',f:fg,dim:causal}),k=MP(KN,C.Kr,{rl:TOKL,cl:dl(4)}),dq=MP(`\\partial L/\\partial ${QN}`,G.dQr,{rl:TOKL,cl:dl(4),cls:'gv',f:fg,blank:b});
      l1.append(ds,kop('\\cdot'),k,kop('\\times\\tfrac12 ='),dq);
-     const l2=L('bwd','gradient into K','');const dst=MP('(\\partial L/\\partial S)^{\\top}',T_(G.dS),{rl:TOKL,cl:TOKL,cls:'gv',f:fg}),q=MP('Q',C.Q,{rl:TOKL,cl:dl(4)}),dk=MP('\\partial L/\\partial K',G.dK,{rl:TOKL,cl:dl(4),cls:'gv',f:fg,blank:b});
-     l2.append(dst,kop('\\cdot'),q,kop('\\times\\tfrac12 ='),dk);return {outs:[dq,dk],hot:[...ds.cells[2],...col(k.cells,0),dq.cells[2][0]]};},
-   cap:()=>`<b>Scores to queries and keys:</b> ${kx('S = QK^{\\top}/2')} is one more matrix multiply. ${kx(`\\partial L/\\partial Q_{\\text{sat},1} = (${dotT(G.dS[2],col(C.K,0),tg,fmt)})/2 = ${tg(G.dQ[2][0])}`)}. The first row of ${kx('\\partial L/\\partial Q')} is 0 for the reason above.`},
-  {ph:'b',box:[3],tex:'\\frac{\\partial L}{\\partial W_Q} = A_1^{\\top}\\frac{\\partial L}{\\partial Q},\\quad \\frac{\\partial L}{\\partial W_K} = A_1^{\\top}\\frac{\\partial L}{\\partial K},\\quad \\frac{\\partial L}{\\partial W_V} = A_1^{\\top}\\frac{\\partial L}{\\partial V}',
+     const l2=L('bwd',`gradient into ${rp?'K\u0303':'K'}`,'');const dst=MP('(\\partial L/\\partial S)^{\\top}',T_(G.dS),{rl:TOKL,cl:TOKL,cls:'gv',f:fg}),q=MP(QN,C.Qr,{rl:TOKL,cl:dl(4)}),dk=MP(`\\partial L/\\partial ${KN}`,G.dKr,{rl:TOKL,cl:dl(4),cls:'gv',f:fg,blank:b});
+     l2.append(dst,kop('\\cdot'),q,kop('\\times\\tfrac12 ='),dk);const outs=[dq,dk];
+     if(rp){const l3=L('bwd','undo the rotation','the transpose of a rotation turns back by \u2212t\u03c9: row t goes back to where it started');
+       const a1=MP('\\partial L/\\partial \\tilde Q',G.dQr,{rl:TOKL,cl:dl(4),cls:'gv',f:fg}),o1=MP('\\partial L/\\partial Q',G.dQ,{rl:TOKL,cl:dl(4),cls:'gv',f:fg,blank:b});
+       const a2=MP('\\partial L/\\partial \\tilde K',G.dKr,{rl:TOKL,cl:dl(4),cls:'gv',f:fg}),o2=MP('\\partial L/\\partial K',G.dK,{rl:TOKL,cl:dl(4),cls:'gv',f:fg,blank:b});
+       l3.append(a1,kop('\\xrightarrow{R(-t\\omega)}'),o1);const l4=L('bwd','','the same for the keys');l4.append(a2,kop('\\xrightarrow{R(-t\\omega)}'),o2);outs.push(o1,o2);}
+     return {outs,hot:[...ds.cells[2],...col(k.cells,0),dq.cells[2][0]]};},
+   cap:()=>`<b>Scores to queries and keys:</b> ${kx(P.mode==='rope'?'S = \\tilde Q\\tilde K^{\\top}/2':'S = QK^{\\top}/2')} is one more matrix multiply. ${kx(`\\partial L/\\partial ${P.mode==='rope'?'\\tilde Q':'Q'}_{\\text{sat},1} = (${dotT(G.dS[2],col(C.Kr,0),tg,fmt)})/2 = ${tg(G.dQr[2][0])}`)}. The first row is 0: with one visible token, \u201cthe\u201d always attends to itself whatever its score.`+(P.mode==='rope'?` RoPE adds one step: rotate each gradient row back by ${kx('-t\\omega')} (the transpose of a rotation is the reverse rotation), and RoPE itself has no parameters to update.`:'')},
+  {ph:'b',box:['qkv'],tex:'\\frac{\\partial L}{\\partial W_Q} = A_1^{\\top}\\frac{\\partial L}{\\partial Q},\\quad \\frac{\\partial L}{\\partial W_K} = A_1^{\\top}\\frac{\\partial L}{\\partial K},\\quad \\frac{\\partial L}{\\partial W_V} = A_1^{\\top}\\frac{\\partial L}{\\partial V}',
    lanes(b){const out=[];let hot=[];[['Q','W_Q',G.dQ,G.Wq],['K','W_K',G.dK,G.Wk],['V','W_V',G.dV,G.Wv]].forEach(([n,w,dY,dW],k)=>{
        const r=dWlane(`gradient of ${w.replace('_','')}`,C.A1,dY,dW,{x:'A_1',y:n,w:w},b,{rl:dl(4),cl:dl(4),wrl:dl(4)});out.push(r.w);
        if(!k)hot=[...r.a.cells[0],...col(r.g.cells,0),r.w.cells[0][0]];});return {outs:out,hot};},
    cap:()=>`<b>Weight gradients for W_Q, W_K, W_V.</b> All three multiplied the same ${kx('A_1')}, so each gradient is ${kx('A_1^{\\top}')} times its own upstream gradient: ${kx(`\\partial L/\\partial W_{Q,11} = ${dotT(col(C.A1,0),col(G.dQ,0),fmt,tg)} = ${tg(G.Wq[0][0])}`)}.`},
-  {ph:'b',box:[3,2],tex:'\\frac{\\partial L}{\\partial A_1} = \\frac{\\partial L}{\\partial Q}W_Q^{\\top} + \\frac{\\partial L}{\\partial K}W_K^{\\top} + \\frac{\\partial L}{\\partial V}W_V^{\\top}',
+  {ph:'b',box:['qkv','ln1'],tex:'\\frac{\\partial L}{\\partial A_1} = \\frac{\\partial L}{\\partial Q}W_Q^{\\top} + \\frac{\\partial L}{\\partial K}W_K^{\\top} + \\frac{\\partial L}{\\partial V}W_V^{\\top}',
    lanes(b){const l=L('bwd','A\u2081 fed three branches, so its gradient is a sum of three','add rule in reverse: one copy per use, summed');
      const t1=bMm(G.dQ,T_(P.Wq)),t2=bMm(G.dK,T_(P.Wk)),t3=bMm(G.dV,T_(P.Wv));
      const a=MP('\\partial L/\\partial Q\\, W_Q^{\\top}',t1,{rl:TOKL,cl:dl(4),cls:'gv',f:fg}),bb=MP('\\partial L/\\partial K\\, W_K^{\\top}',t2,{cl:dl(4),cls:'gv',f:fg}),c=MP('\\partial L/\\partial V\\, W_V^{\\top}',t3,{cl:dl(4),cls:'gv',f:fg});
      const s=MP('\\partial L/\\partial A_1',G.dA1,{rl:TOKL,cl:dl(4),cls:'gv',f:fg,blank:b});l.append(a,kop('+'),bb,kop('+'),c,kop('='),s);
      return {outs:[s],hot:[a.cells[2][0],bb.cells[2][0],c.cells[2][0],s.cells[2][0]],t:[t1,t2,t3]};},
    cap:()=>{const t1=bMm(G.dQ,T_(P.Wq)),t2=bMm(G.dK,T_(P.Wk)),t3=bMm(G.dV,T_(P.Wv));return `<b>A\u2081 was used three times</b> (to make Q, K and V), so it receives three gradient copies that <b>add</b>: \u201csat\u201d, feature 1: ${kx(`${tg(t1[2][0])} + ${tg(t2[2][0])} + ${tg(t3[2][0])} = ${tg(G.dA1[2][0])}`)}.`;}},
-  {ph:'b',box:[2,6],tex:'\\frac{\\partial L}{\\partial X} = \\underbrace{\\frac{\\partial L}{\\partial H_1}}_{\\text{skip}} + \\underbrace{\\mathrm{LN}_1^{\\text{back}}\\Big(\\frac{\\partial L}{\\partial A_1}\\Big)}_{\\text{through attention}}',
+  {ph:'b',box:['ln1','r1'],tex:'\\frac{\\partial L}{\\partial X} = \\underbrace{\\frac{\\partial L}{\\partial H_1}}_{\\text{skip}} + \\underbrace{\\mathrm{LN}_1^{\\text{back}}\\Big(\\frac{\\partial L}{\\partial A_1}\\Big)}_{\\text{through attention}}',
    lanes(b){const r=lnBack(G.dA1,C.ln1,P.g1,G.g1,G.b1n,G.dXln,{name:'LayerNorm 1',a:'A_1',x:'X',g:'\\gamma_1',b:'\\beta_1'},b);
      const l=L('bwd','merge with the skip path from residual 1','');const s=MP('\\text{skip: }\\partial L/\\partial H_1',G.dH1,{rl:TOKL,cl:dl(4),cls:'gv',f:fg}),f=MP('\\text{via attention}',G.dXln,{cl:dl(4),cls:'gv',f:fg}),x=MP('\\partial L/\\partial X',G.dX,{rl:TOKL,cl:dl(4),cls:'gv',f:fg,blank:b});
      l.append(s,kop('+'),f,kop('='),x);return {outs:[...r.outs,x],hot:[s.cells[1][0],f.cells[1][0],x.cells[1][0]]};},
    cap:()=>`<b>LayerNorm 1, then merge with the skip path:</b> \u201ccat\u201d, feature 1: ${kx(`${tg(G.dH1[1][0])} + ${tg(G.dXln[1][0])} = ${tg(G.dX[1][0])}`)}. ${kx('\\partial L/\\partial X')} is the gradient for the three embedding rows the sentence looked up.`},
-  {ph:'b',box:[1],tex:'\\frac{\\partial L}{\\partial E_{\\text{token}_t}} \\mathrel{+}= \\frac{\\partial L}{\\partial X_t}',
+  {ph:'b',box:['E','pos'],tex:()=>'\\frac{\\partial L}{\\partial E_{\\text{token}_t}} \\mathrel{+}= \\frac{\\partial L}{\\partial X_t}'+(P.mode==='learned'?',\\qquad \\frac{\\partial L}{\\partial P_t} = \\frac{\\partial L}{\\partial X_t}':''),
    lanes(b){const l=L('bwd','into the embedding table','each row of \u2202L/\u2202X goes back to the row of E it came from');
      const x=MP('\\partial L/\\partial X',G.dX,{rl:TOKL,cl:dl(4),cls:'gv',f:fg}),e=MP('\\partial L/\\partial E\\;(6{\\times}4)',G.E,{rl:VL,cl:dl(4),cls:'gv',f:fg,dim:i=>!BLK_TOK.includes(i),blank:b});
-     l.append(x,kop('\\xrightarrow{\\text{back to its row}}'),e);return {outs:[e],hot:[...x.cells[1],...e.cells[1]]};},
-   cap:()=>`<b>Into the embedding table.</b> The lookup copied rows of ${kx('E')}, so backward simply adds each row of ${kx('\\partial L/\\partial X')} to the row it came from. Rows on, mat and \u201c.\u201d get <b>exactly 0</b>: words not in the batch are not updated (slide 30).`},
+     l.append(x,kop('\\xrightarrow{\\text{back to its row}}'),e);const outs=[e];
+     if(P.mode==='learned'){const l2=L('bwd','into the position table','row t of \u2202L/\u2202X goes to row t of P: every position appears once');
+       const x2=MP('\\partial L/\\partial X',G.dX,{rl:TOKL,cl:dl(4),cls:'gv',f:fg}),pp=MP('\\partial L/\\partial P\\;(3{\\times}4)',G.Pp,{rl:POSL,cl:dl(4),cls:'gv',f:fg,blank:b});
+       l2.append(x2,kop('\\xrightarrow{\\text{row } t}'),pp);outs.push(pp);}
+     return {outs,hot:[...x.cells[1],...e.cells[1]]};},
+   cap:()=>`<b>Into the embedding table.</b> The lookup copied rows of ${kx('E')}, so backward simply adds each row of ${kx('\\partial L/\\partial X')} to the row it came from. Rows on, mat and \u201c.\u201d get <b>exactly 0</b>: words not in the batch are not updated (slide 30).`+({learned:` The learned position table gets the same rows, indexed by position instead of by word: ${kx('\\partial L/\\partial P_t = \\partial L/\\partial X_t')}.`,sin:' The sin/cos position vectors are fixed numbers, so they get no update.',rope:' RoPE has no parameters, so there is nothing else to update.',none:''})[P.mode]},
   // ---------- update ----------
-  {ph:'u',box:[],tex:'\\theta \\leftarrow \\theta - \\eta\\,\\frac{\\partial L}{\\partial \\theta}\\quad\\text{for all 16 tensors (212 numbers)}',
+  {ph:'u',box:[],tex:()=>`\\theta \\leftarrow \\theta - \\eta\\,\\frac{\\partial L}{\\partial \\theta}\\quad\\text{for all ${blkParams(P).length} tensors (${NPARAM()} numbers)}`,
    lanes(b){const l=L('upd','one tensor in full: W_Q',`learning rate \u03b7 = ${lr}`);const N=blkStep(P,G,lr);
      const w=MP('W_Q',P.Wq,{rl:dl(4),cl:dl(4)}),g=MP('\\partial L/\\partial W_Q',G.Wq,{cl:dl(4),cls:'gv',f:fg}),n=MP('W_Q^{\\text{new}}',N.Wq,{rl:dl(4),cl:dl(4),cls:'newv',blank:b});
      l.append(w,kop(`-\\;${lr}\\,\\cdot`),g,kop('='),n);
      const t=el('div');t.style.marginTop='10px';const Ln=blkForward(N).L;
-     t.innerHTML=`<table class="dtab"><tr><th style="text-align:left">tensor</th><th style="text-align:left">role</th><th>shape</th><th>numbers</th><th>\u2016\u03b8\u2016</th><th>\u2016\u2202L/\u2202\u03b8\u2016</th><th>\u2016\u03b7\u2202L/\u2202\u03b8\u2016 (step size)</th></tr>${BLK_PARAMS.map(([k,tx,role])=>{const p=P[k];const sh=Array.isArray(p[0])?`${p.length}\u00d7${p[0].length}`:`${p.length}`;
+     t.innerHTML=`<table class="dtab"><tr><th style="text-align:left">tensor</th><th style="text-align:left">role</th><th>shape</th><th>numbers</th><th>\u2016\u03b8\u2016</th><th>\u2016\u2202L/\u2202\u03b8\u2016</th><th>\u2016\u03b7\u2202L/\u2202\u03b8\u2016 (step size)</th></tr>${blkParams(P).map(([k,tx,role])=>{const p=P[k];const sh=Array.isArray(p[0])?`${p.length}\u00d7${p[0].length}`:`${p.length}`;
        return `<tr><td style="text-align:left">${kx(tx)}</td><td style="text-align:left">${role}</td><td>${sh}</td><td>${blkCount(p)}</td><td>${f3(blkNorm(p))}</td><td>${f3(blkNorm(G[k]))}</td><td>${f3(lr*blkNorm(G[k]))}</td></tr>`;}).join('')}
-       <tr class="tot"><td style="text-align:left">total</td><td></td><td></td><td>${BLK_PARAMS.reduce((s,[k])=>s+blkCount(P[k]),0)}</td><td></td><td></td><td></td></tr></table>
+       <tr class="tot"><td style="text-align:left">total</td><td></td><td></td><td>${NPARAM()}</td><td></td><td></td><td></td></tr></table>
        <div class="nstat" style="margin-top:6px">loss on this sentence: ${f3(C.L)} now \u2192 ${f3(Ln)} after this update</div>`;
      st.appendChild(t);return {outs:[n],hot:[w.cells[0][0],g.cells[0][0],n.cells[0][0]]};},
    cap:()=>{const Ln=blkForward(blkStep(P,G,lr)).L;return `<b>Update every trainable tensor</b> with the same rule, ${kx('\\theta \\leftarrow \\theta - \\eta\\,\\partial L/\\partial\\theta')}, ${kx(`\\eta = ${lr}`)}. One entry: ${kx(`W_{Q,11}: ${P.Wq[0][0].toFixed(4)} - ${lr}\\times(${tg(G.Wq[0][0])}) = ${(P.Wq[0][0]-lr*G.Wq[0][0]).toFixed(4)}`)}. Running the same sentence again, the loss goes from ${kx(f3(C.L))} to ${kx(f3(Ln))}. Press <b>Apply update \u21bb</b> below to do it for real, or <b>Train \u00d710</b>.`;}}
   ];
-  // ---------- pipeline strip ----------
-  const BOXES=[['\\text{tokens}',null,'3 ids'],['E',['E'],'3\u00d74'],['\\mathrm{LN}_1',['g1','b1n'],'3\u00d74'],['Q,K,V',['Wq','Wk','Wv'],'3\u00d74 \u00d73'],['\\mathrm{softmax}\\tfrac{QK^\\top}{2}',null,'3\u00d73'],['AV,\\ W_O',['Wo'],'3\u00d74'],['+',null,'3\u00d74'],
-    ['\\mathrm{LN}_2',['g2','b2n'],'3\u00d74'],['W_1,\\ \\mathrm{GELU}',['W1','b1'],'3\u00d78'],['W_2',['W2','b2'],'3\u00d74'],['+',null,'3\u00d74'],['\\mathrm{LN}_f',['gf','bfn'],'3\u00d74'],['U,\\ \\mathrm{softmax}',['U'],'3\u00d76'],['L',null,'1']];
-  const FWD_N=S.filter(s=>s.ph==='f').length;
-  function drawPipe(s){pipe.innerHTML='';const row=el('div','bpipe');pipe.appendChild(row);
-    const cur=s>0?S[s-1]:null,phase=cur?cur.ph:null;const seen=new Set();for(let k=0;k<s;k++)S[k].box.forEach(b=>seen.add(b));
-    const bseen=new Set();for(let k=FWD_N;k<s;k++)S[k].box.forEach(b=>bseen.add(b));
-    BOXES.forEach(([tx,params,shape],i)=>{if(i)row.appendChild(el('span','barr','\u2192'));
-      const n=params?params.reduce((a,k)=>a+blkCount(P[k]),0):0;
-      const bx=el('div','bbox'+(params?' tr':'')+(cur&&cur.box.includes(i)?' cur':''));
-      bx.innerHTML=`<div class="bn">${kx(tx)}</div><div class="bs">${seen.has(i)?'\u2713 '+shape:shape}</div><div class="bs">${params?n+' params':'\u00a0'}</div>`;
-      const g=el('div','bg');if(params&&bseen.has(i)){g.textContent='\u2016\u2207\u2016 '+f3(Math.sqrt(params.reduce((a,k)=>a+blkNorm(G[k])**2,0)));}else g.innerHTML='\u00a0';bx.appendChild(g);row.appendChild(bx);});
-    const lg=el('div','nstat');lg.innerHTML=`orange border = trainable (212 numbers in total) \u00b7 \u2713 = forward done \u00b7 \u2016\u2207\u2016 = size of that block\u2019s weight gradient, filled in during the backward pass \u00b7 small cells read 4e-3 = 0.004 \u00b7 phase: <b>${phase==='f'?'forward':phase==='b'?'backward':phase==='u'?'update':'ready'}</b>`;pipe.appendChild(lg);}
+  // ---------- vertical block diagram ----------
+  const BX=()=>[
+    {id:'tok',tx:'\\text{tokens}',sh:'3 ids'},
+    {id:'E',tx:'E\\ \\text{(embedding)}',p:['E'],sh:'3\u00d74'},
+    {id:'pos',tx:{sin:'+\\ \\mathrm{PE}\\ (\\sin,\\cos)',learned:'+\\ P\\ \\text{(learned)}',none:'\\text{no positions}',rope:'\\text{positions: RoPE}'}[P.mode],p:P.mode==='learned'?['Pp']:null,sh:P.mode==='sin'||P.mode==='learned'?'3\u00d74':'\u2013'},
+    {br:1,label:'skip: X goes straight to +'},
+    {id:'ln1',tx:'\\mathrm{LN}_1',p:['g1','b1n'],sh:'3\u00d74'},
+    {id:'qkv',tx:P.mode==='rope'?'Q,K,V\\ +\\ \\text{rotate}':'Q,\\ K,\\ V',p:['Wq','Wk','Wv'],sh:'3\u00d74 \u00d73'},
+    {id:'sc',tx:'\\mathrm{softmax}\\big(\\tfrac{QK^{\\top}}{2}\\big)',sh:'3\u00d73'},
+    {id:'av',tx:'AV,\\ W_O',p:['Wo'],sh:'3\u00d74'},
+    {br:0},
+    {id:'r1',tx:'+\\ \\text{residual}',sh:'3\u00d74'},
+    {br:1,label:'skip: H\u2081 goes straight to +'},
+    {id:'ln2',tx:'\\mathrm{LN}_2',p:['g2','b2n'],sh:'3\u00d74'},
+    {id:'f1',tx:'W_1,\\ \\mathrm{GELU}',p:['W1','b1'],sh:'3\u00d78'},
+    {id:'f2',tx:'W_2',p:['W2','b2'],sh:'3\u00d74'},
+    {br:0},
+    {id:'r2',tx:'+\\ \\text{residual}',sh:'3\u00d74'},
+    {id:'lnf',tx:'\\mathrm{LN}_f',p:['gf','bfn'],sh:'3\u00d74'},
+    {id:'un',tx:'U,\\ \\mathrm{softmax}',p:['U'],sh:'3\u00d76'},
+    {id:'L',tx:'L\\ \\text{(loss)}',sh:'1 number'}];
+  const FWD_N=S.filter(x=>x.ph==='f').length;
+  function drawPipe(s){pipe.innerHTML='';const sec=document.getElementById('s13'),bar=sec.querySelector('.dbar');if(bar&&bar.offsetHeight)sec.style.setProperty('--s13bar',(bar.offsetHeight+6)+'px');
+    const colm=el('div','vpipe');pipe.appendChild(colm);
+    const cur=s>0?S[s-1]:null,phase=cur?cur.ph:null,seen=new Set(),bseen=new Set();
+    for(let k=0;k<s;k++)S[k].box.forEach(x=>{seen.add(x);if(S[k].ph!=='f')bseen.add(x);});
+    const ph=el('div','vphase');ph.innerHTML=`<b>${phase==='f'?'forward \u2193':phase==='b'?'backward \u2191':phase==='u'?'update':'the block'}</b> \u00b7 ${NPARAM()} params`;colm.appendChild(ph);
+    let host=colm,first=true;const arr=()=>el('div','varr',phase==='b'?'\u2191':'\u2193');
+    BX().forEach(B=>{
+      if(B.br===1){const br=el('div','vbranch');const lb=el('span','vskl',B.label);br.appendChild(lb);colm.appendChild(br);host=br;return;}
+      if(B.br===0){host.appendChild(arr());host=colm;first=true;return;}
+      if(!first)host.appendChild(arr());first=false;
+      const n=B.p?B.p.reduce((a,k)=>a+blkCount(P[k]),0):0;
+      const bx=el('div','vbox'+(B.p?' tr':'')+(cur&&cur.box.includes(B.id)?' cur':'')+(seen.has(B.id)?' done':''));
+      const g=B.p&&bseen.has(B.id)?'\u2016\u2207\u2016 '+f3(Math.sqrt(B.p.reduce((a,k)=>a+blkNorm(G[k])**2,0))):'';
+      bx.innerHTML=`<div class="vn">${kx(B.tx)}</div><div class="vm"><div><span class="vs">${seen.has(B.id)?'\u2713 ':''}${B.sh}</span>${B.p?' \u00b7 '+n:''}</div><div class="vg">${g||(B.p?'params':'\u00a0')}</div></div>`;
+      const fi=S.findIndex(x=>x.ph==='f'&&x.box.includes(B.id));bx.title='jump to this stage';bx.onclick=()=>{if(fi>=0)D.goto(fi+1);};
+      host.appendChild(bx);});
+    const lg=el('div','vlegend');lg.innerHTML='orange edge = trainable \u00b7 \u2713 = computed \u00b7 \u2016\u2207\u2016 = gradient size, filled in on the way back \u00b7 green bracket = residual skip \u00b7 click a block to jump to it \u00b7 small cells: 4e-3 = 0.004';colm.appendChild(lg);}
   // ---------- deck ----------
-  function build(s,blank){st.innerHTML='';drawPipe(s);if(!s){const d=el('div','fbox on');d.innerHTML=`<div class="fgrid"><span class="dim">model</span><span>one transformer block, ${kx('d = 4')}, FFN width 8, vocabulary of 6 words, 212 trainable numbers</span><span class="dim">data</span><span>\u201cthe cat sat\u201d, predict the next word at every position: cat, sat, on</span><span class="dim">steps</span><span>11 forward stages, 13 backward stages, 1 update. Every number is computed live; gradients match finite differences.</span></div>`;st.appendChild(d);return {outs:[],hot:[]};}
-    const sg=S[s-1];const fb=el('div','fbox on');fb.innerHTML=kx(sg.tex,true);st.appendChild(fb);return sg.lanes(blank);}
+  function build(s,blank){st.innerHTML='';drawPipe(s);if(!s){const d=el('div','fbox on');d.innerHTML=`<div class="fgrid"><span class="dim">model</span><span>one transformer block, ${kx('d = 4')}, FFN width 8, vocabulary of 6 words, ${NPARAM()} trainable numbers</span><span class="dim">positions</span><span>${({sin:'sinusoidal: fixed sin/cos vectors added to the embeddings (slides 34–35)',learned:'learned: a trainable 3×4 table added to the embeddings (slide 37)',rope:'RoPE: Q and K rotated by position inside attention (slide 36)',none:'none: attention cannot see the word order (slide 33)'})[P.mode]}</span><span class="dim">data</span><span>\u201cthe cat sat\u201d, predict the next word at every position: cat, sat, on</span><span class="dim">steps</span><span>11 forward stages, 13 backward stages, 1 update. Every number is computed live; gradients match finite differences.</span></div>`;st.appendChild(d);return {outs:[],hot:[]};}
+    const sg=S[s-1];const fb=el('div','fbox on');fb.innerHTML=kx(typeof sg.tex==='function'?sg.tex():sg.tex,true);st.appendChild(fb);return sg.lanes(blank);}
   function render(s){build(s,false);}
   async function animate(s,ctx,run){const r=build(s,true);
     r.hot.forEach(c=>c&&c.classList.add('hot'));await ctx.wait(900,run);
     for(const p of r.outs){for(let i=0;i<p.__M.length;i++){fillP(p,i,true);await ctx.wait(p.__M.length>4?120:240,run);}await ctx.wait(160,run);}
     await ctx.wait(500,run);r.hot.forEach(c=>c&&c.classList.remove('hot'));}
-  function caption(s){if(!s)return `A real one-block transformer, the same pipeline as slides 30\u201332: every matrix below is trainable and every number is computed in your browser. Press <b>Next step \u25b8</b> to run it one stage at a time: forward through 11 stages, backward through 13, then one update. ${updates?`<b>${updates} update${updates>1?'s':''} applied so far</b>, loss ${f3(C.L)}.`:''}`;return S[s-1].cap();}
+  function caption(s){if(!s)return `A real one-block transformer, the same pipeline as slides 30\u201337: every matrix below is trainable and every number is computed in your browser. Press <b>Next step \u25b8</b> to run it one stage at a time: forward through 11 stages, backward through 13, then one update. ${updates?`<b>${updates} update${updates>1?'s':''} applied so far</b>, loss ${f3(C.L)}.`:''}`;return S[s-1].cap();}
   const D=makeDeck('s13',{n:S.length,render,animate,caption});
   // ---------- training controls ----------
   const bar=document.getElementById('s13-train'),predH=document.getElementById('s13-pred'),lossH=document.getElementById('s13-loss');
@@ -2716,14 +2901,14 @@ function buildSlide13(){
   const lb=el('label','ctl');lb.innerHTML=`learning rate <span class="nt">\u03b7</span> <input type="range" min="0.02" max="0.5" step="0.02" value="${lr}"><span>${lr}</span>`;
   const er=lb.querySelector('input'),ev=lb.querySelector('span:last-child');
   b1.onclick=()=>{stepOnce();after();};b2.onclick=()=>{for(let k=0;k<10;k++)stepOnce();after();};b3.onclick=()=>{for(let k=0;k<100;k++)stepOnce();after();};
-  b4.onclick=()=>{P=blkInit(SEED);hist=[];updates=0;recompute();after();};
+  b4.onclick=()=>{P=blkInit(SEED,PEM);hist=[];updates=0;recompute();after();};
+  const markPos=segInto(document.getElementById('s13-pos'),[['sin','sinusoidal'],['learned','learned'],['rope','RoPE'],['none','none']],PEM,v=>{PEM=v;markPos(v);P=blkInit(SEED,v);hist=[];updates=0;recompute();after();});
   er.oninput=()=>{lr=+er.value;ev.textContent=lr.toFixed(2);after();};
   bar.append(b1,b2,b3,b4,lb);drawLoss();drawPred();
   window.__themeRedraws.push(drawLoss);
-  window.__blk={state:()=>({updates,L:C.L,lr}),C:()=>C,G:()=>G,P:()=>P};
+  window.__blk={state:()=>({updates,L:C.L,lr,mode:P.mode,n:NPARAM()}),C:()=>C,G:()=>G,P:()=>P};
   return D;
 }
-
 /* ================= SLIDE 14: KV cache & GQA (stepped, animated) ================= */
 function buildSlide14(){
   const $=id=>document.getElementById(id);
@@ -3742,7 +3927,7 @@ function buildV2(){
       <span class="dim">why</span><span>sum = add gate (copy ${kx('g')}), then each multiply gate scales its copy by the other input</span></div>`;
     st.appendChild(C.fb);
   }
-  function pos(c){const r=c.getBoundingClientRect(),o=B.getBoundingClientRect();return [r.left-o.left+r.width/2,r.top-o.top+r.height/2];}
+  function pos(c){const r=c.getBoundingClientRect(),o=B.getBoundingClientRect(),k=o.width?B.offsetWidth/o.width:1;return [(r.left-o.left+r.width/2)*k,(r.top-o.top+r.height/2)*k];}
   function packet(from,to,label,cls,dur,ctx,run){
     const a=Array.isArray(from)?from:pos(from),z=Array.isArray(to)?to:pos(to);
     return new Promise((res,rej)=>{const k=el('div','pkt '+(cls||''),label);B.appendChild(k);const t0=performance.now(),D=ctx.ms(dur);
@@ -4748,6 +4933,340 @@ function dropoutFlow(stage,o){
   }
 }
 
+/* ---------- distance task: predict the token from K places back, one attention layer ---------- */
+const DM={V:8,T:10,D:16,K:2};
+const dW=(i,D)=>Math.pow(10000,-2*i/D);
+const dSin=(T,D)=>Array.from({length:T},(_,t)=>Array.from({length:D},(_,j)=>{const w=dW(j>>1,D);return j%2?Math.cos(t*w):Math.sin(t*w);}));
+const dRot=(M,sgn,D)=>M.map((r,t)=>{const o=r.slice();for(let i=0;i<D/2;i++){const a=sgn*t*dW(i,D),c=Math.cos(a),s=Math.sin(a),x=r[2*i],y=r[2*i+1];o[2*i]=x*c-y*s;o[2*i+1]=x*s+y*c;}return o;});
+const dMm=(A,B)=>{const r=A.length,k=B.length,c=B[0].length,O=Array.from({length:r},()=>new Array(c).fill(0));for(let i=0;i<r;i++)for(let p=0;p<k;p++){const a=A[i][p];if(!a)continue;const Bp=B[p],Oi=O[i];for(let j=0;j<c;j++)Oi[j]+=a*Bp[j];}return O;};
+const dT=A=>A[0].map((_,j)=>A.map(r=>r[j]));
+function dInit(seed,mode){const R=rng(seed),G=gaussFrom(R),{V,T,D}=DM;const M=(r,c,s)=>Array.from({length:r},()=>Array.from({length:c},()=>G()*s));
+  return {mode,E:M(V,D,1),Pp:M(T,D,1),Wq:M(D,D,1/Math.sqrt(D)),Wk:M(D,D,1/Math.sqrt(D)),Wv:M(D,D,1/Math.sqrt(D)),U:M(D,V,1/Math.sqrt(D)),SIN:dSin(T,D)};}
+const dKeys=P=>['E','Wq','Wk','Wv','U'].concat(P.mode==='learned'?['Pp']:[]);
+function dFwd(P,seq){const {T,D,K}=DM,sc=1/Math.sqrt(D),C={seq};
+  C.PE=P.mode==='sin'?P.SIN:P.mode==='learned'?P.Pp:null;
+  C.X=seq.map((tk,t)=>P.E[tk].map((v,j)=>v+(C.PE?C.PE[t][j]:0)));
+  C.Q=dMm(C.X,P.Wq);C.K=dMm(C.X,P.Wk);C.Vv=dMm(C.X,P.Wv);
+  C.Qr=P.mode==='rope'?dRot(C.Q,1,D):C.Q;C.Kr=P.mode==='rope'?dRot(C.K,1,D):C.K;
+  C.S=dMm(C.Qr,dT(C.Kr)).map(r=>r.map(v=>v*sc));
+  C.A=C.S.map((r,i)=>{let m=-1e30;for(let j=0;j<=i;j++)if(r[j]>m)m=r[j];const e=r.map((v,j)=>j<=i?Math.exp(v-m):0),z=e.reduce((a,c)=>a+c,0);return e.map(v=>v/z);});
+  C.O=dMm(C.A,C.Vv);C.Lg=dMm(C.O,P.U);
+  C.Pr=C.Lg.map(r=>{const m=Math.max(...r),e=r.map(v=>Math.exp(v-m)),z=e.reduce((a,c)=>a+c,0);return e.map(v=>v/z);});
+  let L=0,n=0,ok=0;for(let t=K;t<T;t++){const y=seq[t-K];L-=Math.log(C.Pr[t][y]);n++;if(C.Pr[t].indexOf(Math.max(...C.Pr[t]))===y)ok++;}
+  C.L=L/n;C.acc=ok/n;C.n=n;return C;}
+function dBwd(P,C){const {T,D,K}=DM,sc=1/Math.sqrt(D),G={};
+  const dLg=C.Pr.map((r,t)=>t<K?r.map(()=>0):r.map((p,v)=>(p-(v===C.seq[t-K]?1:0))/C.n));
+  G.U=dMm(dT(C.O),dLg);const dO=dMm(dLg,dT(P.U));
+  const dA=dMm(dO,dT(C.Vv)),dVv=dMm(dT(C.A),dO);
+  const dS=C.A.map((row,i)=>{const s=row.reduce((a,p,j)=>a+p*dA[i][j],0);return row.map((p,j)=>j<=i?p*(dA[i][j]-s)*sc:0);});
+  let dQ=dMm(dS,C.Kr),dK=dMm(dT(dS),C.Qr);if(P.mode==='rope'){dQ=dRot(dQ,-1,D);dK=dRot(dK,-1,D);}
+  G.Wq=dMm(dT(C.X),dQ);G.Wk=dMm(dT(C.X),dK);G.Wv=dMm(dT(C.X),dVv);
+  const x1=dMm(dQ,dT(P.Wq)),x2=dMm(dK,dT(P.Wk)),x3=dMm(dVv,dT(P.Wv));const dX=x1.map((r,i)=>r.map((v,j)=>v+x2[i][j]+x3[i][j]));
+  G.E=P.E.map(r=>r.map(()=>0));C.seq.forEach((tk,t)=>dX[t].forEach((v,j)=>G.E[tk][j]+=v));
+  if(P.mode==='learned')G.Pp=dX.map(r=>r.slice());return G;}
+function dSeqs(R,B){const {V,T}=DM;return Array.from({length:B},()=>Array.from({length:T},()=>Math.floor(R()*V)));}
+function dTrainer(seed,mode,opt){opt=Object.assign({lr:0.02,B:16},opt||{});const P=dInit(seed,mode),R=rng(seed*7+3),keys=dKeys(P);
+  const m={},v={};keys.forEach(k=>{m[k]=P[k].map(r=>r.map(()=>0));v[k]=P[k].map(r=>r.map(()=>0));});let t=0;
+  const evalSeqs=dSeqs(rng(4242),64);
+  return {P,step(){const seqs=dSeqs(R,opt.B);const Gs={};keys.forEach(k=>Gs[k]=P[k].map(r=>r.map(()=>0)));let L=0;
+      seqs.forEach(sq=>{const C=dFwd(P,sq),G=dBwd(P,C);L+=C.L;keys.forEach(k=>G[k].forEach((r,i)=>r.forEach((g,j)=>Gs[k][i][j]+=g/opt.B)));});
+      t++;const b1=0.9,b2=0.999;keys.forEach(k=>P[k].forEach((r,i)=>r.forEach((_,j)=>{const g=Gs[k][i][j];m[k][i][j]=b1*m[k][i][j]+(1-b1)*g;v[k][i][j]=b2*v[k][i][j]+(1-b2)*g*g;
+        const mh=m[k][i][j]/(1-Math.pow(b1,t)),vh=v[k][i][j]/(1-Math.pow(b2,t));r[j]-=opt.lr*mh/(Math.sqrt(vh)+1e-8);})));return L/opt.B;},
+    evaluate(){let L=0,acc=0;const A=Array.from({length:DM.T},()=>new Array(DM.T).fill(0));evalSeqs.forEach(sq=>{const C=dFwd(P,sq);L+=C.L;acc+=C.acc;C.A.forEach((r,i)=>r.forEach((a,j)=>A[i][j]+=a/evalSeqs.length));});
+      return {L:L/evalSeqs.length,acc:acc/evalSeqs.length,A};},steps:()=>t};}
+
+/* ================= POSITIONAL ENCODING (Group VII) ================= */
+const PEH={
+  w:(i,d)=>Math.pow(10000,-2*i/d),
+  vec(t,d){return Array.from({length:d},(_,j)=>{const w=PEH.w(j>>1,d);return j%2?Math.cos(t*w):Math.sin(t*w);});},
+  rot(v,t,d){const o=v.slice();for(let i=0;i<d/2;i++){const a=t*PEH.w(i,d),c=Math.cos(a),s=Math.sin(a),x=v[2*i],y=v[2*i+1];o[2*i]=x*c-y*s;o[2*i+1]=x*s+y*c;}return o;},
+  dot:(a,b)=>a.reduce((s,x,k)=>s+x*b[k],0),
+  sm:r=>{const m=Math.max(...r),e=r.map(v=>Math.exp(v-m)),z=e.reduce((a,c)=>a+c,0);return e.map(v=>v/z);},
+  f:v=>{const a=Math.abs(v);if(a<5e-4)return '0.00';return a>=100?v.toFixed(0):v.toFixed(2);},
+  f3:v=>(Math.abs(v)<5e-5?0:v).toFixed(3)
+};
+function peHeat(cv,M,o){o=o||{};const c=TC(),ctx=cctx(cv),W=cv.__w,H=cv.__h;const R=M.length,N=M[0].length;
+  const pad=Object.assign({l:34,t:6,r:6,b:26},o.pad||{});const cw=(W-pad.l-pad.r)/N,ch=(H-pad.t-pad.b)/R;
+  const vmax=o.vmax||Math.max(1e-9,...M.flat().map(Math.abs));
+  for(let i=0;i<R;i++)for(let j=0;j<N;j++){const x=pad.l+j*cw,y=pad.t+i*ch;
+    if(o.mask&&o.mask(i,j)){ctx.fillStyle=hexA(c.mut,0.07);ctx.fillRect(x,y,Math.ceil(cw),Math.ceil(ch));continue;}
+    const v=M[i][j];let col;
+    if(o.seq){const a=Math.max(0,Math.min(1,v/vmax));col=hexA(o.col||c.acc,0.05+0.95*a);}
+    else{const a=Math.min(1,Math.abs(v)/vmax);col=hexA(v>=0?c.blue:c.red,0.04+0.96*a);}
+    ctx.fillStyle=col;ctx.fillRect(x,y,Math.ceil(cw)+0.3,Math.ceil(ch)+0.3);}
+  (o.mark||[]).forEach(([i,j])=>{ctx.strokeStyle=c.fg;ctx.lineWidth=1.6;ctx.strokeRect(pad.l+j*cw+1,pad.t+i*ch+1,cw-2,ch-2);});
+  if(o.row!=null){ctx.strokeStyle=c.acc;ctx.lineWidth=2;ctx.strokeRect(pad.l,pad.t+o.row*ch,N*cw,ch);}
+  ctx.fillStyle=c.mut;ctx.font='10px ui-monospace,monospace';
+  if(o.xl){ctx.textAlign='center';ctx.fillText(o.xl,pad.l+N*cw/2,H-4);}
+  if(o.yl){ctx.save();ctx.translate(10,pad.t+R*ch/2);ctx.rotate(-Math.PI/2);ctx.textAlign='center';ctx.fillText(o.yl,0,0);ctx.restore();}
+  const tk=o.tick||0;if(tk){ctx.textAlign='right';for(let i=0;i<R;i+=tk)ctx.fillText(String(i),pad.l-3,pad.t+i*ch+ch/2+3);
+    ctx.textAlign='center';for(let j=0;j<N;j+=tk)ctx.fillText(String(j),pad.l+j*cw+cw/2,pad.t+R*ch+11);}
+  if(o.vals){ctx.textAlign='center';ctx.font='10px ui-monospace,monospace';for(let i=0;i<R;i++)for(let j=0;j<N;j++){if(o.mask&&o.mask(i,j))continue;
+    const v=M[i][j];const strong=o.seq?v/vmax>0.55:Math.abs(v)/vmax>0.55;ctx.fillStyle=strong?'#fff':c.fg;ctx.fillText(o.vals(v),pad.l+j*cw+cw/2,pad.t+i*ch+ch/2+3.5);}}
+  ctx.textAlign='left';return {cw,ch,pad};}
+function pcp(title,w,h){const p=cpanel(title,w,h);p.style.width=(w+22)+'px';return p;}
+function peMat(title,M,o){o=o||{};const p=kmat(title,M.length,M[0].length,{rl:o.rl,cl:o.cl,cw:o.cw||'46px',sub:o.sub});
+  M.forEach((r,i)=>r.forEach((v,j)=>setc(p.cells[i][j],(o.f||PEH.f)(v),(o.cls&&o.cls(i,j,v))||o.c||'fwdv')));return p;}
+
+/* ---------- 1. attention is blind to order ---------- */
+function buildPE1(){
+  const st=document.getElementById('pe1-stage');
+  const E={dog:[1.0,0.2,-0.6,0.3],bites:[-0.3,0.9,0.4,-0.5],man:[0.4,-0.7,0.8,0.6]};
+  const R=rng(31),G=gaussFrom(R);const M=()=>Array.from({length:4},()=>Array.from({length:4},()=>+(G()*0.8).toFixed(2)));
+  const Wq=M(),Wk=M(),Wv=M();
+  const run=(order,pos)=>{const PE=order.map((_,t)=>PEH.vec(t,4)),X=order.map((w,t)=>E[w].map((v,j)=>v+(pos?PE[t][j]:0)));
+    const Q=bMm(X,Wq),K=bMm(X,Wk),V=bMm(X,Wv),S=bMm(Q,bT(K)).map(r=>r.map(v=>v/2)),A=S.map(PEH.sm),O=bMm(A,V);
+    return {order,PE,X,S,A,O,bi:order.indexOf('bites')};};
+  const OA=['dog','bites','man'],OB=['man','bites','dog'];
+  const lab=w=>`\\text{${w}}`;
+  function lane(r,title,sub,pos,hl){let l=flowLane(st,'fwd',title,sub);
+    if(pos){const e=peMat('E[\\text{word}]',r.order.map(w=>E[w]),{rl:r.order.map(lab),cl:['1','2','3','4']}),p=peMat('\\mathrm{PE}_t',r.PE,{rl:['t{=}0','t{=}1','t{=}2'],cl:['1','2','3','4']});
+      l.append(e,kop('+'),p,kop('='),peMat('X',r.X,{rl:r.order.map(lab),cl:['1','2','3','4'],c:'newv'}));l=flowLane(st,'fwd','','then attention, exactly as before');}
+    const x=peMat('X',r.X,{rl:r.order.map(lab),cl:['1','2','3','4']});
+    const s=peMat('S = QK^{\\top}/2',r.S,{rl:r.order.map(lab),cl:r.order.map(lab),cls:(i,j)=>hl&&hl(r,i,j)?'hot':'newv'});
+    const a=peMat('A = \\mathrm{softmax}(S)',r.A,{cl:r.order.map(lab),c:'newv'});
+    const o=peMat('O = AV',r.O,{rl:r.order.map(lab),cl:['1','2','3','4'],cls:i=>i===r.bi?'hot':'newv'});
+    l.append(x,kop('\\xrightarrow{W_Q,\\,W_K}'),s,kop('\\xrightarrow{\\text{softmax}}'),a,kop('\\xrightarrow{\\cdot V}'),o);return l;}
+  const pair=(r,i,j)=>(r.order[i]==='man'&&r.order[j]==='dog');
+  function compare(ra,rb,same){const d=el('div','fbox on');const va=ra.O[ra.bi],vb=rb.O[rb.bi];
+    d.innerHTML=`<div class="fgrid"><span class="dim">dog bites man</span>${kx(`o_{\\text{bites}} = [${va.map(PEH.f).join(',\\;')}]`)}
+      <span class="dim">man bites dog</span>${kx(`o_{\\text{bites}} = [${vb.map(PEH.f).join(',\\;')}]`)}
+      <span class="dim">verdict</span><span style="color:var(--${same?'red':'ok'})"><b>${same?'identical: attention cannot tell who bit whom':'different: positions changed the scores'}</b></span></div>`;st.appendChild(d);}
+  function render(s){st.innerHTML='';
+    if(s===0){const l=flowLane(st,'fwd','three words, two orders','same embeddings E and the same W_Q, W_K, W_V in both sentences');
+      l.append(peMat('E\\;(\\text{word vectors})',OA.map(w=>E[w]),{rl:OA.map(lab),cl:['1','2','3','4']}),kop('\\quad'),peMat('W_Q',Wq,{cl:['1','2','3','4']}),peMat('W_K',Wk,{cl:['1','2','3','4']}),peMat('W_V',Wv,{cl:['1','2','3','4']}));return;}
+    if(s<=3){const pos=s===3;const ra=run(OA,pos),rb=run(OB,pos);
+      lane(ra,`order A: dog bites man${pos?' + positions':''}`,pos?'add a position vector to each word':'no position information',pos,s===2?pair:null);
+      if(s>=2){lane(rb,`order B: man bites dog${pos?' + positions':''}`,pos?'add a position vector to each word':'same words, rows and columns shuffled',pos,s===2?pair:null);compare(ra,rb,!pos);}
+      return;}
+    const d=el('div','fbox on');d.innerHTML=`<div class="fgrid"><span class="dim">goal</span><span>make the score between two words depend on <b>what</b> they are and on <b>how far apart</b> they are: ${kx('\\text{score}(m,n) = f(\\text{word}_m,\\ \\text{word}_n,\\ m-n)')}</span>
+      <span class="dim">option 1</span><span><b>add</b> fixed sin/cos waves to each token (Vaswani et al., 2017) \u2192 next two slides</span>
+      <span class="dim">option 2</span><span><b>rotate</b> q and k by their position: RoPE (Su et al., 2021; LLaMA, Mistral, Qwen) \u2192 slide after</span>
+      <span class="dim">option 3</span><span><b>learn</b> a table of position vectors (BERT, GPT-2) \u2192 then we train one and watch it discover distance</span></div>`;st.appendChild(d);}
+  async function animate(s,ctx,run){render(s);const cells=[...st.querySelectorAll('.cell.newv,.cell.hot')];cells.forEach(c=>{c.style.opacity=0;});
+    for(let i=0;i<cells.length;i++){cells[i].style.opacity='';cells[i].classList.add('pop');if(i%6===5)await ctx.wait(70,run);}await ctx.wait(400,run);}
+  function caption(s){const ra=run(OA,false),rb=run(OB,false),pa=run(OA,true),pb=run(OB,true);
+    const sAB=ra.S[ra.order.indexOf('man')][ra.order.indexOf('dog')];
+    if(s===0)return `Attention compares every word with every other word through ${kx('QK^{\\top}')}. Here are three word vectors and the attention weights. Press <b>Next step \u25b8</b> (or space).`;
+    if(s===1)return `<b>Order A, no positions.</b> \u201cbites\u201d gets a weighted mix of the three values: ${kx(`o_{\\text{bites}} = [${ra.O[ra.bi].map(PEH.f).join(',\\;')}]`)}.`;
+    if(s===2)return `<b>Same words, different order.</b> Every score is the same number, it just moved to a new row and column: ${kx(`S_{\\text{man},\\text{dog}} = ${PEH.f(sAB)}`)} in both (outlined). So \u201cbites\u201d gets exactly the same output. Attention is a set operation: it sees which words are there, not where.`;
+    if(s===3)return `<b>Add a position vector</b> to each word before attention (here sin/cos, explained next). Now the scores differ between the two orders and \u201cbites\u201d gets ${kx(`[${pa.O[pa.bi].map(PEH.f).join(',\\;')}]`)} vs ${kx(`[${pb.O[pb.bi].map(PEH.f).join(',\\;')}]`)}. The model can now tell who bit whom.`;
+    return `<b>The goal of positional encoding is distance.</b> Not just \u201cI am word 7\u201d, but \u201cthis word is 2 before me\u201d: language depends on relative position (the adjective right before a noun, the subject a few words back). Each method below is a different way to make attention scores sensitive to ${kx('m - n')}.`;}
+  return makeDeck('pe1',{n:4,render,animate,caption});
+}
+
+/* ---------- 2. sinusoidal encoding: one clock hand per frequency ---------- */
+function buildPE2(){
+  const st=document.getElementById('pe2-stage'),D=8,NP=D/2,W=Array.from({length:NP},(_,i)=>PEH.w(i,D));
+  let t=0,user=null;const TS=[0,0,1,6,6,3];
+  const slider=document.getElementById('pe2-t'),tv=document.getElementById('pe2-tv');
+  slider.oninput=()=>{user=+slider.value;t=user;draw(curS,1);};
+  let curS=0,P={};
+  function build(s){st.innerHTML='';P={};
+    const row=el('div','dpanels');st.appendChild(row);P.d=[];
+    for(let i=0;i<NP;i++){const p=pcp(`\\text{pair } ${i+1}:\\ \\omega_${i+1} = ${+W[i].toFixed(3)}`,170,176);row.appendChild(p);P.d.push(p);}
+    const l=flowLane(st,'fwd','the position vector','pairs (sin, cos) side by side: 8 numbers for position t');P.vl=l;
+    P.hm=pcp('\\mathrm{PE}(t)\\ \\text{for}\\ t = 0..63,\\ d = 32\\ \\text{(rows: positions, columns: features)}',560,300);
+    if(s>=4)st.appendChild(P.hm);
+    if(s>=5){P.rl1=flowLane(st,'fwd','shift by k = 2: a fixed rotation','the same 2\u00d72 matrix moves any position forward by 2, whatever t is');}}
+  function dial(p,i,tt){const c=TC(),cv=p.cv,ctx=cctx(cv),Wd=cv.__w,Hd=cv.__h,cx=Wd/2,cy=Hd/2-10,r=58,th=tt*W[i];
+    ctx.strokeStyle=c.line;ctx.lineWidth=1.2;ctx.beginPath();ctx.arc(cx,cy,r,0,7);ctx.stroke();
+    ctx.strokeStyle=hexA(c.mut,0.25);ctx.beginPath();ctx.moveTo(cx-r,cy);ctx.lineTo(cx+r,cy);ctx.moveTo(cx,cy-r);ctx.lineTo(cx,cy+r);ctx.stroke();
+    for(let k=0;k<Math.floor(tt);k++){const a=k*W[i];ctx.fillStyle=hexA(c.acc,0.25);ctx.beginPath();ctx.arc(cx+r*Math.sin(a),cy-r*Math.cos(a),2.5,0,7);ctx.fill();}
+    const x=cx+r*Math.sin(th),y=cy-r*Math.cos(th);ctx.strokeStyle=c.acc;ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(x,y);ctx.stroke();
+    ctx.fillStyle=c.acc;ctx.beginPath();ctx.arc(x,y,5,0,7);ctx.fill();ctx.fillStyle=c.fg;ctx.beginPath();ctx.arc(cx,cy,2.5,0,7);ctx.fill();
+    ctx.font='10px ui-monospace,monospace';ctx.fillStyle=c.mut;ctx.textAlign='center';ctx.fillText('cos',cx,cy-r-4);ctx.fillText('sin',cx+r+12,cy+3);ctx.textAlign='left';
+    p.st.innerHTML=`${kx(`(\\sin,\\cos) = (${PEH.f(Math.sin(th))},\\ ${PEH.f(Math.cos(th))})`)}<br>angle ${kx(`t\\,\\omega = ${(th).toFixed(th<1?3:2)}`)} rad`;}
+  function draw(s,k){const tt=t;P.d.forEach((p,i)=>dial(p,i,tt));
+    slider.value=Math.round(tt);tv.textContent=String(Math.round(tt));
+    P.vl.innerHTML='';const v=PEH.vec(Math.round(tt),D);
+    P.vl.append(peMat(`\\mathrm{PE}(t{=}${Math.round(tt)})`,[v],{cl:Array.from({length:D},(_,j)=>j%2?`\\cos_${(j>>1)+1}`:`\\sin_${(j>>1)+1}`),c:'newv',cw:'54px'}));
+    if(s>=4){const H=Array.from({length:64},(_,p)=>PEH.vec(p,32));peHeat(P.hm.cv,H,{vmax:1,row:Math.min(63,Math.round(tt)),tick:8,xl:'feature (fast \u2192 slow frequencies)',yl:'position t'});
+      P.hm.st.innerHTML='blue = +1, red = \u22121 \u00b7 left columns flip quickly, right columns barely change \u00b7 every row is different';}
+    if(s>=5&&P.rl1){P.rl1.innerHTML='';const a=3,b=2,M2=[[Math.cos(b),-Math.sin(b)],[Math.sin(b),Math.cos(b)]];
+      P.rl1.append(peMat('\\text{pair 1 at } t{=}3',[[Math.sin(a),Math.cos(a)]],{cl:['\\sin 3','\\cos 3']}),kop('\\cdot'),
+        peMat('R(2\\omega_1)',M2,{rl:['',''],cl:['',''],sub:'depends on k = 2 only'}),kop('='),
+        peMat('\\text{pair 1 at } t{=}5',[[Math.sin(a+b),Math.cos(a+b)]],{cl:['\\sin 5','\\cos 5'],c:'newv'}),kop('\\qquad'),
+        peMat('\\text{pair 1 at } t{=}10',[[Math.sin(10),Math.cos(10)]],{cl:['\\sin 10','\\cos 10']}),kop('\\cdot'),
+        peMat('R(2\\omega_1)',M2,{rl:['',''],cl:['','']}),kop('='),
+        peMat('\\text{pair 1 at } t{=}12',[[Math.sin(12),Math.cos(12)]],{cl:['\\sin 12','\\cos 12'],c:'newv'}));}}
+  function render(s){curS=s;if(user==null)t=TS[s];build(s);draw(s,1);}
+  async function animate(s,ctx,run){curS=s;user=null;build(s);const from=TS[s-1],to=TS[s];
+    if(to!==from){await ctx.tween(Math.abs(to-from)*700+400,e=>{t=from+(to-from)*e;draw(s,e);},run);}
+    t=to;draw(s,1);if(s>=4)await ctx.wait(600,run);}
+  function caption(s){const v1=PEH.vec(1,D);
+    if(s===0)return `Each position ${kx('t')} gets ${kx('d = 8')} numbers: 4 pairs of ${kx('(\\sin t\\omega_i,\\ \\cos t\\omega_i)')}, one pair per frequency ${kx('\\omega_i = 1/10000^{2i/d}')}: ${kx('1,\\ 0.1,\\ 0.01,\\ 0.001')}. Press <b>Next step \u25b8</b>.`;
+    if(s===1)return `<b>Position 0:</b> every angle is 0, so every hand points up: ${kx('(\\sin 0, \\cos 0) = (0, 1)')}, and ${kx('\\mathrm{PE}(0) = [0,1,0,1,0,1,0,1]')}.`;
+    if(s===2)return `<b>Position 1:</b> each hand turns by its own frequency. The fast hand turns 1 radian (57\u00b0), the slowest only 0.001: ${kx(`\\mathrm{PE}(1) = [${v1.map(PEH.f).join(',')}]`)}.`;
+    if(s===3)return `<b>Positions 2 to 6:</b> the fast hand races around (the faded dots are where it was), the slow hands creep. Like the second, minute and hour hands of a clock: together they say exactly where you are. Drag the slider to any position up to 63.`;
+    if(s===4)return `<b>All positions at once</b> (with ${kx('d = 32')} for a smoother picture). Each row is one position's vector. Fast columns tell neighbours apart; slow columns keep far-apart positions distinct. No two rows are the same.`;
+    return `<b>Why sin and cos together:</b> a (sin, cos) pair is a point on a circle, so moving ${kx('k')} positions is a rotation by ${kx('k\\omega')}: ${kx('[\\sin(a{+}b),\\ \\cos(a{+}b)] = [\\sin a,\\ \\cos a]\\, R(b)')}. The same matrix ${kx('R(2\\omega_1)')} takes position 3 to 5 and position 10 to 12. With sin alone you could not do this: ${kx('\\sin(a{+}b) = \\sin a\\cos b + \\cos a\\sin b')} needs ${kx('\\cos a')}.`;}
+  return makeDeck('pe2',{n:5,render,animate,caption});
+}
+
+/* ---------- 3. dot products turn positions into distance ---------- */
+function buildPE3(){
+  const st=document.getElementById('pe3-stage'),D=8,NP=4,W=Array.from({length:NP},(_,i)=>PEH.w(i,D));
+  const CL=Array.from({length:D},(_,j)=>j%2?`\\cos_${(j>>1)+1}`:`\\sin_${(j>>1)+1}`);
+  function prodLane(m,n){const a=PEH.vec(m,D),b=PEH.vec(n,D),p=a.map((x,k)=>x*b[k]);const l=flowLane(st,'fwd',`positions ${m} and ${n}: distance ${m-n}`,'multiply column by column, then add up');
+    l.append(peMat('\\text{the two position vectors}',[a,b],{rl:[`\\mathrm{PE}(${m})`,`\\mathrm{PE}(${n})`],cl:CL,cw:'44px'}),kop('\\xrightarrow{\\text{multiply columns}}'),peMat('\\text{products}',[p],{cl:CL,cw:'44px',c:'newv'}),kop('\\xrightarrow{\\sum}'),peMat('\\mathrm{PE}(m)\\cdot\\mathrm{PE}(n)',[[p.reduce((s,x)=>s+x,0)]],{c:'hot',f:PEH.f3,cw:'62px'}));}
+  // the 3-word example from slide 1, split into four score terms
+  const E={dog:[1.0,0.2,-0.6,0.3],bites:[-0.3,0.9,0.4,-0.5],man:[0.4,-0.7,0.8,0.6]},order=['dog','bites','man'];
+  const R=rng(31),G=gaussFrom(R);const Mk=()=>Array.from({length:4},()=>Array.from({length:4},()=>+(G()*0.8).toFixed(2)));const Wq=Mk(),Wk=Mk();
+  const Ee=order.map(w=>E[w]),Pp=order.map((_,t)=>PEH.vec(t,4));
+  const term=(A,B)=>bMm(bMm(A,Wq),bT(bMm(B,Wk))).map(r=>r.map(v=>v/2));
+  function render(s){st.innerHTML='';
+    if(s>=1)prodLane(5,3);
+    if(s>=2)prodLane(12,10);
+    if(s===3){const l=flowLane(st,'fwd','pair by pair: sin\u00b7sin + cos\u00b7cos = cos(difference)','the trig identity, once per frequency');const k=2;
+      const pr=W.map(w=>Math.sin(5*w)*Math.sin(3*w)+Math.cos(5*w)*Math.cos(3*w));
+      l.append(peMat('\\sin\\sin + \\cos\\cos\\ (\\text{pairs})',[pr],{cl:['1','2','3','4'],cw:'54px'}),kop('='),peMat('\\cos(2\\,\\omega_i)',[W.map(w=>Math.cos(k*w))],{cl:['1','2','3','4'],cw:'54px',c:'newv'}),kop('\\xrightarrow{\\sum}'),peMat('',[[pr.reduce((a,c)=>a+c,0)]],{c:'hot',f:PEH.f3,cw:'60px'}));}
+    if(s>=4){const row=el('div','dpanels');st.appendChild(row);
+      const hm=pcp('\\mathrm{PE}(m)\\cdot\\mathrm{PE}(n),\\ m,n = 0..47,\\ d = 32',420,380);row.appendChild(hm);
+      const cu=pcp('\\text{the same number vs. distance } m-n',460,380);row.appendChild(cu);
+      const H=Array.from({length:48},(_,p)=>PEH.vec(p,32)),Mx=H.map(a=>H.map(b=>PEH.dot(a,b)));
+      peHeat(hm.cv,Mx,{seq:true,vmax:16,tick:8,xl:'position n',yl:'position m',mark:[[10,8],[30,28],[44,42]]});
+      hm.st.innerHTML='each diagonal has one colour: the value depends only on m \u2212 n \u00b7 outlined: three pairs at distance 2';
+      const c=TC(),ctx=cctx(cu.cv),Wc=cu.cv.__w,Hc=cu.cv.__h,Rr={x:40,y:16,w:Wc-54,h:Hc-48},X=k=>Rr.x+(k+47)/94*Rr.w,Y=v=>Rr.y+Rr.h-(v+4)/20*Rr.h;
+      ctx.strokeStyle=c.line;ctx.strokeRect(Rr.x,Rr.y,Rr.w,Rr.h);ctx.beginPath();ctx.moveTo(Rr.x,Y(0));ctx.lineTo(Rr.x+Rr.w,Y(0));ctx.stroke();
+      ctx.strokeStyle=c.acc;ctx.lineWidth=2;ctx.beginPath();for(let k=-47;k<=47;k++){const v=Array.from({length:16},(_,i)=>Math.cos(k*PEH.w(i,32))).reduce((a,b)=>a+b,0);k===-47?ctx.moveTo(X(k),Y(v)):ctx.lineTo(X(k),Y(v));}ctx.stroke();
+      ctx.fillStyle=c.mut;ctx.font='10px ui-monospace,monospace';ctx.textAlign='center';[-40,-20,0,20,40].forEach(k=>ctx.fillText(String(k),X(k),Rr.y+Rr.h+13));ctx.fillText('distance m \u2212 n',Rr.x+Rr.w/2,Hc-6);
+      ctx.textAlign='right';[0,8,16].forEach(v=>ctx.fillText(String(v),Rr.x-4,Y(v)+3));ctx.textAlign='left';
+      cu.st.innerHTML=`highest at distance 0 (${kx('d/2 = 16')}), falls off for far positions \u00b7 symmetric: ${kx('+k')} and ${kx('-k')} look the same`;}
+    if(s>=5){const See=term(Ee,Ee),Sep=term(Ee,Pp),Spe=term(Pp,Ee),Spp=term(Pp,Pp),S=See.map((r,i)=>r.map((v,j)=>v+Sep[i][j]+Spe[i][j]+Spp[i][j]));
+      const L=order.map(w=>`\\text{${w}}`),l=flowLane(st,'fwd','what attention sees when positions are added: four terms','slide 1\u2019s sentence with x = e + p: the score splits into four pieces');
+      l.append(peMat('e\\cdot e',See,{rl:L,cl:L,cw:'44px'}),kop('+'),peMat('e\\cdot p',Sep,{cl:L,cw:'44px'}),kop('+'),peMat('p\\cdot e',Spe,{cl:L,cw:'44px'}),kop('+'),peMat('p\\cdot p',Spp,{cl:L,cw:'44px',c:'newv'}),kop('='),peMat('S',S,{rl:L,cl:L,cw:'44px',c:'hot'}));}}
+  async function animate(s,ctx,run){render(s);const cells=[...st.querySelectorAll('.dlane:last-of-type .cell.newv,.dlane:last-of-type .cell.hot')];cells.forEach(c=>c.style.opacity=0);
+    for(const c of cells){c.style.opacity='';c.classList.add('pop');await ctx.wait(90,run);}await ctx.wait(400,run);}
+  function caption(s){const k2=W.map(w=>Math.cos(2*w)).reduce((a,c)=>a+c,0);
+    if(s===0)return `A score in attention is a <b>dot product</b>: multiply two vectors feature by feature and add. So what happens when we take the dot product of two position vectors? Press <b>Next step \u25b8</b>.`;
+    if(s===1)return `<b>Positions 5 and 3</b> (2 apart): ${kx(`\\mathrm{PE}(5)\\cdot\\mathrm{PE}(3) = ${PEH.f3(k2)}`)}.`;
+    if(s===2)return `<b>Positions 12 and 10</b>, also 2 apart: different vectors, different products, but the <b>same sum</b> ${kx(PEH.f3(k2))}. The answer only depends on the distance.`;
+    if(s===3)return `<b>Why:</b> for each pair, ${kx('\\sin a\\sin b + \\cos a\\cos b = \\cos(a-b)')}. So ${kx('\\mathrm{PE}(m)\\cdot\\mathrm{PE}(n) = \\sum_i \\cos\\big((m-n)\\,\\omega_i\\big)')}: the absolute positions cancel and only ${kx('m-n')} is left.`;
+    if(s===4)return `<b>Every pair of positions:</b> the matrix is constant along each diagonal. Nearby positions score high, far ones low. One catch: cos is symmetric, so ${kx('\\mathrm{PE}\\cdot\\mathrm{PE}')} alone cannot tell \u201c2 before\u201d from \u201c2 after\u201d; the ${kx('W_Q, W_K')} matrices in attention can break that symmetry.`;
+    return `<b>In a real model</b> the position is added to the word, ${kx('x = e + p')}, and the score ${kx('(e+p)W_QW_K^{\\top}(e+p)^{\\top}')} splits into four terms. Only ${kx('p\\cdot p')} compares position with position, and with ${kx('W_QW_K^{\\top}')} in the middle nothing forces it to depend on distance alone; the two mixed terms tie content to absolute position. RoPE (next) builds the distance in directly.`;}
+  return makeDeck('pe3',{n:5,render,animate,caption});
+}
+
+/* ---------- 4. RoPE: rotate q and k ---------- */
+function buildPE4(){
+  const st=document.getElementById('pe4-stage'),D=4,W=[PEH.w(0,D),PEH.w(1,D)];
+  const q=[0.9,0.3,0.5,-0.2],k=[0.6,0.7,0.1,0.4];
+  const PAIRS=[null,[2,0],[5,3],[9,7],[5,2],[5,2]];
+  const score=(m,n)=>PEH.dot(PEH.rot(q,m,D),PEH.rot(k,n,D));
+  let cur=[2,0],P={};
+  function build(s){st.innerHTML='';P={};const row=el('div','dpanels');st.appendChild(row);
+    P.pl=pcp('\\text{pair 1 of } \\tilde q \\text{ and } \\tilde k \\text{ (features 1, 2)}',360,330);row.appendChild(P.pl);
+    P.tb=el('div');row.appendChild(P.tb);
+    P.ln=flowLane(st,'fwd','rotate by position','q: query of the word at position m \u00b7 k: key of the word at position n \u00b7 the same content every time');
+    P.ln2=flowLane(st,'fwd','then multiply','the attention score is the dot product of the rotated vectors');
+    if(s>=5){P.hm=pcp('\\text{score } \\tilde q_m\\cdot\\tilde k_n \\text{ for } m,n = 0..9 \\text{ (same } q, k\\text{)}',380,360);st.appendChild(P.hm);}}
+  function plane(m,n){const c=TC(),cv=P.pl.cv,ctx=cctx(cv),Wd=cv.__w,Hd=cv.__h,cx=Wd/2,cy=Hd/2-8,r=120;
+    ctx.strokeStyle=hexA(c.mut,0.3);ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(cx-r-10,cy);ctx.lineTo(cx+r+10,cy);ctx.moveTo(cx,cy-r-10);ctx.lineTo(cx,cy+r+10);ctx.stroke();
+    ctx.strokeStyle=c.line;ctx.beginPath();ctx.arc(cx,cy,r,0,7);ctx.stroke();
+    const qr=PEH.rot(q,m,D),kr=PEH.rot(k,n,D),sc=r/1.0;
+    const arrow=(x,y,col,lab,dash)=>{const X=cx+x*sc,Y=cy-y*sc;ctx.strokeStyle=col;ctx.lineWidth=dash?1.4:3;ctx.setLineDash(dash?[4,4]:[]);ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(X,Y);ctx.stroke();ctx.setLineDash([]);
+      if(!dash){const a=Math.atan2(Y-cy,X-cx);ctx.fillStyle=col;ctx.beginPath();ctx.moveTo(X,Y);ctx.lineTo(X-10*Math.cos(a-0.4),Y-10*Math.sin(a-0.4));ctx.lineTo(X-10*Math.cos(a+0.4),Y-10*Math.sin(a+0.4));ctx.fill();}
+      ctx.fillStyle=col;ctx.font='12px ui-monospace,monospace';ctx.fillText(lab,X+6,Y-6);};
+    arrow(q[0],q[1],hexA(c.acc,0.5),'q',true);arrow(k[0],k[1],hexA(c.blue,0.5),'k',true);
+    arrow(qr[0],qr[1],c.acc,`q\u0303 (m=${m})`);arrow(kr[0],kr[1],c.blue,`k\u0303 (n=${n})`);
+    const aq=Math.atan2(qr[1],qr[0]),ak=Math.atan2(kr[1],kr[0]);ctx.strokeStyle=c.fg;ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(cx,cy,34,-aq,-ak,((ak-aq+4*Math.PI)%(2*Math.PI))<Math.PI);ctx.stroke();
+    let dA=((aq-ak)%(2*Math.PI)+3*Math.PI)%(2*Math.PI)-Math.PI;
+    P.pl.st.innerHTML=`angle between ${kx('\\tilde q')} and ${kx('\\tilde k')} in pair 1: ${kx(`${dA.toFixed(2)}\\ \\text{rad}`)} \u00b7 dashed: before rotation`;}
+  function lanes(m,n,b){P.ln.innerHTML='';P.ln2.innerHTML='';const qr=PEH.rot(q,m,D),kr=PEH.rot(k,n,D),pr=qr.map((x,i)=>x*kr[i]);const cl=['1','2','3','4'];
+    P.ln.append(peMat('q',[q],{cl}),kop(`\\xrightarrow{R(${m}\\omega)}`),peMat(`\\tilde q_{${m}}`,[qr],{cl,c:'newv'}),kop('\\qquad'),
+      peMat('k',[k],{cl}),kop(`\\xrightarrow{R(${n}\\omega)}`),peMat(`\\tilde k_{${n}}`,[kr],{cl,c:'newv'}));
+    P.ln2.append(peMat(`\\tilde q_{${m}}`,[qr],{cl}),kop('\\odot'),peMat(`\\tilde k_{${n}}`,[kr],{cl}),kop('='),peMat('\\text{products}',[pr],{cl,c:'newv'}),kop('\\xrightarrow{\\sum}'),
+      peMat('\\text{score}',[[pr.reduce((a,c)=>a+c,0)]],{c:'hot',f:PEH.f3,cw:'62px'}));}
+  function table(s){const rows=PAIRS.slice(1,Math.min(s,4)+1).filter(Boolean);
+    P.tb.innerHTML=`<table class="dtab" style="margin-top:6px"><tr><th>query at m</th><th>key at n</th><th>distance m \u2212 n</th><th>angles (pair 1)</th><th>score</th></tr>${rows.map(([m,n])=>`<tr><td>${m}</td><td>${n}</td><td>${m-n}</td><td>${m} rad, ${n} rad</td><td class="${m-n===2?'hl':''}">${PEH.f3(score(m,n))}</td></tr>`).join('')}</table>
+      <div class="nstat" style="margin-top:6px">same content q, k in every row; only the positions change \u00b7 pair 2 turns 100\u00d7 slower (\u03c9\u2082 = 0.01)</div>`;}
+  function heat(){const M=Array.from({length:10},(_,m)=>Array.from({length:10},(_,n)=>score(m,n)));
+    peHeat(P.hm.cv,M,{tick:1,xl:'key position n',yl:'query position m',mask:(i,j)=>j>i,vals:v=>v.toFixed(2),mark:[[2,0],[5,3],[9,7]]});
+    P.hm.st.innerHTML='constant along each diagonal: the score depends on content and on m \u2212 n only \u00b7 grey: future keys (causal mask)';}
+  function draw(s,m,n){plane(m,n);lanes(m,n);table(s);if(P.hm)heat();}
+  function render(s){build(s);cur=PAIRS[s]||[2,0];draw(s,cur[0],cur[1]);}
+  async function animate(s,ctx,run){build(s);const from=(PAIRS[s-1]||[0,0]),to=PAIRS[s]||from;
+    await ctx.tween(1400,e=>{const m=from[0]+(to[0]-from[0])*e,n=from[1]+(to[1]-from[1])*e;plane(m,n);},run);draw(s,to[0],to[1]);await ctx.wait(400,run);}
+  function caption(s){const s20=score(2,0),s53=score(5,3),s97=score(9,7),s52=score(5,2);
+    if(s===0)return `RoPE does not add anything to the word vector. It <b>rotates</b> each query and key, pair by pair, by an angle proportional to its position: ${kx('\\tilde q_m = R(m\\omega)\\,q,\\ \\tilde k_n = R(n\\omega)\\,k')}, with the same ${kx('\\omega_i')} as the sin/cos encoding. Press <b>Next step \u25b8</b>.`;
+    if(s===1)return `<b>Query at position 2, key at position 0.</b> ${kx('\\tilde q')} is turned by 2 rad, ${kx('\\tilde k')} by 0. Score ${kx(`\\tilde q_2\\cdot\\tilde k_0 = ${PEH.f3(s20)}`)}.`;
+    if(s===2)return `<b>Move both 3 positions later</b> (5 and 3). Both arrows turn by 3 more radians, so the <b>angle between them does not change</b>: score ${kx(PEH.f3(s53))}, the same as before.`;
+    if(s===3)return `<b>Positions 9 and 7:</b> still 2 apart, still ${kx(PEH.f3(s97))}. Rotating both by the same extra angle never changes a dot product: ${kx('\\tilde q_m\\cdot\\tilde k_n = q^{\\top}R\\big((n-m)\\omega\\big)\\,k')}.`;
+    if(s===4)return `<b>Positions 5 and 2:</b> now 3 apart, a different angle, a different score: ${kx(PEH.f3(s52))}. The score depends on the content (q, k) and on the distance, nothing else.`;
+    return `<b>All query and key positions:</b> every diagonal holds one value, by construction, with no parameters and no extra terms. That is why most recent LLMs (LLaMA, Mistral, Qwen) use RoPE: it is applied inside every attention layer, to q and k only; the values are not rotated.`;}
+  return makeDeck('pe4',{n:5,render,animate,caption});
+}
+
+/* ---------- 5. learned positional embeddings: train one ---------- */
+function buildPE5(){
+  const st=document.getElementById('pe5-stage'),status=document.getElementById('pe5-status');
+  const MODES=[['learned','learned'],['sin','sinusoidal'],['rope','RoPE'],['none','none']],COLS={learned:'acc',sin:'blue',rope:'ok',none:'mut'};
+  const NAMES={learned:'learned table',sin:'sinusoidal',rope:'RoPE',none:'no positions'},STEPS=200;const TR={};
+  const LET='ABCDEFGH',demo=[3,0,6,1,4,7,2,5,0,3];
+  let view='learned',P={},curS=0;
+  const mark=segInto(document.getElementById('pe5-mode'),MODES,view,v=>{view=v;mark(v);draw(curS);});
+  document.getElementById('pe5-train').onclick=async()=>{const T=get(view);if(T.tr.steps()>=STEPS)return;status.textContent='training\u2026';
+    while(T.tr.steps()<STEPS){chunk(T,10);draw(curS);await new Promise(r=>setTimeout(r,0));}status.textContent='';draw(curS);};
+  function get(mode,fresh){if(fresh||!TR[mode]){const tr=dTrainer(3,mode,{lr:0.02});const e=tr.evaluate();TR[mode]={tr,hist:[{s:0,L:e.L,acc:e.acc}],last:e};}return TR[mode];}
+  function chunk(T,n){for(let k=0;k<n&&T.tr.steps()<STEPS;k++)T.tr.step();const e=T.tr.evaluate();T.hist.push({s:T.tr.steps(),L:e.L,acc:e.acc});T.last=e;}
+  function trainSync(mode){const T=get(mode);while(T.tr.steps()<STEPS)chunk(T,10);}
+  function posScore(T){const p=T.tr.P,tab=p.mode==='learned'?p.Pp:p.SIN;const Pq=dMm(tab,p.Wq),Pk=dMm(tab,p.Wk);return dMm(Pq,dT(Pk)).map(r=>r.map(v=>v/4));}
+  function build(s){st.innerHTML='';P={};
+    const l=flowLane(st,'fwd','the task: output the letter from 2 places back','10 random letters in, the letter 2 positions earlier out (no answer for the first two)');
+    const inp=kmat('\\text{input}',2,10,{rl:['\\text{letter}','\\text{target}'],cl:Array.from({length:10},(_,t)=>`t{=}${t}`),cw:'40px'});
+    demo.forEach((v,t)=>{setc(inp.cells[0][t],LET[v],t===7||t===5?'hot':'fwdv');setc(inp.cells[1][t],t<2?'\u2013':LET[demo[t-2]],t===7?'hot':'newv');});
+    l.append(inp);P.note=el('div','nstat');P.note.innerHTML='position 7 must copy position 5 (outlined): the model has to find \u201cthe token 2 before me\u201d, which only distance can tell';l.parentNode.parentNode.appendChild(P.note);
+    const row=el('div','dpanels');st.appendChild(row);
+    P.loss=pcp('\\text{accuracy on 64 held-out sequences}',380,230);row.appendChild(P.loss);
+    P.att=pcp('\\text{average attention } A_{mn}',300,290);row.appendChild(P.att);
+    P.ps=pcp('\\text{position-only score } (P W_Q)(P W_K)^{\\top}',300,290);row.appendChild(P.ps);
+    if(s>=4){P.cmp=el('div','dpanels');st.appendChild(P.cmp);P.small={};MODES.forEach(([m,lab])=>{const p=pcp(`\\text{${lab}}`,220,226);P.cmp.appendChild(p);P.small[m]=p;});}
+    if(s>=5){P.tab=el('div');st.appendChild(P.tab);}}
+  function chart(){const c=TC(),cv=P.loss.cv,ctx=cctx(cv),W=cv.__w,H=cv.__h,R={x:38,y:12,w:W-50,h:H-40},X=s=>R.x+s/STEPS*R.w,Y=a=>R.y+R.h-a*R.h;
+    ctx.strokeStyle=c.line;ctx.strokeRect(R.x,R.y,R.w,R.h);ctx.font='10px ui-monospace,monospace';ctx.fillStyle=c.mut;
+    [0,0.5,1].forEach(a=>{ctx.fillText((100*a)+'%',4,Y(a)+3);});ctx.textAlign='center';[0,100,200].forEach(s=>ctx.fillText(String(s),X(s),R.y+R.h+13));ctx.fillText('training step',R.x+R.w/2,H-4);ctx.textAlign='left';
+    ctx.strokeStyle=hexA(c.mut,0.5);ctx.setLineDash([3,3]);ctx.beginPath();ctx.moveTo(R.x,Y(1/8));ctx.lineTo(R.x+R.w,Y(1/8));ctx.stroke();ctx.setLineDash([]);ctx.fillText('1/8 = guessing',R.x+R.w-86,Y(1/8)-4);
+    const leg=[];MODES.forEach(([m])=>{const T=TR[m];if(!T||T.hist.length<2)return;ctx.strokeStyle=c[COLS[m]];ctx.lineWidth=m===view?2.6:1.6;ctx.beginPath();
+      T.hist.forEach((h,i)=>{const x=X(h.s),y=Y(h.acc);i?ctx.lineTo(x,y):ctx.moveTo(x,y);});ctx.stroke();leg.push(`<span style="color:var(--${COLS[m]})">\u25a0 ${NAMES[m]} ${(100*T.last.acc).toFixed(0)}%</span>`);});
+    const T=TR[view];P.loss.st.innerHTML=(T?`${NAMES[view]}: step ${T.tr.steps()} \u00b7 loss ${kx(T.last.L.toFixed(3))}<br>`:'')+leg.join(' \u00b7 ');}
+  function maps(){const T=get(view),A=T.last.A;const diag=A.slice(2).map((r,i)=>r[i]).reduce((a,c)=>a+c,0)/8;
+    peHeat(P.att.cv,A,{seq:true,vmax:1,tick:1,xl:'attended position n',yl:'position m',mask:(i,j)=>j>i,mark:Array.from({length:8},(_,i)=>[i+2,i])});
+    P.att.st.innerHTML=`outlined: the right answer, 2 back \u00b7 attention there: <b>${(100*diag).toFixed(0)}%</b>`;
+    if(view==='learned'||view==='sin'){const M=posScore(T),mk=M.slice(2).map((r,i)=>{let b=0;for(let j=1;j<=i+2;j++)if(r[j]>r[b])b=j;return [i+2,b];});
+      const hit=mk.filter(([i,j])=>j===i-2).length;
+      peHeat(P.ps.cv,M,{tick:1,xl:'position n',yl:'position m',mask:(i,j)=>j>i,mark:mk});
+      P.ps.tt.innerHTML=kx(view==='learned'?'\\text{position-only score } (PW_Q)(PW_K)^{\\top}/4':'\\text{position-only score } (\\mathrm{PE}\\,W_Q)(\\mathrm{PE}\\,W_K)^{\\top}/4');
+      P.ps.st.innerHTML=`outlined: each row\u2019s highest score \u00b7 on \u201c2 back\u201d in <b>${hit} of 8</b> rows`;}
+    else{cctx(P.ps.cv);P.ps.tt.innerHTML=kx('\\text{position-only score}');P.ps.st.innerHTML=view==='rope'?'RoPE has no position vectors: positions live in the rotation of q and k, so there is no separate position-only score':'no positions at all: nothing to show';}}
+  function smalls(){MODES.forEach(([m])=>{const T=TR[m];const p=P.small[m];if(!T){cctx(p.cv);return;}
+    peHeat(p.cv,T.last.A,{seq:true,vmax:1,col:TC()[COLS[m]],mask:(i,j)=>j>i,pad:{l:8,t:4,r:4,b:8}});
+    const diag=T.last.A.slice(2).map((r,i)=>r[i]).reduce((a,c)=>a+c,0)/8;p.st.innerHTML=`accuracy <b>${(100*T.last.acc).toFixed(0)}%</b> \u00b7 attention 2 back ${(100*diag).toFixed(0)}%`;});}
+  function tableTo(){P.tab.innerHTML=`<table class="rtab wide"><tr><th>method</th><th>how position enters</th><th>parameters</th><th>positions it can handle</th><th>used by</th><th>this task</th></tr>
+    <tr><td>learned table</td><td>${kx('x_t = E[w_t] + P_t')}</td><td>max length \u00d7 d</td><td class="chg">only up to the table size</td><td>BERT, GPT-2</td><td>${(100*TR.learned.last.acc).toFixed(0)}%</td></tr>
+    <tr><td>sinusoidal</td><td>${kx('x_t = E[w_t] + \\mathrm{PE}(t)')}</td><td>none</td><td>any (a formula)</td><td>original Transformer</td><td>${(100*TR.sin.last.acc).toFixed(0)}%</td></tr>
+    <tr><td>RoPE</td><td>${kx('\\tilde q_t = R(t\\omega)q_t,\\ \\tilde k_t = R(t\\omega)k_t')}</td><td>none</td><td>any (a formula); long contexts need extra tricks</td><td>LLaMA, Mistral, Qwen</td><td>${(100*TR.rope.last.acc).toFixed(0)}%</td></tr>
+    <tr><td>none</td><td>\u2013</td><td>none</td><td>\u2013</td><td>\u2013</td><td class="chg">${(100*TR.none.last.acc).toFixed(0)}%</td></tr></table>`;}
+  function draw(s){if(!P.loss)return;chart();maps();if(P.small)smalls();if(P.tab)tableTo();}
+  function prep(s){if(s<=1){if(TR.learned&&TR.learned.tr.steps()>0)get('learned',true);else get('learned');}
+    if(s>=2)trainSync('learned');if(s>=4)MODES.forEach(([m])=>trainSync(m));}
+  function render(s){curS=s;if(s<=3&&!(TR[view]&&TR[view].tr.steps()>0&&s>=2)){view='learned';mark(view);}prep(s);build(s);draw(s);}
+  async function animate(s,ctx,run){curS=s;
+    if(s===2){view='learned';mark(view);prep(1);build(s);draw(s);const T=get('learned');status.textContent='training\u2026';
+      while(T.tr.steps()<STEPS){chunk(T,5);draw(s);await ctx.wait(60,run);}status.textContent='';draw(s);return;}
+    if(s===4){prep(3);build(s);draw(s);status.textContent='training the other three\u2026';
+      for(const [m] of MODES){if(m==='learned')continue;const T=get(m);while(T.tr.steps()<STEPS){chunk(T,10);draw(s);await ctx.wait(30,run);}}status.textContent='';draw(s);return;}
+    render(s);await ctx.wait(500,run);}
+  function caption(s){const T=TR.learned;
+    if(s===0)return `Learned positional embeddings are the plainest option: a trainable table ${kx('P')} with one row per position, added to the word vector like a second embedding. Nothing about distance is built in. Can training discover it? Press <b>Next step \u25b8</b>.`;
+    if(s===1)return `<b>Before training.</b> One attention layer, ${kx('x_t = E[w_t] + P_t')}, ${kx('d = 16')}, 10 positions, 8 letters. ${kx('P')} is random, attention is spread out, accuracy is near guessing (1 in 8).`;
+    if(s===2)return `<b>Training</b> on random sequences (16 per step, Adam). Watch the attention map: it sharpens onto the outlined diagonal, \u201c2 back\u201d, and accuracy climbs to ${T?(100*T.last.acc).toFixed(0):'\u2026'}%.`;
+    if(s===3)return `<b>What did the table learn?</b> Take only the position rows and score them against each other: ${kx('(PW_Q)(PW_K)^{\\top}')}. In every row the highest score sits exactly 2 to the left. Nobody told it about distance; it learned \u201cposition m should look at m \u2212 2\u201d from data alone.`;
+    if(s===4)return `<b>All four methods</b>, same task, same training. Sinusoidal and RoPE also solve it. With <b>no positions</b> accuracy stalls near ${TR.none?(100*TR.none.last.acc).toFixed(0):'40'}%: it can only guess among the few letters visible at the start of a sequence. Click a method above to inspect it.`;
+    return `<b>Trade-offs.</b> The 2017 Transformer paper tried both a learned table and sin/cos and reported nearly identical results; they kept sin/cos because a formula can go past the longest training sequence, while a table has no row for position 1,025 in GPT-2. RoPE keeps the formula and makes the distance exact inside attention.`;}
+  return makeDeck('pe5',{n:5,render,animate,caption});
+}
+
 /* ================= boot ================= */
 const GROUPS=[
   {roman:'I',name:'Backprop on one number',short:'One number',ids:[['s1','the multiply rule'],['s2','add distributes'],['s3','subtract & square'],['s4','the chain']]},
@@ -4756,7 +5275,7 @@ const GROUPS=[
   {roman:'IV',name:'Learning from data',short:'Data & batches',ids:[['t1','sampling'],['s8','batch gradients'],['t2','SGD: more steps'],['t3','train / val / test']]},
   {roman:'V',name:'Regularization',short:'Regularization',ids:[['r1','why regularize'],['r2','regularization in backprop'],['r3','L2 · weight decay'],['r4','L1 · constant pull'],['r5','L1 vs L2 · the picture'],['r6','dropout'],['r7','in practice']]},
   {roman:'VI',name:'Going deep: residuals & normalization',short:'Going deep',ids:[['s15','residual networks'],['n1','activations & distributions'],['n2','vanishing gradients'],['n3','30 layers \u00b1 normalization'],['n4','batch norm'],['n5','batch vs layer norm'],['s12','layer norm in detail']]},
-  {roman:'VII',name:'Build a mini-LLM',short:'Mini-LLM',ids:[['s9','embeddings'],['s10','the FFN'],['s11','attention'],['s13','the full block'],['s14','KV cache & GQA']]},
+  {roman:'VII',name:'Build a mini-LLM',short:'Mini-LLM',ids:[['s9','embeddings'],['s10','the FFN'],['s11','attention'],['pe1','positions: why'],['pe2','sin & cos waves'],['pe3','dot product = distance'],['pe4','RoPE'],['pe5','learned positions'],['s13','the full block'],['s14','KV cache & GQA']]},
 ];
 function boot(){
   document.querySelectorAll('.tex[data-tex]').forEach(e=>{
@@ -4764,7 +5283,7 @@ function boot(){
   });
   document.querySelectorAll('.tex-i[data-tex]').forEach(e=>{e.innerHTML=kx(e.dataset.tex,false);});
   const NEW={v1:buildV1(),v2:buildV2(),v3:buildV3(),m1:buildM1(),t1:buildT1(),t2:buildT2(),t3:buildT3(),
-    n1:buildN1(),n2:buildN2(),n3:buildN3(),n4:buildN4(),n5:buildN5()};
+    n1:buildN1(),n2:buildN2(),n3:buildN3(),n4:buildN4(),n5:buildN5(),pe1:buildPE1(),pe2:buildPE2(),pe3:buildPE3(),pe4:buildPE4(),pe5:buildPE5()};
   window.__decks=NEW;
   const s2=buildSlide2();
   const s3=buildSlide3();
@@ -4855,10 +5374,12 @@ function boot(){
     Object.values(STOP).forEach(f=>f());
     history.replaceState(null,'','#'+(cur+1));
     if(!played.has(id)){played.add(id);PLAY[id]&&PLAY[id]();}
-    window.scrollTo({top:0,behavior:'smooth'});
+    window.scrollTo({top:0,behavior:'smooth'});fitSoon();
   };
-  window.__show=i=>show(i);
+  window.__show=i=>{show(i);fitSoon();};
   window.__order=ORDER;
+  const mainEl=document.querySelector('main');new MutationObserver(fitSoon).observe(mainEl,{childList:true,subtree:true});
+  new ResizeObserver(fitSoon).observe(mainEl);
   document.addEventListener('keydown',e=>{
     if(e.target!==document.body)return;
     if(e.code==='ArrowRight')show(cur+1);
@@ -4869,6 +5390,11 @@ function boot(){
   const hh=parseInt((location.hash||'').slice(1),10);
   show(hh>=1&&hh<=N?hh-1:0);
 }
+/* a lane wider than its column is scaled down to fit (never below 80%) instead of being cut off; lanes that fit are untouched */
+function fitStages(){document.querySelectorAll('.slide.active .stage').forEach(st=>{const kids=[...st.children];if(!kids.length||!st.offsetParent)return;
+  kids.forEach(k=>{if(k.style.zoom)k.style.zoom='';});const cw=st.clientWidth,sw=st.scrollWidth;if(!cw||sw<=cw+1)return;
+  const z=Math.max(0.8,Math.floor((cw-2)/sw*1000)/1000);kids.forEach(k=>{k.style.zoom=z;});});}
+let fitQ=0;function fitSoon(){if(!fitQ)fitQ=requestAnimationFrame(()=>{fitQ=0;fitStages();});}
 document.addEventListener('DOMContentLoaded',boot);
 </script>
 </body>
